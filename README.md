@@ -112,8 +112,9 @@ mouseReleased = mouseUp
 
 #### Dialogs
 
-The HTML dialog uses the SWT Browser
-Some dialog uses  JFace
+The HTML dialog uses the SWT Browser.
+
+Some dialogs are based on JFace.
 
 #### GenericDialog
 
