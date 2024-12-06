@@ -42,9 +42,9 @@ If you want to start it with another IDE put the required libraries on the Java 
 
 ## ImageJ User Guides and Books
 
-[https://imagej.net/ij/docs/guide/](https://imagej.net/ij/docs/guide/)
+User Guide: [https://imagej.net/ij/docs/guide/](https://imagej.net/ij/docs/guide/)
 
-[https://imagingbook.com/](https://imagingbook.com/)
+Book: [https://imagingbook.com/](https://imagingbook.com/)
 
 ## General SWT differences
 
