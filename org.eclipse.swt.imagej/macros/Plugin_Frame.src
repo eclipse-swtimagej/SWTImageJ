@@ -1,0 +1,26 @@
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import ij.gui.GUI;
+import ij.plugin.frame.PlugInFrame;
+
+public class Plugin_Frame extends PlugInFrame {
+
+	public Plugin_Frame() {
+		super("Plugin_Frame");
+		Display.getDefault().syncExec(() -> {
+		    /*Shell is already in superclass!*/
+			shell.setText("Plugin_Frame");
+			GridLayout layout = new GridLayout(1, true);
+			shell.setLayout(layout);
+			StyledText textPanel = new StyledText(shell, SWT.NONE);
+			textPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			GUI.center(shell);
+			shell.setSize(300,300);
+			shell.layout();
+			shell.setVisible(true);
+		});
+	}
+}

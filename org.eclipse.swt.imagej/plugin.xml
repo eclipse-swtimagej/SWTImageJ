@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            file-extensions="jpg,jpeg,tif,tiff,TIF,TIFF,png,bmp,gif,avi,pnm,dcm,roi,pgm,pbm"
+            id="net.openchrom.imagej.editor.ijcontenttype"
+            name="name"
+            priority="normal">
+      </content-type>
+   </extension>
+
+</plugin>

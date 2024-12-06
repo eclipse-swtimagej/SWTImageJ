@@ -1,0 +1,15 @@
+If you want to start ImageJ as a desktop application you have to add the SWT and JFace libraries here (preferred)
+and to the Java runtime classpath!
+
+At the moment the following libs are required
+which can, e.g., be copied from an Eclipse IDE distribution (plugins directory):
+
+org.eclipse.core.commands
+org.eclipse.core.runtime
+org.eclipse.equinox.common
+org.eclipse.jface
+org.eclipse.jface.text
+org.eclipse.osgi
+org.eclipse.swt
+org.eclipse.swt.cocoa.macosx.aarch64 (the OS dependent swt natives - change for your OS!)
+org.eclipse.text
