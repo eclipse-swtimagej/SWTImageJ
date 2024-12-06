@@ -32,7 +32,8 @@ Abramoff, M.D., Magalhaes, P.J., Ram, S.J. "Image Processing with ImageJ". Bioph
 
 ## Run SWTImageJ
 
-To start SwtImageJ as an Desktop application import the project into Eclipse. 
+To start SwtImageJ as an Desktop application simply import the plugin project into Eclipse.
+
 Then select the ImageJ.java file (package ij) and execute the action "Run As->Java Application".
 
 In Eclipse the needed SWT and Eclipe libraries should be available automatically.
