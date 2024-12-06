@@ -30,7 +30,13 @@ Schneider, C.A., Rasband, W.S., Eliceiri, K.W. "NIH Image to ImageJ: 25 years of
 
 Abramoff, M.D., Magalhaes, P.J., Ram, S.J. "Image Processing with ImageJ". Biophotonics International, volume 11, issue 7, pp. 36-42, 2004. (This article is available as a PDF.)
 
-## Run SWTImageJ
+### ImageJ User Guides and Books
+
+User Guide: [https://imagej.net/ij/docs/guide/](https://imagej.net/ij/docs/guide/)
+
+Book: [https://imagingbook.com/](https://imagingbook.com/)
+
+### Run SWTImageJ
 
 To start SwtImageJ as an Desktop application simply import the plugin project into Eclipse.
 
@@ -40,13 +46,7 @@ In Eclipse the needed SWT and Eclipe libraries should be available automatically
 
 If you want to start it with another IDE put the required libraries on the Java classpath (see info.txt in the folder "libs").
 
-## ImageJ User Guides and Books
-
-User Guide: [https://imagej.net/ij/docs/guide/](https://imagej.net/ij/docs/guide/)
-
-Book: [https://imagingbook.com/](https://imagingbook.com/)
-
-## General SWT differences
+### General SWT implementation
 
 In ImageJ the user interface or the image display (ImageWindow) are AWT Frames or Dialogs. In SWT the shells are created within the classes with some custom methods.
 The reasons are noted in the API description and here: 
@@ -67,7 +67,7 @@ For efficiency the painting area is restricted to the visible shell or editor ar
 
 Many classes used the AWTEvent as an argument in the interface ij.gui.DialogListener method dialogItemChanged. This was ported to a SWT TypedEvent for SWT.
 
-## List of some typical SWT replacements
+### List of some typical SWT replacements
 
 #### Listeners:
 
