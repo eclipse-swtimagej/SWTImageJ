@@ -40,6 +40,10 @@ In Eclipse the needed SWT and Eclipe libraries should be available automatically
 
 If you want to start it with another IDE put the required libraries on the Java classpath (see info.txt in the folder "libs").
 
+## ImageJ User Guides and Books
+
+[https://imagej.net/ij/docs/guide/](https://imagej.net/ij/docs/guide/)
+[https://imagingbook.com/](https://imagingbook.com/)
 
 ## General SWT differences
 
