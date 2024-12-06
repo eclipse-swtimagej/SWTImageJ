@@ -124,7 +124,7 @@ Some dialogs are based on JFace.
 #### GenericDialog
 
 In AWT the GenericDialog widgets are not explicitly disposed when closed. Some widget are still accessed after the close event in AWT. This is not possible
-not possible in SWT. To mimic this behaviour the SWT dialog is hidden when closed and stored in a list. 
+in SWT. To mimic this behaviour the SWT dialog is hidden when closed and stored in a list. 
 It will be disposed when a new GenericDialog is opened.
 
 #### Layout differences
