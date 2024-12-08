@@ -1,4 +1,9 @@
 /*******************************************************************************
+ImageJ is being developed, since 1997, by Wayne Rasband and numerous contributors
+The original ImageJ is public domain software, see: https://github.com/imagej/ImageJ/blob/master/LICENSE.txt
+ *******************************************************************************/
+/*
+/*******************************************************************************
  * SWT distribution of ImageJ.
  * Copyright (c) 2021 Lablicate GmbH.
  *
