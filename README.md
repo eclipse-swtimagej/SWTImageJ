@@ -36,6 +36,14 @@ User Guide: [https://imagej.net/ij/docs/guide/](https://imagej.net/ij/docs/guide
 
 Book: [https://imagingbook.com/](https://imagingbook.com/)
 
+### ImageJ Forum
+
+Mailing List: [https://list.nih.gov/cgi-bin/wa.exe?A0=IMAGEJ](https://list.nih.gov/cgi-bin/wa.exe?A0=IMAGEJ)
+
+Forum: [https://forum.image.sc/tag/imagej](https://forum.image.sc/tag/imagej)
+
+Stack Overflow:   [https://stackoverflow.com/questions/tagged/imagej](https://stackoverflow.com/questions/tagged/imagej)
+
 ### Run SWTImageJ
 
 To start SwtImageJ as an Desktop application simply import the plugin project into Eclipse.
