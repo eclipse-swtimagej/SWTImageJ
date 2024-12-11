@@ -106,7 +106,7 @@ public void widgetSelected(SelectionEvent e) {
 }
 ```
 
-#### Widgets:
+#### SWT Widgets:
 
 Checkbox -> Button (SWT.CHECK)
 
@@ -114,7 +114,17 @@ Choice -> List
 
 addRadioButtonGroup -> Group with Button(SWT.RADIO)
 
-#### PluginTool
+#### Dialogs
+
+The HTML dialog uses the SWT Browser.
+
+Some dialogs are based on JFace.
+
+#### Layout differences
+
+Instead of the BorderLayout most of the times the SWT GridLayout is used which can be applied very flexible to components.
+
+#### ImageJ PluginTool
 
 You have to import SWT Listeners:
 import org.eclipse.swt.events.*;
@@ -123,20 +133,11 @@ Some mouse events are not available in SWT. You have to change the following lis
 mousePressed = mouseDown
 mouseReleased = mouseUp
 
-#### Dialogs
-
-The HTML dialog uses the SWT Browser.
-
-Some dialogs are based on JFace.
-
-#### GenericDialog
+#### ImageJ GenericDialog
 
 In AWT the GenericDialog widgets are not explicitly disposed when closed. Some widget are still accessed after the close event in AWT. This is not possible
 in SWT. To mimic this behaviour the SWT dialog is hidden when closed and stored in a list. 
 It will be disposed when a new GenericDialog is opened.
 
-#### Layout differences
-
-Instead of the BorderLayout most of the times the SWT GridLayout is used which can be applied very flexible to components.
 
 
