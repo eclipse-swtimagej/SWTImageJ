@@ -52,7 +52,7 @@ Then select the ImageJ.java file (package ij) and execute the action "Run As->Ja
 
 In Eclipse the needed SWT and Eclipe libraries should be available automatically.
 
-If you want to start it with another IDE put the required libraries on the Java classpath (see info.txt in the folder "libs").
+If you want to start it with another IDE put the required libraries on the Java classpath see [info.txt](https://github.com/eclipse-swtimagej/SWTImageJ/blob/main/org.eclipse.swt.imagej/libs/info.txt) in the folder "libs".
 
 ### General SWT implementation
 
