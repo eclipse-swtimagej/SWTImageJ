@@ -1300,7 +1300,6 @@ public class Functions implements MacroConstants, Measurements {
 		}
 		IJ.selectWindow(title);
 		resetImage();
-		interp.selectCount++;
 	}
 
 	void setForegroundColor() {
@@ -3992,7 +3991,6 @@ public class Functions implements MacroConstants, Measurements {
 			interp.getRightParen();
 		}
 		resetImage();
-		interp.selectCount++;
 	}
 
 	void selectImage(String title) {

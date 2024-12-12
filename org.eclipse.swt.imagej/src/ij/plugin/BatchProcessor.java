@@ -4,6 +4,7 @@ import ij.*;
 import ij.process.*;
 import ij.gui.*;
 import ij.util.Tools;
+import ij.util.StringSorter;
 import ij.io.*;
 import ij.macro.Interpreter;
 import java.awt.*;
@@ -193,6 +194,7 @@ public class BatchProcessor implements PlugIn, Runnable {
 		list = FolderOpener.getFilteredList(list, filter, "Batch Processor");
 		if(list == null)
 			return;
+		StringSorter.sort(list);
 		int index = 0;
 		int startingCount = WindowManager.getImageCount();
 		for(int i = 0; i < list.length; i++) {

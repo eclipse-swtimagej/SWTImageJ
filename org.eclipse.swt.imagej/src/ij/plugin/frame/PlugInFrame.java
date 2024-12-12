@@ -22,33 +22,6 @@ public class PlugInFrame implements PlugIn, WindowSwt, ShellListener, org.eclips
 
 	String title;
 	public Shell shell;
-
-	/*public String getTitle() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				title = shell.getText();
-			}
-		});
-		return title;
-	}
-
-	public void setTitle(String title) {
-
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				PlugInFrame.this.title=title;
-				shell.setText(title);
-			}
-		});
-	}
-	
-	public void toFront() {
-	    shell.getDisplay().syncExec(new Runnable() {
-	        public void run() {
-	            shell.forceActive();
-	        }
-	    });
-	}*/
 	
 	public PlugInFrame(String title) {
 		this(title,SWT.DIALOG_TRIM | SWT.RESIZE);
@@ -92,10 +65,7 @@ public class PlugInFrame implements PlugIn, WindowSwt, ShellListener, org.eclips
 
 	@Override
 	public void shellActivated(ShellEvent e) {
-		if (Prefs.setIJMenuBar) {
-			// this.setMenuBar(Menus.getMenuBar());
-			Menus.setMenuBarCount++;
-		}
+		
 		WindowManager.setWindow(this);
 
 	}

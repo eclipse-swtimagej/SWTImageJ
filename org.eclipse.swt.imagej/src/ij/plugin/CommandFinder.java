@@ -232,6 +232,7 @@ public class CommandFinder implements WindowSwt, PlugIn, SelectionListener, Shel
 		long now = System.currentTimeMillis();
 		int row = table.getSelectionIndex();
 		TableItem[] selection = table.getSelection();
+		IJ.wait(10);
 		StringBuffer buff = new StringBuffer();
 		for(int i = 0; i < selection.length; i++) {
 			buff.append(selection[i] + " ");
@@ -240,7 +241,10 @@ public class CommandFinder implements WindowSwt, PlugIn, SelectionListener, Shel
 		// if (tableModel==null)
 		// return;
 		String value = buff.toString();
-		IJ.showStatus(value);
+		if (value!=null)
+			IJ.showStatus(value);
+		else
+			IJ.showStatus("");
 		// Is this fast enough to be a double-click?
 		long thisClickInterval = now - lastClickTime;
 		if(thisClickInterval < multiClickInterval) {
@@ -818,8 +822,6 @@ public class CommandFinder implements WindowSwt, PlugIn, SelectionListener, Shel
 
 	@Override
 	public void shellActivated(ShellEvent e) {
-		// if (IJ.isMacOSX() && shell != null && Prefs.setIJMenuBar)
-		// shell.setMenuBar(Menus.getMenuBar());
 
 	}
 
