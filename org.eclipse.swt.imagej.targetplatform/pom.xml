@@ -1,0 +1,16 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.eclipse.swt.imagej</groupId>
+	<artifactId>org.eclipse.swt.imagej.targetplatform</artifactId>
+	<version>1.5.0</version>
+	<name>Target Project</name>
+	<description>This contains the target definition used to build Eclipse SWTImageJ</description>
+	<packaging>eclipse-target-definition</packaging>
+	<parent>
+		<groupId>org.eclipse.swt.imagej</groupId>
+			<artifactId>org.eclipse.swt.imagej.build</artifactId>
+		<version>1.5.0</version>
+		<relativePath>../org.eclipse.swt.imagej.cbi/pom.xml</relativePath>
+	</parent>
+</project>
