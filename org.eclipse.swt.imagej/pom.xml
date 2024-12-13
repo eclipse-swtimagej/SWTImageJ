@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.eclipse.swt.imagej</groupId>
+		<artifactId>org.eclipse.swt.imagej.build</artifactId>
+		<version>1.5.0</version>
+		<relativePath>../org.eclipse.swt.imagej.cbi/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>org.eclipse.swt.imagej</artifactId>
+	<packaging>eclipse-plugin</packaging>
+	<version>1.5.0-SNAPSHOT</version>
+
+</project>
