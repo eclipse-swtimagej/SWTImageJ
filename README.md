@@ -63,7 +63,7 @@ Left and right rules for markers are available, too, for a possible later implem
 
 ### Compile Java Plugins
 
-The compilation of plugins is supported. If necessary some default plugin templates were ported to SWT. 
+The compilation of plugins is supported. The default ImageJ plugin templates were ported to SWT. 
 
 In the plugins folder itself a two class template is available where the canvas can directly opened and edited with the Eclipse WindowBuilder (SWTComposite.java). Use the action "Plugins->Compile And Run..." and compile the main class (Plugin_Shell.java) for the composite in the plugins folder of SwtImageJ (the plugins folder is on the ImageJ classpath).
 
