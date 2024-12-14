@@ -59,7 +59,7 @@ If you want to start it with another IDE put the required libraries on the Java 
 Probably most of the ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) should run.
 
 In SWTImageJ the Java and Macro/Script editor was ported to the SWT StyledText widget with code templates (press control-space) and syntax highlighting.
-Left and right rules for markers are available, too, for a possibly later implementation of error markers.
+Left and right rulers for markers are available, too, for a possibly later implementation of error markers.
 
 ### Compile Java Plugins
 
