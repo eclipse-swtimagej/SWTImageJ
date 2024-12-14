@@ -17,7 +17,7 @@ Since it’s long history the default Graphical User interface (GUI) is the AWT 
 While AWT has served ImageJ well, porting it to the Standard Widget Toolkit (SWT) offers several advantages, including a native look and feel
 across different Operating Systems, regular updates, an active development team and a well established organization dedicated to OpenSource.
 
-A former port of the AWT interface to SWT_AWT (for embedding AWT/Swing applications in SWT) has already been created and is freely available
+A former port of the AWT interface to SWT_AWT (for embedding AWT/Swing applications in SWT) has already been created (released 2007 within an RCP application) and is freely available
 as an Eclipse plugin (see https://marketplace.eclipse.org/content/imagej-plugin). 
 However a pure SWT port simplifies the development efforts and avoids a lot of technical workarounds when dealing with embedded AWT/Swing applications.
 
@@ -59,13 +59,13 @@ If you want to start it with another IDE put the required libraries on the Java 
 Probably most of the ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) should run.
 
 In SWTImageJ the Java and Macro/Script editor was ported to the SWT StyledText widget with code templates (press control-space) and syntax highlighting.
-Left and right rules for markers are available, too, for a possible later implementation of error markers.
+Left and right rules for markers are available, too, for a possibly later implementation of error markers.
 
 ### Compile Java Plugins
 
-The compilation of plugins is supported. The default ImageJ plugin templates were ported to SWT. 
+The compilation of plugins is supported. The default ImageJ plugin templates ("Plugins->New->Plugin XXX") were ported to SWT. 
 
-In the plugins folder itself a two class template is available where the canvas can directly opened and edited with the Eclipse WindowBuilder (SWTComposite.java). Use the action "Plugins->Compile And Run..." and compile the main class (Plugin_Shell.java) for the composite in the plugins folder of SwtImageJ (the plugins folder is on the ImageJ classpath).
+In the plugins folder itself a two class template is available, too, where the dependent canvas class can directly opened and edited with the Eclipse WindowBuilder (SWTComposite.java). Use the action "Plugins->Compile And Run..." and compile the main class (Plugin_Shell.java) for the composite in the plugins folder of SwtImageJ (the plugins folder is on the ImageJ classpath).
 
 As known from ImageJ newly compiled plugins can be loaded dynamically with the menu "Help->Refresh Menus".
 
