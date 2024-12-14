@@ -48,7 +48,7 @@ Stack Overflow:   [https://stackoverflow.com/questions/tagged/imagej](https://st
 
 To start SwtImageJ as an Desktop application simply import the plugin project into Eclipse.
 
-Then select the ImageJ.java file (package ij) and execute the action "Run As->Java Application".
+Then select the [ImageJ.java](https://github.com/eclipse-swtimagej/SWTImageJ/tree/main/org.eclipse.swt.imagej/src/ij) file (package ij) and execute the action "Run As->Java Application".
 
 In Eclipse the needed SWT and Eclipe libraries should be available automatically.
 
