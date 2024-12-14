@@ -54,7 +54,24 @@ In Eclipse the needed SWT and Eclipe libraries should be available automatically
 
 If you want to start it with another IDE put the required libraries on the Java classpath see [info.txt](https://github.com/eclipse-swtimagej/SWTImageJ/blob/main/org.eclipse.swt.imagej/libs/info.txt) in the folder "libs".
 
+### ImageJ Macros and Scripts
+
+Probably most of the ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) should run.
+
+In SWTImageJ the Java and Macro/Script editor was ported to the SWT StyledText widget with code templates (press control-space) and syntax highlighting.
+Left and right rules for markers are available, too, for a possible later implementation of error markers.
+
+### Compile Java Plugins
+
+The compilation of plugins is supported. If necessary some default plugin templates were ported to SWT. 
+
+In the plugins folder itself a two class template is available where the canvas can directly opened and edited with the Eclipse WindowBuilder (SWTComposite.java). Use the action "Plugins->Compile And Run..." and compile the main class (Plugin_Shell.java) for the composite in the plugins folder of SwtImageJ (the plugins folder is on the ImageJ classpath).
+
+As known from ImageJ newly compiled plugins can be loaded dynamically with the menu "Help->Refresh Menus".
+
 ### General SWT implementation
+
+In general the SwtImageJ implementation follows the general ImageJ layout of packages, classes and folders familiar to ImageJ developers. 
 
 In ImageJ the user interface or the image display (ImageWindow) are AWT Frames or Dialogs. In SWT the shells are created within the classes with some custom methods.
 The reasons are noted in the API description and here: 
@@ -124,10 +141,7 @@ Some dialogs are based on JFace.
 
 Instead of the BorderLayout most of the times the SWT GridLayout is used which can be applied very flexible to components.
 
-#### ImageJ PluginTool
-
-You have to import SWT Listeners:
-import org.eclipse.swt.events.*;
+#### Mouse Listeners
 
 Some mouse events are not available in SWT. You have to change the following listeners:
 mousePressed = mouseDown
@@ -138,6 +152,16 @@ mouseReleased = mouseUp
 In AWT the GenericDialog widgets are not explicitly disposed when closed. Some widget are still accessed after the close event in AWT. This is not possible
 in SWT. To mimic this behaviour the SWT dialog is hidden when closed and stored in a list. 
 It will be disposed when a new GenericDialog is opened.
+
+### How to convert existing ImageJ Plugins
+
+#### ImageJ PluginTool
+
+You have to import SWT Listeners:
+
+import org.eclipse.swt.events.*;
+See the Plugin Tool template which was ported to SWT.
+
 
 
 
