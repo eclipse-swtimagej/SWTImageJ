@@ -46,7 +46,7 @@ Stack Overflow:   [https://stackoverflow.com/questions/tagged/imagej](https://st
 
 ### Run SWTImageJ
 
-To start SwtImageJ as an Desktop application simply import the plugin project into Eclipse.
+To start SWTImageJ as an Desktop application simply import the plugin project into Eclipse.
 
 Then select the [ImageJ.java](https://github.com/eclipse-swtimagej/SWTImageJ/tree/main/org.eclipse.swt.imagej/src/ij) file (package ij) and execute the action "Run As->Java Application".
 
@@ -71,7 +71,7 @@ As known from ImageJ newly compiled plugins can be loaded dynamically with the m
 
 ### General SWT implementation
 
-In general the SwtImageJ implementation follows the general ImageJ layout of packages, classes and folders familiar to ImageJ developers. 
+In general the SWTImageJ implementation follows the general ImageJ layout of packages, classes and folders familiar to ImageJ developers. 
 
 In ImageJ the user interface or the image display (ImageWindow) are AWT Frames or Dialogs. In SWT the shells are created within the classes with some custom methods.
 The reasons are noted in the API description and here: 
