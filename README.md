@@ -74,13 +74,11 @@ As known from ImageJ newly compiled plugins can be loaded dynamically with the m
 In general the SWTImageJ implementation follows the general ImageJ layout of packages, classes and folders familiar to ImageJ developers. 
 
 In ImageJ the user interface or the image display (ImageWindow) are AWT Frames or Dialogs. In SWT the shells are created within the classes with some custom methods.
-The reasons are noted in the API description and here: 
+The reasons are noted in the API description (see API description 1, 2) and on StackOverflow: 
 
-https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fwidgets%2FWidget.html
-
-https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fwidgets%2FWidget.html&anchor=checkSubclass()
-
-https://stackoverflow.com/questions/4264983/why-is-subclassing-not-allowed-for-many-of-the-swt-controls
+[Link API description 1](https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fwidgets%2FWidget.html)
+, [Link API description 2](https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fwidgets%2FWidget.html&anchor=checkSubclass())
+, [Stack Overflow](https://stackoverflow.com/questions/4264983/why-is-subclassing-not-allowed-for-many-of-the-swt-controls)
 
 To identify them in the WindowManager (responsible to address open images, etc.) an interface has been created (ij.plugin.frame.swt.WindowSwt) implemented by dialogs, etc., 
 which were former Frame and Dialog instances. Some typical Frame events have been integrated in the interface as default methods.
