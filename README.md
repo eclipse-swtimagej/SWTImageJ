@@ -56,7 +56,8 @@ If you want to start it with another IDE put the required libraries on the Java 
 
 ### ImageJ Macros and Scripts
 
-Probably most of the ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) should run.
+Available ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) using the default ImageJ macro functions or ImageJ API should run. However sometimes source corrections for SWT are necessary.
+
 
 In SWTImageJ the Java and Macro/Script editor was ported to the SWT StyledText widget with code templates (press control-space) and syntax highlighting.
 Left and right rulers for markers are available, too, for a possibly later implementation of error markers.
@@ -158,6 +159,7 @@ It will be disposed when a new GenericDialog is opened.
 You have to import SWT Listeners:
 
 import org.eclipse.swt.events.*;
+
 See the Plugin Tool template which was ported to SWT.
 
 
