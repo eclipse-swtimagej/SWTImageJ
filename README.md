@@ -54,6 +54,12 @@ In Eclipse the needed SWT and Eclipe libraries should be available automatically
 
 If you want to start it with another IDE put the required libraries on the Java classpath see [info.txt](https://github.com/eclipse-swtimagej/SWTImageJ/blob/main/org.eclipse.swt.imagej/libs/info.txt) in the folder "libs".
 
+### Built SWTImageJ as a *.jar (not runnable)
+
+To built SWTImageJ as a *.jar library use Maven in the SWTImageJ directory with:
+
+mvn -f org.eclipse.swt.imagej.cbi/pom.xml clean install
+
 ### ImageJ Macros and Scripts
 
 Available ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) using the default ImageJ macro functions or ImageJ API should run. However sometimes source corrections for SWT are necessary.
