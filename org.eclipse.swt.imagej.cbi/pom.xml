@@ -183,6 +183,28 @@
             </snapshotRepository>
          </distributionManagement>
          <build>
+           <resources>
+			<resource>
+				<directory>${project.basedir}</directory>
+				<includes>
+					<include>IJ_Props.txt</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/images</directory>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/macros</directory>
+				<targetPath>macros</targetPath>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/plugins</directory>
+				<targetPath>ij/plugin</targetPath>
+				<includes>
+					<include>**/*.class</include>
+				</includes>
+			</resource>
+		   </resources>
             <plugins>
                <plugin>
                   <groupId>org.sonatype.plugins</groupId>
