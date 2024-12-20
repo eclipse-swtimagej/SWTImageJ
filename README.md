@@ -95,7 +95,7 @@ is larger then the shell (parent canvas fills the shell) the zoom indicator will
 
 For efficiency the painting area is restricted to the visible shell or editor area.
 
-Many classes used the AWTEvent as an argument in the interface ij.gui.DialogListener method dialogItemChanged. This was ported to a SWT TypedEvent for SWT.
+In the original ImageJ implementation the AWTEvent is used as an argument with the ij.gui.DialogListener interface method dialogItemChanged. This was ported to a TypedEvent argument for SWT.
 
 ### List of some typical SWT replacements
 
