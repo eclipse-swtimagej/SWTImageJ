@@ -6,15 +6,16 @@ import ij.plugin.*;
 import ij.*;
 
 /*
- This is a fast version of the Game of Life in the ImageJ Panel. 
- An image will be automatically created in the ImageJ panel of Bio7  
- if you start the calculation thread!
- This example only works correctly if no image is activated in the ImageJ view!
+ * This is a version of the Game of Life in the ImageJ Panel.
+ * Press Esc to stop the calculation!
+ * Note that it is possible to store the intermediate results in 
+ * the same image with bit-shifts operations using, e.g., a ColorProcessor.  .
+ * However here we use a temporary 2d-array for didactical purposes.
  */
 
 public class ImageJ_FastGameOfLife_ implements PlugIn {
-	int WIDTH = 3000;
-	int HEIGHT = 3000;
+	int WIDTH = 1000;
+	int HEIGHT = 1000;
 	int[][] temp;
 	int[] state = { 0, 255 };
 	ImagePlus imp;
