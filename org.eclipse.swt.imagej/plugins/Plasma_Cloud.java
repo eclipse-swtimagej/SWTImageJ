@@ -38,7 +38,7 @@ public class Plasma_Cloud implements PlugIn {
             break;
         };
         IJ.showStatus((i+1)+"/"+n+" ("+time+"ms)");
-        IJ.wait(25);
+        //IJ.wait(25);
      }
      long time = System.currentTimeMillis() - t0;
      String fps = IJ.d2s(n/(time/1000),1);
