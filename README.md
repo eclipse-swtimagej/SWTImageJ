@@ -60,6 +60,8 @@ To built SWTImageJ as a *.jar library use Maven in the SWTImageJ directory with:
 
 mvn -f org.eclipse.swt.imagej.cbi/pom.xml clean install
 
+To integrate more libraries with Maven and the target platform , see: [https://www.vogella.com/tutorials/EclipseJarToPlugin/article.html](https://www.vogella.com/tutorials/EclipseJarToPlugin/article.html)
+
 ### ImageJ Macros and Scripts
 
 Available ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) using the default ImageJ macro functions or ImageJ API should run. However sometimes source corrections for SWT are necessary.
