@@ -17,7 +17,7 @@ Since it’s long history the default Graphical User interface (GUI) is the AWT 
 While AWT has served ImageJ well, porting it to the Standard Widget Toolkit (SWT) offers several advantages, including a native look and feel
 across different Operating Systems, regular updates, an active development team and a well established organization dedicated to OpenSource.
 
-A former port of the AWT interface to SWT_AWT (for embedding AWT/Swing applications in SWT) has already been created (released 2007 within an RCP application) and is freely available
+A former port of the AWT interface to [SWT_AWT](https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fawt%2FSWT_AWT.html) (for embedding AWT/Swing applications in SWT) has already been created (released 2007 within an RCP application) and is freely available
 as an Eclipse plugin (see https://marketplace.eclipse.org/content/imagej-plugin). 
 However a pure SWT port simplifies the development efforts and avoids a lot of technical workarounds when dealing with embedded AWT/Swing applications.
 
