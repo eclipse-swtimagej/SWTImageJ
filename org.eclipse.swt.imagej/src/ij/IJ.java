@@ -105,11 +105,14 @@ public class IJ {
 	/** SansSerif, plain, 10-point font */
 	// public static Font font10 = new Font("SansSerif", Font.PLAIN, 10);
 	public static org.eclipse.swt.graphics.Font defaultSystemFont = Display.getDefault().getSystemFont();
-	public static org.eclipse.swt.graphics.Font font10 = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("SansSerif", 10, SWT.NORMAL));
+	public static org.eclipse.swt.graphics.Font font10 = new org.eclipse.swt.graphics.Font(Display.getDefault(),
+			new FontData("SansSerif", 10, SWT.NORMAL));
 	/** SansSerif, plain, 12-point font */
-	public static org.eclipse.swt.graphics.Font font12Swt = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("SansSerif", 12, SWT.NORMAL));
+	public static org.eclipse.swt.graphics.Font font12Swt = new org.eclipse.swt.graphics.Font(Display.getDefault(),
+			new FontData("SansSerif", 12, SWT.NORMAL));
 	/** SansSerif, plain, 12-point font */
-	public static org.eclipse.swt.graphics.Font font14Swt = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("SansSerif", 14, SWT.NORMAL));
+	public static org.eclipse.swt.graphics.Font font14Swt = new org.eclipse.swt.graphics.Font(Display.getDefault(),
+			new FontData("SansSerif", 14, SWT.NORMAL));
 	public static Font font12 = ImageJ.SansSerif12;
 	/** SansSerif, plain, 14-point font */
 	public static Font font14 = ImageJ.SansSerif14;
@@ -164,19 +167,19 @@ public class IJ {
 		isMac = !isWin && osname.startsWith("Mac");
 		isLinux = osname.startsWith("Linux");
 		String version = System.getProperty("java.version");
-		if(version == null || version.length() < 2)
+		if (version == null || version.length() < 2)
 			version = "1.8";
-		if(version.startsWith("1.8"))
+		if (version.startsWith("1.8"))
 			javaVersion = 8;
-		else if(version.charAt(0) == '1' && Character.isDigit(version.charAt(1)))
+		else if (version.charAt(0) == '1' && Character.isDigit(version.charAt(1)))
 			javaVersion = 10 + (version.charAt(1) - '0');
-		else if(version.charAt(0) == '2' && Character.isDigit(version.charAt(1)))
+		else if (version.charAt(0) == '2' && Character.isDigit(version.charAt(1)))
 			javaVersion = 20 + (version.charAt(1) - '0');
-		else if(version.startsWith("1.6"))
+		else if (version.startsWith("1.6"))
 			javaVersion = 6;
-		else if(version.startsWith("1.9") || version.startsWith("9"))
+		else if (version.startsWith("1.9") || version.startsWith("9"))
 			javaVersion = 9;
-		else if(version.startsWith("1.7"))
+		else if (version.startsWith("1.7"))
 			javaVersion = 7;
 		else
 			javaVersion = 8;
@@ -270,7 +273,7 @@ public class IJ {
 	/** Runs the specified plugin using the specified image. */
 	public static Object runPlugIn(ImagePlus imp, String className, String arg) {
 
-		if(imp != null) {
+		if (imp != null) {
 			ImagePlus temp = WindowManager.getTempCurrentImage();
 			WindowManager.setTempCurrentImage(imp);
 			Object o = runPlugIn("", className, arg);
@@ -289,13 +292,13 @@ public class IJ {
 	/** Runs the specified plugin and returns a reference to it. */
 	public static Object runPlugIn(String commandName, String className, String arg) {
 
-		if(arg == null)
+		if (arg == null)
 			arg = "";
-		if(IJ.debugMode)
+		if (IJ.debugMode)
 			IJ.log("runPlugIn: " + className + argument(arg));
 		// Load using custom classloader if this is a user
 		// plugin and we are not running as an applet
-		if(!className.startsWith("ij.") && applet == null)
+		if (!className.startsWith("ij.") && applet == null)
 			return runUserPlugIn(commandName, className, arg, false);
 		Object thePlugIn = null;
 		try {
@@ -304,23 +307,23 @@ public class IJ {
 			final Object plugi = thePlugIn;
 			final String argo = arg;
 			/* Changes for SWT! */
-			if(thePlugIn instanceof PlugIn) {
-				((PlugIn)plugi).run(argo);
+			if (thePlugIn instanceof PlugIn) {
+				((PlugIn) plugi).run(argo);
 			} else {
 				/* Changes for SWT! */
 				new PlugInFilterRunner(plugi, commandName, argo);
 			}
-		} catch(ClassNotFoundException e) {
-			if(!(className != null && className.startsWith("ij.plugin.MacAdapter"))) {
+		} catch (ClassNotFoundException e) {
+			if (!(className != null && className.startsWith("ij.plugin.MacAdapter"))) {
 				log("Plugin or class not found: \"" + className + "\"\n(" + e + ")");
 				String path = Prefs.getCustomPropsPath();
-				if(path != null)
+				if (path != null)
 					;
 				log("Error may be due to custom properties at " + path);
 			}
-		} catch(InstantiationException e) {
+		} catch (InstantiationException e) {
 			log("Unable to load plugin (ins)");
-		} catch(IllegalAccessException e) {
+		} catch (IllegalAccessException e) {
 			log("Unable to load plugin, possibly \nbecause it is not public.");
 		}
 		redirectErrorMessages = false;
@@ -329,41 +332,41 @@ public class IJ {
 
 	static Object runUserPlugIn(String commandName, String className, String arg, boolean createNewLoader) {
 
-		if(IJ.debugMode)
+		if (IJ.debugMode)
 			IJ.log("runUserPlugIn: " + className + ", arg=" + argument(arg));
-		if(applet != null)
+		if (applet != null)
 			return null;
-		if(createNewLoader)
+		if (createNewLoader)
 			classLoader = null;
 		ClassLoader loader = getClassLoader();
 		Object thePlugIn = null;
 		try {
 			thePlugIn = (loader.loadClass(className)).newInstance();
-			if(thePlugIn instanceof PlugIn)
-				((PlugIn)thePlugIn).run(arg);
-			else if(thePlugIn instanceof PlugInFilter)
+			if (thePlugIn instanceof PlugIn)
+				((PlugIn) thePlugIn).run(arg);
+			else if (thePlugIn instanceof PlugInFilter)
 				new PlugInFilterRunner(thePlugIn, commandName, arg);
-		} catch(ClassNotFoundException e) {
-			if(className.startsWith("macro:"))
+		} catch (ClassNotFoundException e) {
+			if (className.startsWith("macro:"))
 				runMacro(className.substring(6));
-			else if(className.contains("_") && !suppressPluginNotFoundError)
+			else if (className.contains("_") && !suppressPluginNotFoundError)
 				error("Plugin or class not found: \"" + className + "\"\n(" + e + ")");
-		} catch(NoClassDefFoundError e) {
+		} catch (NoClassDefFoundError e) {
 			int dotIndex = className.indexOf('.');
-			if(dotIndex >= 0 && className.contains("_")) {
+			if (dotIndex >= 0 && className.contains("_")) {
 				// rerun plugin after removing folder name
-				if(debugMode)
+				if (debugMode)
 					IJ.log("runUserPlugIn: rerunning " + className);
 				return runUserPlugIn(commandName, className.substring(dotIndex + 1), arg, createNewLoader);
 			}
-			if(className.contains("_") && !suppressPluginNotFoundError)
+			if (className.contains("_") && !suppressPluginNotFoundError)
 				error("Run User Plugin", "Class not found while attempting to run \"" + className + "\"\n \n   " + e);
-		} catch(InstantiationException e) {
+		} catch (InstantiationException e) {
 			error("Unable to load plugin (ins)");
-		} catch(IllegalAccessException e) {
+		} catch (IllegalAccessException e) {
 			error("Unable to load plugin, possibly \nbecause it is not public.");
 		}
-		if(thePlugIn != null && !"HandleExtraFileTypes".equals(className))
+		if (thePlugIn != null && !"HandleExtraFileTypes".equals(className))
 			redirectErrorMessages = false;
 		suppressPluginNotFoundError = false;
 		return thePlugIn;
@@ -377,15 +380,15 @@ public class IJ {
 	static void wrongType(int capabilities, String cmd) {
 
 		String s = "\"" + cmd + "\" requires an image of type:\n \n";
-		if((capabilities & PlugInFilter.DOES_8G) != 0)
+		if ((capabilities & PlugInFilter.DOES_8G) != 0)
 			s += "    8-bit grayscale\n";
-		if((capabilities & PlugInFilter.DOES_8C) != 0)
+		if ((capabilities & PlugInFilter.DOES_8C) != 0)
 			s += "    8-bit color\n";
-		if((capabilities & PlugInFilter.DOES_16) != 0)
+		if ((capabilities & PlugInFilter.DOES_16) != 0)
 			s += "    16-bit grayscale\n";
-		if((capabilities & PlugInFilter.DOES_32) != 0)
+		if ((capabilities & PlugInFilter.DOES_32) != 0)
 			s += "    32-bit (float) grayscale\n";
-		if((capabilities & PlugInFilter.DOES_RGB) != 0)
+		if ((capabilities & PlugInFilter.DOES_RGB) != 0)
 			s += "    RGB color\n";
 		error(s);
 	}
@@ -421,14 +424,14 @@ public class IJ {
 	public static void run(String command, String options) {
 
 		// IJ.log("run1: "+command+" "+Thread.currentThread().hashCode()+" "+options);
-		if(ij == null && Menus.getCommands() == null)
+		if (ij == null && Menus.getCommands() == null)
 			init();
 		Macro.abort = false;
 		Macro.setOptions(options);
 		Thread thread = Thread.currentThread();
-		if(previousThread == null || thread != previousThread) {
+		if (previousThread == null || thread != previousThread) {
 			String name = thread.getName();
-			if(!name.startsWith("Run$_"))
+			if (!name.startsWith("Run$_"))
 				thread.setName("Run$_" + name);
 		}
 		command = convert(command);
@@ -457,7 +460,7 @@ public class IJ {
 	 */
 	private static String convert(String command) {
 
-		if(commandTable == null) {
+		if (commandTable == null) {
 			commandTable = new Hashtable(30);
 			commandTable.put("New...", "Image...");
 			commandTable.put("Threshold", "Make Binary");
@@ -513,8 +516,8 @@ public class IJ {
 			commandTable.put("TEM Filter (112K)", "TEM Filter");
 			commandTable.put("Tree Rings (48K)", "Tree Rings");
 		}
-		String command2 = (String)commandTable.get(command);
-		if(command2 != null)
+		String command2 = (String) commandTable.get(command);
+		if (command2 != null)
 			return command2;
 		else
 			return command;
@@ -527,9 +530,9 @@ public class IJ {
 	 */
 	public static void run(ImagePlus imp, String command, String options) {
 
-		if(ij == null && Menus.getCommands() == null)
+		if (ij == null && Menus.getCommands() == null)
 			init();
-		if(imp != null) {
+		if (imp != null) {
 			ImagePlus temp = WindowManager.getTempCurrentImage();
 			WindowManager.setTempCurrentImage(imp);
 			run(command, options);
@@ -548,7 +551,7 @@ public class IJ {
 
 	private static void testAbort() {
 
-		if(Macro.abort)
+		if (Macro.abort)
 			abort();
 	}
 
@@ -583,20 +586,21 @@ public class IJ {
 	 */
 	public static void showStatus(String s) {
 
-		if((Interpreter.getInstance() == null && statusBarThread == null) || (statusBarThread != null && Thread.currentThread() != statusBarThread))
+		if ((Interpreter.getInstance() == null && statusBarThread == null)
+				|| (statusBarThread != null && Thread.currentThread() != statusBarThread))
 			protectStatusBar(false);
 		boolean doProtect = s.startsWith("!"); // suppress subsequent showStatus() calls
-		if(doProtect) {
+		if (doProtect) {
 			protectStatusBar(true);
 			statusBarThread = Thread.currentThread();
 			s = s.substring(1);
 		}
-		if(doProtect || !protectStatusBar) {
-			if(ij != null)
+		if (doProtect || !protectStatusBar) {
+			if (ij != null)
 				ij.showStatus(s);
 			ImagePlus imp = WindowManager.getCurrentImage();
 			ImageCanvas ic = imp != null ? imp.getCanvas() : null;
-			if(ic != null)
+			if (ic != null)
 				ic.setShowCursorStatus(s.length() == 0 ? true : false);
 		}
 	}
@@ -609,23 +613,23 @@ public class IJ {
 	public static void showStatus(String message, String options) {
 
 		showStatus(message);
-		if(options == null)
+		if (options == null)
 			return;
 		options = options.replace("flash", "");
 		options = options.replace("ms", "");
 		org.eclipse.swt.graphics.Color optionalColor = null;
 		int index1 = options.indexOf("#");
-		if(index1 >= 0) { // hex color?
+		if (index1 >= 0) { // hex color?
 			int index2 = options.indexOf(" ", index1);
-			if(index2 == -1)
+			if (index2 == -1)
 				index2 = options.length();
 			String hexColor = options.substring(index1, index2);
 			optionalColor = SWTUtils.toSwtColor(Display.getDefault(), Colors.decode(hexColor, null));
 			options = options.replace(hexColor, "");
 		}
-		if(optionalColor == null) { // "red", "green", etc.
-			for(String c : Colors.colors) {
-				if(options.contains(c)) {
+		if (optionalColor == null) { // "red", "green", etc.
+			for (String c : Colors.colors) {
+				if (options.contains(c)) {
 					optionalColor = Colors.getColorSwt(c, SWTUtils.toAwtColor(ImageJ.backgroundColor));
 					options = options.replace(c, "");
 					break;
@@ -633,32 +637,33 @@ public class IJ {
 			}
 		}
 		boolean flashImage = options.contains("image");
-		org.eclipse.swt.graphics.Color defaultColor = new org.eclipse.swt.graphics.Color(Display.getCurrent(), 255, 255, 245);
+		org.eclipse.swt.graphics.Color defaultColor = new org.eclipse.swt.graphics.Color(Display.getCurrent(), 255, 255,
+				245);
 		// org.eclipse.swt.graphics.Color defaultColor = new Color(255, 255, 245);
 		int defaultDelay = 500;
 		ImagePlus imp = WindowManager.getCurrentImage();
-		if(flashImage) {
+		if (flashImage) {
 			options = options.replace("image", "");
-			if(imp != null && imp.getWindow() != null) {
+			if (imp != null && imp.getWindow() != null) {
 				defaultColor = new org.eclipse.swt.graphics.Color(Display.getCurrent(), 0, 0, 0);
 				defaultDelay = 100;
 			} else
 				flashImage = false;
 		}
 		org.eclipse.swt.graphics.Color color = optionalColor != null ? optionalColor : defaultColor;
-		int delay = (int)Tools.parseDouble(options, defaultDelay);
-		if(delay > 8000)
+		int delay = (int) Tools.parseDouble(options, defaultDelay);
+		if (delay > 8000)
 			delay = 8000;
 		String colorString = null;
 		ImageJ ij = IJ.getInstance();
-		if(flashImage) {
+		if (flashImage) {
 			org.eclipse.swt.graphics.Color previousColor = imp.getWindow().getShell().getBackground();
 			imp.getWindow().getShell().setBackground(color);
-			if(delay > 0) {
+			if (delay > 0) {
 				wait(delay);
 				imp.getWindow().getShell().setBackground(previousColor);
 			}
-		} else if(ij != null) {
+		} else if (ij != null) {
 			ij.getStatusBar().setBackground(color);
 			wait(delay);
 			ij.getStatusBar().setBackground(ij.backgroundColor);
@@ -672,9 +677,9 @@ public class IJ {
 	 */
 	public static void write(String s) {
 
-		if(textPanel == null && ij != null)
+		if (textPanel == null && ij != null)
 			showResults();
-		if(textPanel != null)
+		if (textPanel != null)
 			textPanel.append(s);
 		else
 			System.out.println(s);
@@ -689,22 +694,22 @@ public class IJ {
 
 	public static synchronized void log(String s) {
 
-		if(s == null)
+		if (s == null)
 			return;
-		if(logPanel == null && ij != null) {
+		if (logPanel == null && ij != null) {
 			TextWindow logWindow = new TextWindow("Log", "", 400, 250);
 			logPanel = logWindow.getTextPanel();
 			/* Set font on SWT normally not necessary! */
 			// logPanel.setFont(new Font("SansSerif", Font.PLAIN, 16));
 		}
-		if(logPanel != null) {
-			if(s.startsWith("\\"))
+		if (logPanel != null) {
+			if (s.startsWith("\\"))
 				handleLogCommand(s);
 			else {
-				if(s.endsWith("\n")) {
-					if(s.equals("\n\n"))
+				if (s.endsWith("\n")) {
+					if (s.equals("\n\n"))
 						s = "\n \n ";
-					else if(s.endsWith("\n\n"))
+					else if (s.endsWith("\n\n"))
 						s = s.substring(0, s.length() - 2) + "\n \n ";
 					else
 						s = s + " ";
@@ -719,42 +724,42 @@ public class IJ {
 
 	static void handleLogCommand(String s) {
 
-		if(s.equals("\\Closed"))
+		if (s.equals("\\Closed"))
 			logPanel = null;
-		else if(s.startsWith("\\Update:")) {
+		else if (s.startsWith("\\Update:")) {
 			int n = logPanel.getLineCount();
 			String s2 = s.substring(8, s.length());
-			if(n == 0)
+			if (n == 0)
 				logPanel.append(s2);
 			else
 				logPanel.setLine(n - 1, s2);
-		} else if(s.startsWith("\\Update")) {
+		} else if (s.startsWith("\\Update")) {
 			int cindex = s.indexOf(":");
-			if(cindex == -1) {
+			if (cindex == -1) {
 				logPanel.append(s);
 				return;
 			}
 			String nstr = s.substring(7, cindex);
-			int line = (int)Tools.parseDouble(nstr, -1);
-			if(line < 0 || line > 25) {
+			int line = (int) Tools.parseDouble(nstr, -1);
+			if (line < 0 || line > 25) {
 				logPanel.append(s);
 				return;
 			}
 			int count = logPanel.getLineCount();
-			while(line >= count) {
+			while (line >= count) {
 				log("");
 				count++;
 			}
 			String s2 = s.substring(cindex + 1, s.length());
 			logPanel.setLine(line, s2);
-		} else if(s.equals("\\Clear")) {
+		} else if (s.equals("\\Clear")) {
 			logPanel.clear();
-		} else if(s.startsWith("\\Heading:")) {
+		} else if (s.startsWith("\\Heading:")) {
 			logPanel.updateColumnHeadings(s.substring(10));
-		} else if(s.equals("\\Close")) {
+		} else if (s.equals("\\Close")) {
 			Object f = WindowManager.getWindow("Log");
-			if(f != null && (f instanceof TextWindow))
-				((TextWindow)f).close();
+			if (f != null && (f instanceof TextWindow))
+				((TextWindow) f).close();
 		} else
 			logPanel.append(s);
 	}
@@ -764,7 +769,7 @@ public class IJ {
 	 */
 	public static synchronized String getLog() {
 
-		if(logPanel == null || ij == null)
+		if (logPanel == null || ij == null)
 			return null;
 		else
 			return logPanel.getText();
@@ -777,9 +782,9 @@ public class IJ {
 	 */
 	public static void setColumnHeadings(String headings) {
 
-		if(textPanel == null && ij != null)
+		if (textPanel == null && ij != null)
 			showResults();
-		if(textPanel != null)
+		if (textPanel != null)
 			textPanel.setColumnHeadings(headings);
 		else
 			System.out.println(headings);
@@ -795,16 +800,16 @@ public class IJ {
 	public static void renameResults(String title) {
 
 		Object frame = WindowManager.getActiveWindow();
-		if(frame != null && (frame instanceof TextWindow)) {
-			TextWindow tw = (TextWindow)frame;
-			if(tw.getResultsTable() == null) {
+		if (frame != null && (frame instanceof TextWindow)) {
+			TextWindow tw = (TextWindow) frame;
+			if (tw.getResultsTable() == null) {
 				IJ.error("Rename", "\"" + tw.getShell().getText() + "\" is not a results table");
 				return;
 			}
 			tw.rename(title);
-		} else if(isResultsWindow()) {
+		} else if (isResultsWindow()) {
 			TextPanel tp = getTextPanel();
-			TextWindow tw = (TextWindow)tp.getTextWindow();
+			TextWindow tw = (TextWindow) tp.getTextWindow();
 			tw.rename(title);
 		}
 	}
@@ -813,12 +818,12 @@ public class IJ {
 	public static void renameResults(String oldTitle, String newTitle) {
 
 		Object frame = WindowManager.getWindow(oldTitle);
-		if(frame == null) {
+		if (frame == null) {
 			error("Rename", "\"" + oldTitle + "\" not found");
 			return;
-		} else if(frame instanceof TextWindow) {
-			TextWindow tw = (TextWindow)frame;
-			if(tw.getResultsTable() == null) {
+		} else if (frame instanceof TextWindow) {
+			TextWindow tw = (TextWindow) frame;
+			if (tw.getResultsTable() == null) {
 				error("Rename", "\"" + oldTitle + "\" is not a table");
 				return;
 			}
@@ -837,7 +842,7 @@ public class IJ {
 		int tableSize = rt.size();
 		rt.deleteRows(row1, row2);
 		ImagePlus imp = WindowManager.getCurrentImage();
-		if(imp != null)
+		if (imp != null)
 			Overlay.updateTableOverlay(imp, row1, row2, tableSize);
 		rt.show("Results");
 	}
@@ -856,16 +861,16 @@ public class IJ {
 
 		String options = "";
 		int index = measurement.indexOf(" ");
-		if(index > 0) {
-			if(index < measurement.length() - 1)
+		if (index > 0) {
+			if (index < measurement.length() - 1)
 				options = measurement.substring(index + 1, measurement.length());
 			measurement = measurement.substring(0, index);
 		}
 		int measurements = Measurements.ALL_STATS + Measurements.SLICE;
-		if(options.contains("limit"))
+		if (options.contains("limit"))
 			measurements += Measurements.LIMIT;
 		Calibration cal = null;
-		if(options.contains("raw")) {
+		if (options.contains("raw")) {
 			cal = imp.getCalibration();
 			imp.setCalibration(null);
 		}
@@ -875,10 +880,10 @@ public class IJ {
 		double value = Double.NaN;
 		try {
 			value = rt.getValue(measurement, 0);
-		} catch(Exception e) {
+		} catch (Exception e) {
 		}
 		;
-		if(cal != null)
+		if (cal != null)
 			imp.setCalibration(cal);
 		return value;
 	}
@@ -890,7 +895,7 @@ public class IJ {
 	 */
 	public static TextPanel getTextPanel() {
 
-		if(textPanel == null && ij != null)
+		if (textPanel == null && ij != null)
 			showResults();
 		return textPanel;
 	}
@@ -908,7 +913,7 @@ public class IJ {
 	public static void noImage() {
 
 		String msg = "There are no images open";
-		if(macroInterpreter != null) {
+		if (macroInterpreter != null) {
 			macroInterpreter.abort(msg);
 			macroInterpreter = null;
 		} else
@@ -922,10 +927,10 @@ public class IJ {
 		System.gc();
 		lastErrorMessage = "out of memory";
 		String tot = Runtime.getRuntime().maxMemory() / 1048576L + "MB";
-		if(!memMessageDisplayed)
+		if (!memMessageDisplayed)
 			log(">>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		log("<Out of memory>");
-		if(!memMessageDisplayed) {
+		if (!memMessageDisplayed) {
 			log("<All available memory (" + tot + ") has been>");
 			log("<used. To make more available, use the>");
 			log("<Edit>Options>Memory & Threads command.>");
@@ -943,7 +948,7 @@ public class IJ {
 	 */
 	public static void showProgress(double progress) {
 
-		if(progressBar != null)
+		if (progressBar != null)
 			progressBar.show(progress, false);
 	}
 
@@ -957,9 +962,9 @@ public class IJ {
 	 */
 	public static void showProgress(int currentIndex, int finalIndex) {
 
-		if(progressBar != null) {
+		if (progressBar != null) {
 			progressBar.show(currentIndex, finalIndex);
-			if(currentIndex == finalIndex)
+			if (currentIndex == finalIndex)
 				progressBar.setBatchMode(false);
 		}
 	}
@@ -976,19 +981,19 @@ public class IJ {
 	/**
 	 * Displays a message in a dialog box with the specified title. Displays HTML
 	 * formatted text if 'msg' starts with "<html>". There are examples at
-	 * "http://imagej.net/ij/macros/HtmlDialogDemo.txt". Writes to the Java
-	 * console if ImageJ is not present.
+	 * "http://imagej.net/ij/macros/HtmlDialogDemo.txt". Writes to the Java console
+	 * if ImageJ is not present.
 	 */
 	public static void showMessage(String title, String msg) {
 
-		if(ij != null) {
-			if(msg != null && (msg.startsWith("<html>") || msg.startsWith("<HTML>"))) {
+		if (ij != null) {
+			if (msg != null && (msg.startsWith("<html>") || msg.startsWith("<HTML>"))) {
 				HTMLDialog hd = new HTMLDialog(title, msg);
-				if(isMacro() && hd.escapePressed())
+				if (isMacro() && hd.escapePressed())
 					throw new RuntimeException(Macro.MACRO_CANCELED);
 			} else {
 				MessageDialog md = new MessageDialog(title, msg);
-				if(isMacro() && md.escapePressed())
+				if (isMacro() && md.escapePressed())
 					throw new RuntimeException(Macro.MACRO_CANCELED);
 			}
 			IJ.wait(25); // fix GenericDialog non-editable text field
@@ -1004,7 +1009,7 @@ public class IJ {
 	public static void error(String msg) {
 
 		error(null, msg);
-		if(Thread.currentThread().getName().endsWith("JavaScript"))
+		if (Thread.currentThread().getName().endsWith("JavaScript"))
 			throw new RuntimeException(Macro.MACRO_CANCELED);
 		else
 			Macro.abort();
@@ -1017,24 +1022,24 @@ public class IJ {
 	 */
 	public static void error(String title, String msg) {
 
-		if(macroInterpreter != null) {
+		if (macroInterpreter != null) {
 			macroInterpreter.abort(msg);
 			macroInterpreter = null;
 			return;
 		}
-		if(msg != null && msg.endsWith(Macro.MACRO_CANCELED))
+		if (msg != null && msg.endsWith(Macro.MACRO_CANCELED))
 			return;
 		String title2 = title != null ? title : "ImageJ";
 		boolean abortMacro = title != null;
 		lastErrorMessage = msg;
-		if(redirectErrorMessages) {
+		if (redirectErrorMessages) {
 			IJ.log(title2 + ": " + msg);
-			if(abortMacro && (title.contains("Open") || title.contains("Reader")))
+			if (abortMacro && (title.contains("Open") || title.contains("Reader")))
 				abortMacro = false;
 		} else
 			showMessage(title2, msg);
 		redirectErrorMessages = false;
-		if(abortMacro)
+		if (abortMacro)
 			Macro.abort();
 	}
 
@@ -1044,7 +1049,7 @@ public class IJ {
 	 */
 	public static void exit() {
 
-		if(Thread.currentThread().getName().endsWith("JavaScript"))
+		if (Thread.currentThread().getName().endsWith("JavaScript"))
 			throw new RuntimeException(Macro.MACRO_CANCELED);
 	}
 
@@ -1083,13 +1088,13 @@ public class IJ {
 	public static double getNumber(String prompt, double defaultValue) {
 
 		GenericDialog gd = new GenericDialog("");
-		int decimalPlaces = (int)defaultValue == defaultValue ? 0 : 2;
+		int decimalPlaces = (int) defaultValue == defaultValue ? 0 : 2;
 		gd.addNumericField(prompt, defaultValue, decimalPlaces);
 		gd.showDialog();
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return CANCELED;
 		double v = gd.getNextNumber();
-		if(gd.invalidNumber())
+		if (gd.invalidNumber())
 			return defaultValue;
 		else
 			return v;
@@ -1104,7 +1109,7 @@ public class IJ {
 		GenericDialog gd = new GenericDialog("");
 		gd.addStringField(prompt, defaultString, 20);
 		gd.showDialog();
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return "";
 		return gd.getNextString();
 	}
@@ -1114,7 +1119,7 @@ public class IJ {
 
 		try {
 			Thread.sleep(msecs);
-		} catch(InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -1135,7 +1140,7 @@ public class IJ {
 		String inUseStr = inUse < 10000 * 1024 ? inUse / 1024L + "K" : inUse / 1048576L + "MB";
 		String maxStr = "";
 		long max = maxMemory();
-		if(max > 0L) {
+		if (max > 0L) {
 			double percent = inUse * 100 / max;
 			maxStr = " of " + max / 1048576L + "MB (" + (percent < 1.0 ? "<1" : d2s(percent, 0)) + "%)";
 		}
@@ -1156,10 +1161,10 @@ public class IJ {
 	 */
 	public static long maxMemory() {
 
-		if(maxMemory == 0L) {
+		if (maxMemory == 0L) {
 			Memory mem = new Memory();
 			maxMemory = mem.getMemorySetting();
-			if(maxMemory == 0L)
+			if (maxMemory == 0L)
 				maxMemory = mem.maxMemory();
 		}
 		return maxMemory;
@@ -1172,17 +1177,17 @@ public class IJ {
 
 	public static void showTime(ImagePlus imp, long start, String str, int nslices) {
 
-		if(Interpreter.isBatchMode())
+		if (Interpreter.isBatchMode())
 			return;
 		double seconds = (System.currentTimeMillis() - start) / 1000.0;
-		if(seconds <= 0.5 && macroRunning())
+		if (seconds <= 0.5 && macroRunning())
 			return;
-		double pixels = (double)imp.getWidth() * imp.getHeight();
+		double pixels = (double) imp.getWidth() * imp.getHeight();
 		double rate = pixels * nslices / seconds;
 		String str2;
-		if(rate > 1000000000.0)
+		if (rate > 1000000000.0)
 			str2 = "";
-		else if(rate < 1000000.0)
+		else if (rate < 1000000.0)
 			str2 = ", " + d2s(rate, 0) + " pixels/second";
 		else
 			str2 = ", " + d2s(rate / 1000000.0, 1) + " million pixels/second";
@@ -1215,20 +1220,20 @@ public class IJ {
 	 */
 	public static String d2s(double n, int decimalPlaces) {
 
-		if(Double.isNaN(n) || Double.isInfinite(n))
+		if (Double.isNaN(n) || Double.isInfinite(n))
 			return "" + n;
-		if(n == Float.MAX_VALUE) // divide by 0 in FloatProcessor
+		if (n == Float.MAX_VALUE) // divide by 0 in FloatProcessor
 			return "3.4e38";
 		double np = n;
-		if(n < 0.0)
+		if (n < 0.0)
 			np = -n;
-		if(decimalPlaces < 0)
-			synchronized(IJ.class) {
+		if (decimalPlaces < 0)
+			synchronized (IJ.class) {
 				decimalPlaces = -decimalPlaces;
-				if(decimalPlaces > 9)
+				if (decimalPlaces > 9)
 					decimalPlaces = 9;
-				if(sf == null) {
-					if(dfs == null)
+				if (sf == null) {
+					if (dfs == null)
 						dfs = new DecimalFormatSymbols(Locale.US);
 					sf = new DecimalFormat[10];
 					sf[1] = new DecimalFormat("0.0E0", dfs);
@@ -1243,9 +1248,9 @@ public class IJ {
 				}
 				return sf[decimalPlaces].format(n); // use scientific notation
 			}
-		if(decimalPlaces < 0)
+		if (decimalPlaces < 0)
 			decimalPlaces = 0;
-		if(decimalPlaces > 9)
+		if (decimalPlaces > 9)
 			decimalPlaces = 9;
 		return df[decimalPlaces].format(n);
 	}
@@ -1261,12 +1266,12 @@ public class IJ {
 
 		double log10 = Math.log10(Math.abs(x));
 		double roundErrorAtMax = 0.223 * Math.pow(10, -maxDigits);
-		int magnitude = (int)Math.ceil(log10 + roundErrorAtMax);
+		int magnitude = (int) Math.ceil(log10 + roundErrorAtMax);
 		int decimals = x == 0 ? 0 : maxDigits - magnitude;
-		if(decimals < 0 || magnitude < significantDigits + 1 - maxDigits)
+		if (decimals < 0 || magnitude < significantDigits + 1 - maxDigits)
 			return IJ.d2s(x, -significantDigits); // exp notation for large and small numbers
 		else {
-			if(decimals > significantDigits)
+			if (decimals > significantDigits)
 				decimals = Math.max(significantDigits, decimals - maxDigits + significantDigits);
 			return IJ.d2s(x, decimals);
 		}
@@ -1276,7 +1281,7 @@ public class IJ {
 	public static String pad(int n, int digits) {
 
 		String str = "" + n;
-		while(str.length() < digits)
+		while (str.length() < digits)
 			str = "0" + str;
 		return str;
 	}
@@ -1285,7 +1290,7 @@ public class IJ {
 	public static String pad(String s, int digits) {
 
 		String str = "" + s;
-		while(str.length() < digits)
+		while (str.length() < digits)
 			str = "0" + str;
 		return str;
 	}
@@ -1293,7 +1298,7 @@ public class IJ {
 	/** Obsolete */
 	public static void register(Class c) {
 
-		if(ij != null)
+		if (ij != null)
 			ij.register(c);
 	}
 
@@ -1322,85 +1327,83 @@ public class IJ {
 	}
 
 	/*
-	 * Sets the specified key "down", where 'key'
-	 * is KeyEvent.VK_CONTROL, KeyEvent.VK_META,
-	 * KeyEvent.VK_ALT, KeyEvent.VK_SHIFT,
-	 * KeyEvent.VK_SPACE or KeyEvent.VK_ESCAPE.
+	 * Sets the specified key "down", where 'key' is KeyEvent.VK_CONTROL,
+	 * KeyEvent.VK_META, KeyEvent.VK_ALT, KeyEvent.VK_SHIFT, KeyEvent.VK_SPACE or
+	 * KeyEvent.VK_ESCAPE.
 	 */
 	public static void setKeyDown(int key) {
 
-		switch(key) {
-			case SWT.CTRL:
+		switch (key) {
+		case SWT.CTRL:
+			controlDown = true;
+			break;
+		case SWT.COMMAND:
+			if (isMacintosh())
 				controlDown = true;
-				break;
-			case SWT.COMMAND:
-				if(isMacintosh())
-					controlDown = true;
-				break;
-			case SWT.ALT:
-				altDown = true;
-				updateStatus();
-				break;
-			case SWT.SHIFT:
-				shiftDown = true;
-				if(debugMode)
-					beep();
-				break;
-			case SWT.SPACE: {
-				spaceDown = true;
-				ImageWindow win = WindowManager.getCurrentWindow();
-				// if (win!=null) win.getCanvas().setCursor(-1,-1,-1, -1);
-				break;
-			}
-			case SWT.ESC: {
-				escapePressed = true;
-				break;
-			}
+			break;
+		case SWT.ALT:
+			altDown = true;
+			updateStatus();
+			break;
+		case SWT.SHIFT:
+			shiftDown = true;
+			if (debugMode)
+				beep();
+			break;
+		case SWT.SPACE: {
+			spaceDown = true;
+			ImageWindow win = WindowManager.getCurrentWindow();
+			// if (win!=null) win.getCanvas().setCursor(-1,-1,-1, -1);
+			break;
+		}
+		case SWT.ESC: {
+			escapePressed = true;
+			break;
+		}
 		}
 	}
 
 	/*
-	 * Sets the specified key "up", where 'key'
-	 * is KeyEvent.VK_CONTROL, KeyEvent.VK_META,
-	 * KeyEvent.VK_ALT, KeyEvent.VK_SHIFT,
-	 * KeyEvent.VK_SPACE or IJ.ALL_KEYS (-1).
+	 * Sets the specified key "up", where 'key' is KeyEvent.VK_CONTROL,
+	 * KeyEvent.VK_META, KeyEvent.VK_ALT, KeyEvent.VK_SHIFT, KeyEvent.VK_SPACE or
+	 * IJ.ALL_KEYS (-1).
 	 */
 	public static void setKeyUp(int key) {
 
-		switch(key) {
-			case SWT.CTRL:
+		switch (key) {
+		case SWT.CTRL:
+			controlDown = false;
+			break;
+		case SWT.COMMAND:
+			if (isMacintosh())
 				controlDown = false;
-				break;
-			case SWT.COMMAND:
-				if(isMacintosh())
-					controlDown = false;
-				break;
-			case SWT.ALT:
-				altDown = false;
-				updateStatus();
-				break;
-			case SWT.SHIFT:
-				shiftDown = false;
-				if(debugMode)
-					beep();
-				break;
-			case SWT.SPACE:
-				spaceDown = false;
-				ImageWindow win = WindowManager.getCurrentWindow();
-				// if (win!=null) win.getCanvas().setCursor(-1,-1,-1,-1);
-				break;
-			case ALL_KEYS:
-				shiftDown = controlDown = altDown = spaceDown = false;
-				break;
+			break;
+		case SWT.ALT:
+			altDown = false;
+			updateStatus();
+			break;
+		case SWT.SHIFT:
+			shiftDown = false;
+			if (debugMode)
+				beep();
+			break;
+		case SWT.SPACE:
+			spaceDown = false;
+			ImageWindow win = WindowManager.getCurrentWindow();
+			// if (win!=null) win.getCanvas().setCursor(-1,-1,-1,-1);
+			break;
+		case ALL_KEYS:
+			shiftDown = controlDown = altDown = spaceDown = false;
+			break;
 		}
 	}
 
 	private static void updateStatus() {
 
 		ImagePlus imp = WindowManager.getCurrentImage();
-		if(imp != null) {
+		if (imp != null) {
 			Roi roi = imp.getRoi();
-			if(roi != null && imp.getCalibration().scaled()) {
+			if (roi != null && imp.getCalibration().scaled()) {
 				roi.showStatus();
 			}
 		}
@@ -1493,7 +1496,7 @@ public class IJ {
 	/** Returns true if ImageJ is running a 64-bit version of Java. */
 	public static boolean is64Bit() {
 
-		if(osarch == null)
+		if (osarch == null)
 			osarch = System.getProperty("os.arch");
 		return osarch != null && osarch.indexOf("64") != -1;
 	}
@@ -1505,8 +1508,9 @@ public class IJ {
 	public static boolean versionLessThan(String version) {
 
 		boolean lessThan = ImageJ.VERSION.compareTo(version) < 0;
-		if(lessThan)
-			error("This plugin or macro requires ImageJ " + version + " or later. Use\nHelp>Update ImageJ to upgrade to the latest version.");
+		if (lessThan)
+			error("This plugin or macro requires ImageJ " + version
+					+ " or later. Use\nHelp>Update ImageJ to upgrade to the latest version.");
 		return lessThan;
 	}
 
@@ -1517,42 +1521,47 @@ public class IJ {
 	 */
 	public static int setupDialog(ImagePlus imp, int flags) {
 
-		if(imp == null || (ij != null && ij.hotkey)) {
-			if(ij != null)
+		if (imp == null || (ij != null && ij.hotkey)) {
+			if (ij != null)
 				ij.hotkey = false;
 			return flags;
 		}
 		int stackSize = imp.getStackSize();
-		if(stackSize > 1) {
+		if (stackSize > 1) {
 			String macroOptions = Macro.getOptions();
-			if(imp.isComposite() && ((CompositeImage)imp).getMode() == IJ.COMPOSITE) {
-				if(macroOptions == null || !macroOptions.contains("slice"))
+			if (imp.isComposite() && ((CompositeImage) imp).getMode() == IJ.COMPOSITE) {
+				if (macroOptions == null || !macroOptions.contains("slice"))
 					return flags | PlugInFilter.DOES_STACKS;
 			}
-			if(macroOptions != null) {
-				if(macroOptions.indexOf("stack ") >= 0)
+			if (macroOptions != null) {
+				if (macroOptions.indexOf("stack ") >= 0)
 					return flags | PlugInFilter.DOES_STACKS;
 				else
 					return flags;
 			}
-			if(hideProcessStackDialog)
+			if (hideProcessStackDialog)
 				return flags;
 			String note = ((flags & PlugInFilter.NO_CHANGES) == 0) ? " There is\nno Undo if you select \"Yes\"." : "";
-			YesNoCancelDialog d = new YesNoCancelDialog("Process Stack?", "Process all " + stackSize + " images?" + note);
-			if(d.cancelPressed())
+			YesNoCancelDialog d = new YesNoCancelDialog("Process Stack?",
+					"Process all " + stackSize + " images?" + note);
+			if (d.cancelPressed())
 				return PlugInFilter.DONE;
-			else if(d.yesPressed()) {
-				if(imp.getStack().isVirtual() && ((flags & PlugInFilter.NO_CHANGES) == 0)) {
-					int size = (stackSize * imp.getWidth() * imp.getHeight() * imp.getBytesPerPixel() + 524288) / 1048576;
-					String msg = "Use the Process>Batch>Virtual Stack command\n" + "to process a virtual stack or convert it into a\n" + "normal stack using Image>Duplicate, which\n" + "will require " + size + "MB of additional memory.";
+			else if (d.yesPressed()) {
+				if (imp.getStack().isVirtual() && ((flags & PlugInFilter.NO_CHANGES) == 0)) {
+					int size = (stackSize * imp.getWidth() * imp.getHeight() * imp.getBytesPerPixel() + 524288)
+							/ 1048576;
+					String msg = "Use the Process>Batch>Virtual Stack command\n"
+							+ "to process a virtual stack or convert it into a\n"
+							+ "normal stack using Image>Duplicate, which\n" + "will require " + size
+							+ "MB of additional memory.";
 					error(msg);
 					return PlugInFilter.DONE;
 				}
-				if (IJ.recording()) 
+				if (IJ.recording())
 					Recorder.recordOption("stack");
 				return flags | PlugInFilter.DOES_STACKS;
 			}
-				if (IJ.recording()) 
+			if (IJ.recording())
 				Recorder.recordOption("slice");
 		}
 		return flags;
@@ -1564,11 +1573,11 @@ public class IJ {
 	 */
 	public static void makeRectangle(int x, int y, int width, int height) {
 
-		if(width <= 0 || height < 0)
+		if (width <= 0 || height < 0)
 			getImage().deleteRoi();
 		else {
 			ImagePlus img = getImage();
-			if(Interpreter.isBatchMode())
+			if (Interpreter.isBatchMode())
 				img.setRoi(new Roi(x, y, width, height), false);
 			else
 				img.setRoi(x, y, width, height);
@@ -1578,7 +1587,7 @@ public class IJ {
 	/** Creates a subpixel resolution rectangular selection. */
 	public static void makeRectangle(double x, double y, double width, double height) {
 
-		if(width <= 0 || height < 0)
+		if (width <= 0 || height < 0)
 			getImage().deleteRoi();
 		else
 			getImage().setRoi(new Roi(x, y, width, height), !Interpreter.isBatchMode());
@@ -1590,7 +1599,7 @@ public class IJ {
 	 */
 	public static void makeOval(int x, int y, int width, int height) {
 
-		if(width <= 0 || height < 0)
+		if (width <= 0 || height < 0)
 			getImage().deleteRoi();
 		else {
 			ImagePlus img = getImage();
@@ -1601,7 +1610,7 @@ public class IJ {
 	/** Creates an subpixel resolution oval selection. */
 	public static void makeOval(double x, double y, double width, double height) {
 
-		if(width <= 0 || height < 0)
+		if (width <= 0 || height < 0)
 			getImage().deleteRoi();
 		else
 			getImage().setRoi(new OvalRoi(x, y, width, height));
@@ -1624,13 +1633,13 @@ public class IJ {
 
 		ImagePlus img = getImage();
 		Roi roi = img.getRoi();
-		if(shiftKeyDown() && roi != null && roi.getType() == Roi.POINT) {
+		if (shiftKeyDown() && roi != null && roi.getType() == Roi.POINT) {
 			Polygon p = roi.getPolygon();
 			p.addPoint(x, y);
 			img.setRoi(new PointRoi(p.xpoints, p.ypoints, p.npoints));
 			IJ.setKeyUp(KeyEvent.VK_SHIFT);
-		} else if(altKeyDown() && roi != null && roi.getType() == Roi.POINT) {
-			((PolygonRoi)roi).deleteHandle(x, y);
+		} else if (altKeyDown() && roi != null && roi.getType() == Roi.POINT) {
+			((PolygonRoi) roi).deleteHandle(x, y);
 			IJ.setKeyUp(KeyEvent.VK_ALT);
 		} else
 			img.setRoi(new PointRoi(x, y));
@@ -1641,13 +1650,13 @@ public class IJ {
 
 		ImagePlus img = getImage();
 		Roi roi = img.getRoi();
-		if(shiftKeyDown() && roi != null && roi.getType() == Roi.POINT) {
+		if (shiftKeyDown() && roi != null && roi.getType() == Roi.POINT) {
 			Polygon p = roi.getPolygon();
-			p.addPoint((int)Math.round(x), (int)Math.round(y));
+			p.addPoint((int) Math.round(x), (int) Math.round(y));
 			img.setRoi(new PointRoi(p.xpoints, p.ypoints, p.npoints));
 			IJ.setKeyUp(KeyEvent.VK_SHIFT);
-		} else if(altKeyDown() && roi != null && roi.getType() == Roi.POINT) {
-			((PolygonRoi)roi).deleteHandle(x, y);
+		} else if (altKeyDown() && roi != null && roi.getType() == Roi.POINT) {
+			((PolygonRoi) roi).deleteHandle(x, y);
 			IJ.setKeyUp(KeyEvent.VK_ALT);
 		} else
 			img.setRoi(new PointRoi(x, y));
@@ -1697,7 +1706,7 @@ public class IJ {
 		Calibration cal = img.getCalibration();
 		min = cal.getRawValue(min);
 		max = cal.getRawValue(max);
-		if(channels == 7)
+		if (channels == 7)
 			img.setDisplayRange(min, max);
 		else
 			img.setDisplayRange(min, max, channels);
@@ -1759,7 +1768,7 @@ public class IJ {
 	public static void setThreshold(ImagePlus img, double lowerThreshold, double upperThreshold, String displayMode) {
 
 		Calibration cal = img.getCalibration();
-		if(displayMode == null || !displayMode.contains("raw")) {
+		if (displayMode == null || !displayMode.contains("raw")) {
 			lowerThreshold = cal.getRawValue(lowerThreshold);
 			upperThreshold = cal.getRawValue(upperThreshold);
 		}
@@ -1780,20 +1789,21 @@ public class IJ {
 	 * This is a version of setThreshold() that always uses raw (uncalibrated)
 	 * values * in the range 0-255 for 8-bit images and 0-65535 for 16-bit images.
 	 */
-	public static void setRawThreshold(ImagePlus img, double lowerThreshold, double upperThreshold, String displayMode) {
+	public static void setRawThreshold(ImagePlus img, double lowerThreshold, double upperThreshold,
+			String displayMode) {
 
 		int mode = ImageProcessor.RED_LUT;
-		if(displayMode != null) {
+		if (displayMode != null) {
 			displayMode = displayMode.toLowerCase(Locale.US);
-			if(displayMode.contains("black"))
+			if (displayMode.contains("black"))
 				mode = ImageProcessor.BLACK_AND_WHITE_LUT;
-			else if(displayMode.contains("over"))
+			else if (displayMode.contains("over"))
 				mode = ImageProcessor.OVER_UNDER_LUT;
-			else if(displayMode.contains("no"))
+			else if (displayMode.contains("no"))
 				mode = ImageProcessor.NO_LUT_UPDATE;
 		}
 		img.getProcessor().setThreshold(lowerThreshold, upperThreshold, mode);
-		if(mode != ImageProcessor.NO_LUT_UPDATE && img.getWindow() != null) {
+		if (mode != ImageProcessor.NO_LUT_UPDATE && img.getWindow() != null) {
 			img.getProcessor().setLutAnimation(true);
 			img.updateAndDraw();
 			ThresholdAdjuster.update();
@@ -1804,16 +1814,16 @@ public class IJ {
 	public static void setAutoThreshold(ImagePlus imp, String method) {
 
 		ImageProcessor ip = imp.getProcessor();
-		if(ip instanceof ColorProcessor)
+		if (ip instanceof ColorProcessor)
 			throw new IllegalArgumentException("Non-RGB image required");
 		ip.setRoi(imp.getRoi());
-		if(method != null) {
+		if (method != null) {
 			try {
-				if(method.indexOf("stack") != -1)
+				if (method.indexOf("stack") != -1)
 					setStackThreshold(imp, ip, method);
 				else
 					ip.setAutoThreshold(method);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				log(e.getMessage());
 			}
 		} else
@@ -1834,20 +1844,20 @@ public class IJ {
 		Analyzer.setMeasurements(measurements);
 		AutoThresholder thresholder = new AutoThresholder();
 		double min = 0.0, max = 255.0;
-		if(imp.getBitDepth() != 8) {
+		if (imp.getBitDepth() != 8) {
 			min = stats.min;
 			max = stats.max;
 		}
 		int[] histogram = stats.histogram;
-		if(histo16)
+		if (histo16)
 			histogram = stats.histogram16;
 		int threshold = thresholder.getThreshold(method, histogram);
 		double lower, upper;
 		double tmax = 255.0;
-		if(histogram.length > 256)
+		if (histogram.length > 256)
 			tmax = 65535.0;
-		if(darkBackground) {
-			if(ip.isInvertedLut()) {
+		if (darkBackground) {
+			if (ip.isInvertedLut()) {
 				lower = 0.0;
 				upper = threshold;
 			} else {
@@ -1857,7 +1867,7 @@ public class IJ {
 				}
 			}
 		} else {
-			if(ip.isInvertedLut()) {
+			if (ip.isInvertedLut()) {
 				{
 					lower = threshold + (addOne ? 1 : 0);
 					upper = tmax;
@@ -1867,10 +1877,10 @@ public class IJ {
 				upper = threshold;
 			}
 		}
-		if(!histo16) {
-			if(lower > 255)
+		if (!histo16) {
+			if (lower > 255)
 				lower = 255;
-			if(max > min) {
+			if (max > min) {
 				lower = min + (lower / 255.0) * (max - min);
 				upper = min + (upper / 255.0) * (max - min);
 			} else
@@ -1903,24 +1913,24 @@ public class IJ {
 	 */
 	public static void selectWindow(int id) {
 
-		if(id > 0)
+		if (id > 0)
 			id = WindowManager.getNthImageID(id);
 		ImagePlus imp = WindowManager.getImage(id);
-		if(imp == null)
+		if (imp == null)
 			error("Macro Error", "Image " + id + " not found or no images are open.");
-		if(Interpreter.isBatchMode()) {
+		if (Interpreter.isBatchMode()) {
 			ImagePlus impT = WindowManager.getTempCurrentImage();
 			ImagePlus impC = WindowManager.getCurrentImage();
-			if(impC != null && impC != imp && impT != null)
+			if (impC != null && impC != imp && impT != null)
 				impC.saveRoi();
 			WindowManager.setTempCurrentImage(imp);
 			Interpreter.activateImage(imp);
 			WindowManager.setWindow(null);
 		} else {
-			if(imp == null)
+			if (imp == null)
 				return;
 			ImageWindow win = imp.getWindow();
-			if(win != null) {
+			if (win != null) {
 				// win.toFront();
 				// win.setState(Frame.NORMAL);
 				WindowManager.setWindow(win);
@@ -1929,14 +1939,14 @@ public class IJ {
 			// timeout after 1 second unless current thread is event dispatch thread
 			String thread = Thread.currentThread().getName();
 			int timeout = thread != null && thread.indexOf("EventQueue") != -1 ? 0 : 1000;
-			if(IJ.isMacOSX() && IJ.isJava18() && timeout > 0)
+			if (IJ.isMacOSX() && IJ.isJava18() && timeout > 0)
 				timeout = 250; // work around OS X/Java 8 window activation bug
-			while(true) {
+			while (true) {
 				wait(10);
 				imp = WindowManager.getCurrentImage();
-				if(imp != null && imp.getID() == id)
+				if (imp != null && imp.getID() == id)
 					return; // specified image is now active
-				if((System.currentTimeMillis() - start) > timeout && win != null) {
+				if ((System.currentTimeMillis() - start) > timeout && win != null) {
 					WindowManager.setCurrentWindow(win);
 					return;
 				}
@@ -1947,31 +1957,28 @@ public class IJ {
 	/** Activates the window with the specified title. */
 	public static void selectWindow(String title) {
 
-		if(title.equals("ImageJ") && ij != null) {
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
+		if (title.equals("ImageJ") && ij != null) {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				ij.getShell().setActive();
 
-					ij.getShell().setActive();
-				}
 			});
 			return;
 		}
 		long start = System.currentTimeMillis();
-		while(System.currentTimeMillis() - start < 3000) { // 3 sec timeout
+		while (System.currentTimeMillis() - start < 3000) { // 3 sec timeout
 			Object win = WindowManager.getWindow(title);
-			if(win != null && !(win instanceof ImageWindow)) {
-				Object window = (Object)win;
+			if (win != null && !(win instanceof ImageWindow)) {
+				Object window = (Object) win;
 				selectWindow(window);
 				return;
 			}
 			int[] wList = WindowManager.getIDList();
 			int len = wList != null ? wList.length : 0;
-			for(int i = 0; i < len; i++) {
+			for (int i = 0; i < len; i++) {
 				ImagePlus imp = WindowManager.getImage(wList[i]);
-				if(imp != null) {
-					if(imp.getTitle().equals(title)) {
+				if (imp != null) {
+					if (imp.getTitle().equals(title)) {
 						selectWindow(imp.getID());
 						return;
 					}
@@ -1984,24 +1991,21 @@ public class IJ {
 
 	static void selectWindow(Object win) {
 
-		if(win instanceof WindowSwt) {
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
+		if (win instanceof WindowSwt) {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				((WindowSwt) win).getShell().forceActive();
 
-					((WindowSwt)win).getShell().forceActive();
-				}
 			});
 			// ((Frame) win).setState(Frame.NORMAL);
 		} else
-			((Dialog)win).toFront();
+			((Dialog) win).toFront();
 		long start = System.currentTimeMillis();
-		while(true) {
+		while (true) {
 			wait(10);
-			if(WindowManager.getActiveWindow() == win)
+			if (WindowManager.getActiveWindow() == win)
 				return; // specified window is now in front
-			if((System.currentTimeMillis() - start) > 1000) {
+			if ((System.currentTimeMillis() - start) > 1000) {
 				WindowManager.setWindow(win);
 				return; // 1 second timeout
 			}
@@ -2010,17 +2014,17 @@ public class IJ {
 
 	static void selectWindow(Window win) {
 
-		if(win instanceof Frame) {
-			((Frame)win).toFront();
-			((Frame)win).setState(Frame.NORMAL);
+		if (win instanceof Frame) {
+			((Frame) win).toFront();
+			((Frame) win).setState(Frame.NORMAL);
 		} else
-			((Dialog)win).toFront();
+			((Dialog) win).toFront();
 		long start = System.currentTimeMillis();
-		while(true) {
+		while (true) {
 			wait(10);
-			if(WindowManager.getActiveWindow() == win)
+			if (WindowManager.getActiveWindow() == win)
 				return; // specified window is now in front
-			if((System.currentTimeMillis() - start) > 1000) {
+			if ((System.currentTimeMillis() - start) > 1000) {
 				WindowManager.setWindow(win);
 				return; // 1 second timeout
 			}
@@ -2042,7 +2046,7 @@ public class IJ {
 	static void setColor(int red, int green, int blue, boolean foreground) {
 
 		Color c = Colors.toColor(red, green, blue);
-		if(foreground) {
+		if (foreground) {
 			Display.getDefault().syncExec(new Runnable() {
 
 				public void run() {
@@ -2051,7 +2055,7 @@ public class IJ {
 				}
 			});
 			ImagePlus img = WindowManager.getCurrentImage();
-			if(img != null)
+			if (img != null)
 				img.getProcessor().setColor(c);
 		} else {
 			Display.getDefault().syncExec(new Runnable() {
@@ -2113,38 +2117,38 @@ public class IJ {
 	public static int doWand(ImagePlus img, int x, int y, double tolerance, String mode) {
 
 		ImageProcessor ip = img.getProcessor();
-		if((img.getType() == ImagePlus.GRAY32) && Double.isNaN(ip.getPixelValue(x, y)))
+		if ((img.getType() == ImagePlus.GRAY32) && Double.isNaN(ip.getPixelValue(x, y)))
 			return 0;
 		int imode = Wand.LEGACY_MODE;
 		boolean smooth = false;
-		if(mode != null) {
-			if(mode.startsWith("4"))
+		if (mode != null) {
+			if (mode.startsWith("4"))
 				imode = Wand.FOUR_CONNECTED;
-			else if(mode.startsWith("8"))
+			else if (mode.startsWith("8"))
 				imode = Wand.EIGHT_CONNECTED;
 			smooth = mode.contains("smooth");
 		}
 		Wand w = new Wand(ip);
-		if(!ip.isThreshold() || (ip.getLutUpdateMode() == ImageProcessor.NO_LUT_UPDATE && tolerance > 0.0)) {
+		if (!ip.isThreshold() || (ip.getLutUpdateMode() == ImageProcessor.NO_LUT_UPDATE && tolerance > 0.0)) {
 			w.autoOutline(x, y, tolerance, imode);
 			smooth = false;
 		} else {
 			w.autoOutline(x, y, ip.getMinThreshold(), ip.getMaxThreshold(), imode);
 		}
-		if(w.npoints > 0) {
+		if (w.npoints > 0) {
 			Roi previousRoi = img.getRoi();
 			Roi roi = new PolygonRoi(w.xpoints, w.ypoints, w.npoints, Roi.TRACED_ROI);
 			img.deleteRoi();
 			img.setRoi(roi);
-			if(previousRoi != null)
+			if (previousRoi != null)
 				roi.update(shiftKeyDown(), altKeyDown()); // add/subtract ROI to previous one if shift/alt key down
 			Roi roi2 = img.getRoi();
-			if(smooth && roi2 != null && roi2.getType() == Roi.TRACED_ROI) {
+			if (smooth && roi2 != null && roi2.getType() == Roi.TRACED_ROI) {
 				Rectangle bounds = roi2.getBounds();
-				if(bounds.width > 1 && bounds.height > 1) {
-					if(smoothMacro == null)
+				if (bounds.width > 1 && bounds.height > 1) {
+					if (smoothMacro == null)
 						smoothMacro = BatchProcessor.openMacroFromJar("SmoothWandTool.txt");
-					if(EventQueue.isDispatchThread())
+					if (EventQueue.isDispatchThread())
 						new MacroRunner(smoothMacro); // run on separate thread
 					else
 						Macro.eval(smoothMacro);
@@ -2166,35 +2170,35 @@ public class IJ {
 
 	public static int stringToPasteMode(String mode) {
 
-		if(mode == null)
+		if (mode == null)
 			return Blitter.COPY;
 		mode = mode.toLowerCase(Locale.US);
 		int m = Blitter.COPY;
-		if(mode.startsWith("ble") || mode.startsWith("ave"))
+		if (mode.startsWith("ble") || mode.startsWith("ave"))
 			m = Blitter.AVERAGE;
-		else if(mode.startsWith("diff"))
+		else if (mode.startsWith("diff"))
 			m = Blitter.DIFFERENCE;
-		else if(mode.indexOf("zero") != -1)
+		else if (mode.indexOf("zero") != -1)
 			m = Blitter.COPY_ZERO_TRANSPARENT;
-		else if(mode.startsWith("tran"))
+		else if (mode.startsWith("tran"))
 			m = Blitter.COPY_TRANSPARENT;
-		else if(mode.startsWith("and"))
+		else if (mode.startsWith("and"))
 			m = Blitter.AND;
-		else if(mode.startsWith("or"))
+		else if (mode.startsWith("or"))
 			m = Blitter.OR;
-		else if(mode.startsWith("xor"))
+		else if (mode.startsWith("xor"))
 			m = Blitter.XOR;
-		else if(mode.startsWith("sub"))
+		else if (mode.startsWith("sub"))
 			m = Blitter.SUBTRACT;
-		else if(mode.startsWith("add"))
+		else if (mode.startsWith("add"))
 			m = Blitter.ADD;
-		else if(mode.startsWith("div"))
+		else if (mode.startsWith("div"))
 			m = Blitter.DIVIDE;
-		else if(mode.startsWith("mul"))
+		else if (mode.startsWith("mul"))
 			m = Blitter.MULTIPLY;
-		else if(mode.startsWith("min"))
+		else if (mode.startsWith("min"))
 			m = Blitter.MIN;
-		else if(mode.startsWith("max"))
+		else if (mode.startsWith("max"))
 			m = Blitter.MAX;
 		return m;
 	}
@@ -2206,10 +2210,10 @@ public class IJ {
 	public static ImagePlus getImage() {
 
 		ImagePlus img = WindowManager.getCurrentImage();
-		if(img == null) {
+		if (img == null) {
 			System.out.println("no image");
 			IJ.noImage();
-			if(ij == null)
+			if (ij == null)
 				System.exit(0);
 			else
 				abort();
@@ -2255,9 +2259,9 @@ public class IJ {
 	public static String getFullVersion() {
 
 		String build = ImageJ.BUILD;
-		if(build.length() == 0)
+		if (build.length() == 0)
 			build = "99";
-		else if(build.length() == 1)
+		else if (build.length() == 1)
 			build = "0" + build;
 		return ImageJ.VERSION + build;
 	}
@@ -2277,49 +2281,49 @@ public class IJ {
 
 		String dir = null;
 		String title2 = title.toLowerCase(Locale.US);
-		if(title2.equals("plugins"))
+		if (title2.equals("plugins"))
 			dir = Menus.getPlugInsPath();
-		else if(title2.equals("macros"))
+		else if (title2.equals("macros"))
 			dir = Menus.getMacrosPath();
-		else if(title2.equals("luts")) {
+		else if (title2.equals("luts")) {
 			String ijdir = Prefs.getImageJDir();
-			if(ijdir != null)
+			if (ijdir != null)
 				dir = ijdir + "luts" + File.separator;
 			else
 				dir = null;
-		} else if(title2.equals("home"))
+		} else if (title2.equals("home"))
 			dir = System.getProperty("user.home");
-		else if(title2.equals("downloads"))
+		else if (title2.equals("downloads"))
 			dir = System.getProperty("user.home") + File.separator + "Downloads";
-		else if(title2.equals("startup"))
+		else if (title2.equals("startup"))
 			dir = Prefs.getImageJDir();
-		else if(title2.equals("imagej"))
+		else if (title2.equals("imagej"))
 			dir = Prefs.getImageJDir();
-		else if(title2.equals("current") || title2.equals("default"))
+		else if (title2.equals("current") || title2.equals("default"))
 			dir = OpenDialog.getDefaultDirectory();
-		else if(title2.equals("preferences"))
+		else if (title2.equals("preferences"))
 			dir = Prefs.getPrefsDir();
-		else if(title2.equals("temp")) {
+		else if (title2.equals("temp")) {
 			dir = System.getProperty("java.io.tmpdir");
-			if(isMacintosh())
+			if (isMacintosh())
 				dir = "/tmp/";
-		} else if(title2.equals("image")) {
+		} else if (title2.equals("image")) {
 			ImagePlus imp = WindowManager.getCurrentImage();
 			FileInfo fi = imp != null ? imp.getOriginalFileInfo() : null;
-			if(fi != null && fi.directory != null) {
+			if (fi != null && fi.directory != null) {
 				dir = fi.directory;
 			} else
 				dir = null;
-		} else if(title2.equals("file"))
+		} else if (title2.equals("file"))
 			dir = OpenDialog.getLastDirectory();
-		else if(title2.equals("cwd"))
+		else if (title2.equals("cwd"))
 			dir = System.getProperty("user.dir");
 		else {
 			String defaultDir = OpenDialog.getDefaultDirectory();
 			DirectoryChooser dc = new DirectoryChooser(title);
 			dir = dc.getDirectory();
 			OpenDialog.setDefaultDirectory(defaultDir);
-			if(dir == null)
+			if (dir == null)
 				Macro.abort();
 		}
 		dir = addSeparator(dir);
@@ -2328,10 +2332,10 @@ public class IJ {
 
 	public static String addSeparator(String path) {
 
-		if(path == null)
+		if (path == null)
 			return null;
-		if(path.length() > 0 && !(path.endsWith(File.separator) || path.endsWith("/"))) {
-			if(IJ.isWindows() && path.contains(File.separator))
+		if (path.length() > 0 && !(path.endsWith(File.separator) || path.endsWith("/"))) {
+			if (IJ.isWindows() && path.contains(File.separator))
 				path += File.separator;
 			else
 				path += "/";
@@ -2374,11 +2378,11 @@ public class IJ {
 	 */
 	public static void open(String path) {
 
-		if(ij == null && Menus.getCommands() == null)
+		if (ij == null && Menus.getCommands() == null)
 			init();
 		Opener o = new Opener();
 		macroRunning = true;
-		if(path == null || path.equals(""))
+		if (path == null || path.equals(""))
 			o.open();
 		else
 			o.open(path);
@@ -2388,10 +2392,10 @@ public class IJ {
 	/** Opens and displays the nth image in the specified tiff stack. */
 	public static void open(String path, int n) {
 
-		if(ij == null && Menus.getCommands() == null)
+		if (ij == null && Menus.getCommands() == null)
 			init();
 		ImagePlus imp = openImage(path, n);
-		if(imp != null)
+		if (imp != null)
 			imp.show();
 	}
 
@@ -2444,7 +2448,7 @@ public class IJ {
 
 		// if (!trustManagerCreated && url.contains("nih.gov")) trustAllCerts();
 		url = Opener.updateUrl(url);
-		if(debugMode)
+		if (debugMode)
 			log("OpenUrlAsString: " + url);
 		StringBuffer sb = null;
 		url = url.replaceAll(" ", "%20");
@@ -2453,19 +2457,19 @@ public class IJ {
 			URL u = new URL(url);
 			URLConnection uc = u.openConnection();
 			long len = uc.getContentLength();
-			if(len > 5242880L)
+			if (len > 5242880L)
 				return "<Error: file is larger than 5MB>";
 			InputStream in = u.openStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 			sb = new StringBuffer();
 			String line;
-			while((line = br.readLine()) != null)
+			while ((line = br.readLine()) != null)
 				sb.append(line + "\n");
 			in.close();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return ("<Error: " + e + ">");
 		}
-		if(sb != null)
+		if (sb != null)
 			return new String(sb);
 		else
 			return "";
@@ -2490,20 +2494,21 @@ public class IJ {
 	public static void save(ImagePlus imp, String path) {
 
 		ImagePlus imp2 = imp;
-		if(imp2 == null)
+		if (imp2 == null)
 			imp2 = WindowManager.getCurrentImage();
 		int dotLoc = path.lastIndexOf('.');
-		if(dotLoc == -1 && imp2 != null) {
+		if (dotLoc == -1 && imp2 != null) {
 			path = path + ".tif"; // save as TIFF if file name does not have an extension
 			dotLoc = path.lastIndexOf('.');
 		}
-		if(dotLoc != -1) {
+		if (dotLoc != -1) {
 			String title = imp2 != null ? imp2.getTitle() : null;
 			saveAs(imp, path.substring(dotLoc + 1), path);
-			if(title != null)
+			if (title != null)
 				imp2.setTitle(title);
 		} else
-			error("The file path passed to IJ.save() method or save()\nmacro function is missing the required extension.\n \n\"" + path + "\"");
+			error("The file path passed to IJ.save() method or save()\nmacro function is missing the required extension.\n \n\""
+					+ path + "\"");
 	}
 
 	/*
@@ -2526,73 +2531,73 @@ public class IJ {
 	 */
 	public static void saveAs(ImagePlus imp, String format, String path) {
 
-		if(format == null)
+		if (format == null)
 			return;
-		if(path != null && path.length() == 0)
+		if (path != null && path.length() == 0)
 			path = null;
 		format = format.toLowerCase(Locale.US);
 		Roi roi2 = imp != null ? imp.getRoi() : null;
-		if(roi2 != null)
+		if (roi2 != null)
 			roi2.endPaste();
-		if(format.indexOf("tif") != -1) {
+		if (format.indexOf("tif") != -1) {
 			saveAsTiff(imp, path);
 			return;
-		} else if(format.indexOf("jpeg") != -1 || format.indexOf("jpg") != -1) {
+		} else if (format.indexOf("jpeg") != -1 || format.indexOf("jpg") != -1) {
 			path = updateExtension(path, ".jpg");
 			JpegWriter.save(imp, path, FileSaver.getJpegQuality());
 			return;
-		} else if(format.indexOf("gif") != -1) {
+		} else if (format.indexOf("gif") != -1) {
 			path = updateExtension(path, ".gif");
 			GifWriter.save(imp, path);
 			return;
-		} else if(format.indexOf("text image") != -1) {
+		} else if (format.indexOf("text image") != -1) {
 			String extension = ".txt";
-			if(path != null && (path.endsWith(".csv") || path.endsWith(".CSV")))
+			if (path != null && (path.endsWith(".csv") || path.endsWith(".CSV")))
 				extension = ".csv";
 			path = updateExtension(path, extension);
 			format = "Text Image...";
-		} else if(format.indexOf("text") != -1 || format.indexOf("txt") != -1) {
-			if(path != null && !path.endsWith(".xls") && !path.endsWith(".csv") && !path.endsWith(".tsv"))
+		} else if (format.indexOf("text") != -1 || format.indexOf("txt") != -1) {
+			if (path != null && !path.endsWith(".xls") && !path.endsWith(".csv") && !path.endsWith(".tsv"))
 				path = updateExtension(path, ".txt");
 			format = "Text...";
-		} else if(format.indexOf("zip") != -1) {
+		} else if (format.indexOf("zip") != -1) {
 			path = updateExtension(path, ".zip");
 			format = "ZIP...";
-		} else if(format.indexOf("raw") != -1) {
+		} else if (format.indexOf("raw") != -1) {
 			// path = updateExtension(path, ".raw");
 			format = "Raw Data...";
-		} else if(format.indexOf("avi") != -1) {
+		} else if (format.indexOf("avi") != -1) {
 			path = updateExtension(path, ".avi");
 			format = "AVI... ";
-		} else if(format.indexOf("bmp") != -1) {
+		} else if (format.indexOf("bmp") != -1) {
 			path = updateExtension(path, ".bmp");
 			format = "BMP...";
-		} else if(format.indexOf("fits") != -1) {
+		} else if (format.indexOf("fits") != -1) {
 			path = updateExtension(path, ".fits");
 			format = "FITS...";
-		} else if(format.indexOf("png") != -1) {
+		} else if (format.indexOf("png") != -1) {
 			path = updateExtension(path, ".png");
 			format = "PNG...";
-		} else if(format.indexOf("pgm") != -1) {
+		} else if (format.indexOf("pgm") != -1) {
 			path = updateExtension(path, ".pgm");
 			format = "PGM...";
-		} else if(format.indexOf("lut") != -1) {
+		} else if (format.indexOf("lut") != -1) {
 			path = updateExtension(path, ".lut");
 			format = "LUT...";
-		} else if(format.contains("results") || format.contains("measurements") || format.contains("table")) {
+		} else if (format.contains("results") || format.contains("measurements") || format.contains("table")) {
 			format = "Results...";
-		} else if(format.contains("selection") || format.contains("roi")) {
+		} else if (format.contains("selection") || format.contains("roi")) {
 			path = updateExtension(path, ".roi");
 			format = "Selection...";
-		} else if(format.indexOf("xy") != -1 || format.indexOf("coordinates") != -1) {
+		} else if (format.indexOf("xy") != -1 || format.indexOf("coordinates") != -1) {
 			path = updateExtension(path, ".txt");
 			format = "XY Coordinates...";
 		} else
 			error("Unsupported save() or saveAs() file format: \"" + format + "\"\n \n\"" + path + "\"");
-		if(path == null)
+		if (path == null)
 			run(format);
 		else {
-			if(path.contains(" "))
+			if (path.contains(" "))
 				run(imp, format, "save=[" + path + "]");
 			else
 				run(imp, format, "save=" + path);
@@ -2606,31 +2611,31 @@ public class IJ {
 	 */
 	public static boolean saveAsTiff(ImagePlus imp, String path) {
 
-		if(imp == null)
+		if (imp == null)
 			imp = getImage();
-		if(path == null || path.equals(""))
+		if (path == null || path.equals(""))
 			return (new FileSaver(imp)).saveAsTiff();
-		if(!path.endsWith(".tiff"))
+		if (!path.endsWith(".tiff"))
 			path = updateExtension(path, ".tif");
 		FileSaver fs = new FileSaver(imp);
 		boolean ok;
-		if(imp.getStackSize() > 1)
+		if (imp.getStackSize() > 1)
 			ok = fs.saveAsTiffStack(path);
 		else
 			ok = fs.saveAsTiff(path);
-		if(ok)
+		if (ok)
 			fs.updateImagePlus(path, FileInfo.TIFF);
 		return ok;
 	}
 
 	static String updateExtension(String path, String extension) {
 
-		if(path == null)
+		if (path == null)
 			return null;
 		int dotIndex = path.lastIndexOf(".");
 		int separatorIndex = path.lastIndexOf(File.separator);
-		if(dotIndex >= 0 && dotIndex > separatorIndex && (path.length() - dotIndex) <= 5) {
-			if(dotIndex + 1 < path.length() && Character.isDigit(path.charAt(dotIndex + 1)))
+		if (dotIndex >= 0 && dotIndex > separatorIndex && (path.length() - dotIndex) <= 5) {
+			if (dotIndex + 1 < path.length() && Character.isDigit(path.charAt(dotIndex + 1)))
 				path += extension;
 			else
 				path = path.substring(0, dotIndex) + extension;
@@ -2661,11 +2666,11 @@ public class IJ {
 
 	private static String write(String string, String path, boolean append) {
 
-		if(path == null || path.equals("")) {
+		if (path == null || path.equals("")) {
 			String msg = append ? "Append String..." : "Save String...";
 			SaveDialog sd = new SaveDialog(msg, "Untitled", ".txt");
 			String name = sd.getFileName();
-			if(name == null)
+			if (name == null)
 				return null;
 			path = sd.getDirectory() + name;
 		}
@@ -2673,7 +2678,7 @@ public class IJ {
 			BufferedWriter out = new BufferedWriter(new FileWriter(path, append));
 			out.write(string);
 			out.close();
-		} catch(IOException e) {
+		} catch (IOException e) {
 			return "" + e;
 		}
 		return null;
@@ -2686,31 +2691,31 @@ public class IJ {
 	 */
 	public static String openAsString(String path) {
 
-		if(path == null || path.equals("")) {
+		if (path == null || path.equals("")) {
 			OpenDialog od = new OpenDialog("Open Text File", "");
 			String directory = od.getDirectory();
 			String name = od.getFileName();
-			if(name == null)
+			if (name == null)
 				return null;
 			path = directory + name;
 		}
 		String str = "";
 		File file = new File(path);
-		if(!file.exists())
+		if (!file.exists())
 			return "Error: file not found";
 		try {
 			StringBuffer sb = new StringBuffer(5000);
 			BufferedReader r = new BufferedReader(new FileReader(file));
-			while(true) {
+			while (true) {
 				String s = r.readLine();
-				if(s == null)
+				if (s == null)
 					break;
 				else
 					sb.append(s + "\n");
 			}
 			r.close();
 			str = new String(sb);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			str = "Error: " + e.getMessage();
 		}
 		return str;
@@ -2718,27 +2723,27 @@ public class IJ {
 
 	public static ByteBuffer openAsByteBuffer(String path) {
 
-		if(path == null || path.equals("")) {
+		if (path == null || path.equals("")) {
 			OpenDialog od = new OpenDialog("Open as ByteBuffer", "");
 			String directory = od.getDirectory();
 			String name = od.getFileName();
-			if(name == null)
+			if (name == null)
 				return null;
 			path = directory + name;
 		}
 		File file = new File(path);
-		if(!file.exists()) {
+		if (!file.exists()) {
 			error("OpenAsByteBuffer", "File not found");
 			return null;
 		}
-		int len = (int)file.length();
+		int len = (int) file.length();
 		byte[] buffer = new byte[len];
 		try {
 			InputStream in = new BufferedInputStream(new FileInputStream(path));
 			DataInputStream dis = new DataInputStream(in);
 			dis.readFully(buffer);
 			dis.close();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			error("OpenAsByteBuffer", e.getMessage());
 			return null;
 		}
@@ -2748,16 +2753,11 @@ public class IJ {
 	/**
 	 * Creates a new image.
 	 * 
-	 * @param title
-	 *            image name
-	 * @param width
-	 *            image width in pixels
-	 * @param height
-	 *            image height in pixels
-	 * @param depth
-	 *            number of stack images
-	 * @param bitdepth
-	 *            8, 16, 32 (float) or 24 (RGB)
+	 * @param title    image name
+	 * @param width    image width in pixels
+	 * @param height   image height in pixels
+	 * @param depth    number of stack images
+	 * @param bitdepth 8, 16, 32 (float) or 24 (RGB)
 	 */
 	public static ImagePlus createImage(String title, int width, int height, int depth, int bitdepth) {
 
@@ -2774,26 +2774,26 @@ public class IJ {
 
 		type = type.toLowerCase(Locale.US);
 		int bitDepth = 8;
-		if(type.contains("16"))
+		if (type.contains("16"))
 			bitDepth = 16;
 		boolean signedInt = type.contains("32-bit int");
-		if(type.contains("32"))
+		if (type.contains("32"))
 			bitDepth = 32;
-		if(type.contains("24") || type.contains("rgb") || signedInt)
+		if (type.contains("24") || type.contains("rgb") || signedInt)
 			bitDepth = 24;
 		int options = NewImage.FILL_WHITE;
-		if(bitDepth == 16 || bitDepth == 32)
+		if (bitDepth == 16 || bitDepth == 32)
 			options = NewImage.FILL_BLACK;
-		if(type.contains("white"))
+		if (type.contains("white"))
 			options = NewImage.FILL_WHITE;
-		else if(type.contains("black"))
+		else if (type.contains("black"))
 			options = NewImage.FILL_BLACK;
-		else if(type.contains("ramp"))
+		else if (type.contains("ramp"))
 			options = NewImage.FILL_RAMP;
-		else if(type.contains("noise") || type.contains("random"))
+		else if (type.contains("noise") || type.contains("random"))
 			options = NewImage.FILL_NOISE;
 		options += NewImage.CHECK_AVAILABLE_MEMORY;
-		if(signedInt)
+		if (signedInt)
 			options += NewImage.SIGNED_INT;
 		return NewImage.createImage(title, width, height, depth, bitDepth, options);
 	}
@@ -2801,40 +2801,34 @@ public class IJ {
 	/**
 	 * Creates a new hyperstack.
 	 * 
-	 * @param title
-	 *            image name
-	 * @param type
-	 *            "8-bit", "16-bit", "32-bit" or "RGB". May also contain
-	 *            "white" , "black" (the default), "ramp", "composite-mode",
-	 *            "color-mode", "grayscale-mode or "label".
-	 * @param width
-	 *            image width in pixels
-	 * @param height
-	 *            image height in pixels
-	 * @param channels
-	 *            number of channels
-	 * @param slices
-	 *            number of slices
-	 * @param frames
-	 *            number of frames
+	 * @param title    image name
+	 * @param type     "8-bit", "16-bit", "32-bit" or "RGB". May also contain
+	 *                 "white" , "black" (the default), "ramp", "composite-mode",
+	 *                 "color-mode", "grayscale-mode or "label".
+	 * @param width    image width in pixels
+	 * @param height   image height in pixels
+	 * @param channels number of channels
+	 * @param slices   number of slices
+	 * @param frames   number of frames
 	 */
-	public static ImagePlus createImage(String title, String type, int width, int height, int channels, int slices, int frames) {
+	public static ImagePlus createImage(String title, String type, int width, int height, int channels, int slices,
+			int frames) {
 
-		if(type.contains("label"))
+		if (type.contains("label"))
 			type += "ramp";
-		if(!(type.contains("white") || type.contains("ramp")))
+		if (!(type.contains("white") || type.contains("ramp")))
 			type += "black";
 		ImagePlus imp = IJ.createImage(title, type, width, height, channels * slices * frames);
 		imp.setDimensions(channels, slices, frames);
 		int mode = IJ.COLOR;
-		if(type.contains("composite"))
+		if (type.contains("composite"))
 			mode = IJ.COMPOSITE;
-		if(type.contains("grayscale"))
+		if (type.contains("grayscale"))
 			mode = IJ.GRAYSCALE;
-		if(channels > 1 && imp.getBitDepth() != 24)
+		if (channels > 1 && imp.getBitDepth() != 24)
 			imp = new CompositeImage(imp, mode);
 		imp.setOpenAsHyperStack(true);
-		if(type.contains("label"))
+		if (type.contains("label"))
 			HyperStackMaker.labelHyperstack(imp);
 		return imp;
 	}
@@ -2842,26 +2836,20 @@ public class IJ {
 	/**
 	 * Creates a new hyperstack.
 	 * 
-	 * @param title
-	 *            image name
-	 * @param width
-	 *            image width in pixels
-	 * @param height
-	 *            image height in pixels
-	 * @param channels
-	 *            number of channels
-	 * @param slices
-	 *            number of slices
-	 * @param frames
-	 *            number of frames
-	 * @param bitdepth
-	 *            8, 16, 32 (float) or 24 (RGB)
+	 * @param title    image name
+	 * @param width    image width in pixels
+	 * @param height   image height in pixels
+	 * @param channels number of channels
+	 * @param slices   number of slices
+	 * @param frames   number of frames
+	 * @param bitdepth 8, 16, 32 (float) or 24 (RGB)
 	 */
-	public static ImagePlus createHyperStack(String title, int width, int height, int channels, int slices, int frames, int bitdepth) {
+	public static ImagePlus createHyperStack(String title, int width, int height, int channels, int slices, int frames,
+			int bitdepth) {
 
 		ImagePlus imp = createImage(title, width, height, channels * slices * frames, bitdepth);
 		imp.setDimensions(channels, slices, frames);
-		if(channels > 1 && bitdepth != 24)
+		if (channels > 1 && bitdepth != 24)
 			imp = new CompositeImage(imp, IJ.COMPOSITE);
 		imp.setOpenAsHyperStack(true);
 		return imp;
@@ -2876,7 +2864,7 @@ public class IJ {
 	public static void newImage(String title, String type, int width, int height, int depth) {
 
 		ImagePlus imp = createImage(title, type, width, height, depth);
-		if(imp != null) {
+		if (imp != null) {
 			macroRunning = true;
 			imp.show();
 			macroRunning = false;
@@ -2941,22 +2929,22 @@ public class IJ {
 	 */
 	public static ClassLoader getClassLoader() {
 
-		if(classLoader == null) {
+		if (classLoader == null) {
 			String pluginsDir = Menus.getPlugInsPath();
-			if(pluginsDir == null) {
+			if (pluginsDir == null) {
 				String home = System.getProperty("plugins.dir");
-				if(home != null) {
-					if(!home.endsWith(Prefs.separator))
+				if (home != null) {
+					if (!home.endsWith(Prefs.separator))
 						home += Prefs.separator;
 					pluginsDir = home + "plugins" + Prefs.separator;
-					if(!(new File(pluginsDir)).isDirectory())
+					if (!(new File(pluginsDir)).isDirectory())
 						pluginsDir = home;
 				}
 			}
-			if(pluginsDir == null)
+			if (pluginsDir == null)
 				return IJ.class.getClassLoader();
 			else {
-				if(Menus.jnlp)
+				if (Menus.jnlp)
 					classLoader = new PluginClassLoader(pluginsDir, true);
 				else
 					classLoader = new PluginClassLoader(pluginsDir);
@@ -2984,29 +2972,29 @@ public class IJ {
 		ArrayList list = new ArrayList();
 		Hashtable commands = Menus.getCommands();
 		org.eclipse.swt.widgets.Menu lutsMenu = Menus.getImageJMenu("Image>Lookup Tables");
-		if(commands == null || lutsMenu == null)
+		if (commands == null || lutsMenu == null)
 			return new String[0];
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
 
-				for(int i = 0; i < lutsMenu.getItemCount(); i++) {
+				for (int i = 0; i < lutsMenu.getItemCount(); i++) {
 					org.eclipse.swt.widgets.MenuItem menuItem = lutsMenu.getItem(i);
 					String label = menuItem.getText();
-					if(label.equals("-") || label.equals("Invert LUT") || label.equals("Apply LUT"))
+					if (label.equals("-") || label.equals("Invert LUT") || label.equals("Apply LUT"))
 						continue;
-					String command = (String)commands.get(label);
-					if(command == null || command.startsWith("ij.plugin.LutLoader"))
+					String command = (String) commands.get(label);
+					if (command == null || command.startsWith("ij.plugin.LutLoader"))
 						list.add(label);
 				}
 			}
 		});
-		return (String[])list.toArray(new String[list.size()]);
+		return (String[]) list.toArray(new String[list.size()]);
 	}
 
 	static void abort() {
 
-		if((ij != null || Interpreter.isBatchMode()) && macroInterpreter == null)
+		if ((ij != null || Interpreter.isBatchMode()) && macroInterpreter == null)
 			throw new RuntimeException(Macro.MACRO_CANCELED);
 	}
 
@@ -3026,23 +3014,24 @@ public class IJ {
 	 */
 	public static void handleException(Throwable e) {
 
-		if(exceptionHandler != null) {
+		if (exceptionHandler != null) {
 			exceptionHandler.handle(e);
 			return;
 		}
-		if(Macro.MACRO_CANCELED.equals(e.getMessage()))
+		if (Macro.MACRO_CANCELED.equals(e.getMessage()))
 			return;
 		CharArrayWriter caw = new CharArrayWriter();
 		PrintWriter pw = new PrintWriter(caw);
 		e.printStackTrace(pw);
 		String s = caw.toString();
 		String lineNumber = "";
-		if(s != null && s.contains("ThreadDeath"))
+		if (s != null && s.contains("ThreadDeath"))
 			return;
-		Interpreter interpreter = Thread.currentThread().getName().endsWith("Macro$") ? Interpreter.getInstance() : null;
-		if(interpreter != null)
+		Interpreter interpreter = Thread.currentThread().getName().endsWith("Macro$") ? Interpreter.getInstance()
+				: null;
+		if (interpreter != null)
 			lineNumber = "\nMacro line number: " + interpreter.getLineNumber();
-		if(getInstance() != null) {
+		if (getInstance() != null) {
 			s = IJ.getInstance().getInfo() + lineNumber + "\n \n" + s;
 			new TextWindow("Exception", s, 500, 340);
 		} else
@@ -3077,9 +3066,9 @@ public class IJ {
 
 	public static void notifyEventListeners(int eventID) {
 
-		synchronized(eventListeners) {
-			for(int i = 0; i < eventListeners.size(); i++) {
-				IJEventListener listener = (IJEventListener)eventListeners.elementAt(i);
+		synchronized (eventListeners) {
+			for (int i = 0; i < eventListeners.size(); i++) {
+				IJEventListener listener = (IJEventListener) eventListeners.elementAt(i);
 				listener.eventOccurred(eventID);
 			}
 		}
@@ -3091,9 +3080,9 @@ public class IJ {
 	 */
 	public static void setProperty(String key, Object value) {
 
-		if(properties == null)
+		if (properties == null)
 			properties = new Properties();
-		if(value == null)
+		if (value == null)
 			properties.remove(key);
 		else
 			properties.put(key, value);
@@ -3105,7 +3094,7 @@ public class IJ {
 	 */
 	public static Object getProperty(String key) {
 
-		if(properties == null)
+		if (properties == null)
 			return null;
 		else
 			return properties.get(key);
@@ -3119,12 +3108,14 @@ public class IJ {
 	public static void protectStatusBar(boolean protect) {
 
 		protectStatusBar = protect;
-		if(!protectStatusBar)
+		if (!protectStatusBar)
 			statusBarThread = null;
 	}
-	
-	/** Returns 'true' if the Recorder is running and ImageJ is not in headless mode. */
+
+	/**
+	 * Returns 'true' if the Recorder is running and ImageJ is not in headless mode.
+	 */
 	public static boolean recording() {
-		return (!GraphicsEnvironment.isHeadless()&&Recorder.record);
+		return (!GraphicsEnvironment.isHeadless() && Recorder.record);
 	}
 }
