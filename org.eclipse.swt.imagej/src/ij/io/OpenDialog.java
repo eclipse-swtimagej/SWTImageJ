@@ -185,10 +185,7 @@ public class OpenDialog {
 		 * null && ij.isActive()) parent = ij; else parent = null; }
 		 */
 
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				Shell s = new Shell(SWT.EMBEDDED);
 				fd = new org.eclipse.swt.widgets.FileDialog(s, SWT.OPEN);
 				fd.setText("Load");
@@ -210,7 +207,7 @@ public class OpenDialog {
 
 				}
 
-			}
+			
 		});
 		/*
 		 * FileDialog fd = new FileDialog(parent, title); if (path!=null)

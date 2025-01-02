@@ -34,19 +34,17 @@ public class SaveDialog {
 
 		this.title = title;
 		ext = extension;
-		if(isMacro())
+		if (isMacro())
 			return;
 		String defaultDir = OpenDialog.getDefaultDirectory();
 		defaultName = setExtension(defaultName, extension);
 		IJ.showStatus(title);
 		/*
-		 * if (Prefs.useJFileChooser)
-		 * jSave(title, defaultDir, defaultName);
-		 * else
+		 * if (Prefs.useJFileChooser) jSave(title, defaultDir, defaultName); else
 		 */
 		save(title, defaultDir, defaultName);
 		IJ.showStatus("");
-		if(name != null && dir != null)
+		if (name != null && dir != null)
 			OpenDialog.setDefaultDirectory(dir);
 		IJ.showStatus(title + ": " + dir + name);
 	}
@@ -59,7 +57,7 @@ public class SaveDialog {
 
 		this.title = title;
 		ext = extension;
-		if(isMacro())
+		if (isMacro())
 			return;
 		defaultName = setExtension(defaultName, extension);
 		// if (Prefs.useJFileChooser)
@@ -72,20 +70,20 @@ public class SaveDialog {
 	boolean isMacro() {
 
 		String macroOptions = Macro.getOptions();
-		if(macroOptions != null) {
+		if (macroOptions != null) {
 			String path = Macro.getValue(macroOptions, title, null);
-			if(path == null)
+			if (path == null)
 				path = Macro.getValue(macroOptions, "path", null);
-			if(path != null && path.indexOf(".") == -1 && !((new File(path)).exists())) {
+			if (path != null && path.indexOf(".") == -1 && !((new File(path)).exists())) {
 				// Is 'path' a macro variable?
-				if(path.startsWith("&"))
+				if (path.startsWith("&"))
 					path = path.substring(1);
 				Interpreter interp = Interpreter.getInstance();
 				String path2 = interp != null ? interp.getStringVariable(path) : null;
-				if(path2 != null)
+				if (path2 != null)
 					path = path2;
 			}
-			if(path != null) {
+			if (path != null) {
 				Opener o = new Opener();
 				dir = o.getDir(path);
 				name = o.getName(path);
@@ -97,15 +95,15 @@ public class SaveDialog {
 
 	public static String setExtension(String name, String extension) {
 
-		if(name == null || extension == null || extension.length() == 0)
+		if (name == null || extension == null || extension.length() == 0)
 			return name;
 		int dotIndex = name.lastIndexOf(".");
-		if(dotIndex >= 0 && (name.length() - dotIndex) <= 5) {
-			if(dotIndex + 1 < name.length() && Character.isDigit(name.charAt(dotIndex + 1)))
+		if (dotIndex >= 0 && (name.length() - dotIndex) <= 5) {
+			if (dotIndex + 1 < name.length() && Character.isDigit(name.charAt(dotIndex + 1)))
 				name += extension;
 			else
 				name = name.substring(0, dotIndex) + extension;
-		} else if(!name.endsWith(extension))
+		} else if (!name.endsWith(extension))
 			name += extension;
 		return name;
 	}
@@ -113,33 +111,30 @@ public class SaveDialog {
 	/* A SWT file dialog! */
 	void save(String title, final String defaultDir, final String defaultName) {
 
-		final Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				Shell s = new Shell(SWT.ON_TOP);
-				fd = new FileDialog(s, SWT.SAVE);
-				fd.setText("Save");
-				if(defaultName != null)
-					fd.setFileName(defaultName);
-				if(defaultDir != null)
-					fd.setFilterPath(defaultDir);
-				name = fd.open();
-				if(name != null) {
-					File file = new File(name);
-					name = file.getName();
-					dir = fd.getFilterPath() + File.separator;
-				}
-				if(name == null)
-					Macro.abort();
+			Shell s = new Shell(SWT.ON_TOP);
+			fd = new FileDialog(s, SWT.SAVE);
+			fd.setText("Save");
+			if (defaultName != null)
+				fd.setFileName(defaultName);
+			if (defaultDir != null)
+				fd.setFilterPath(defaultDir);
+			name = fd.open();
+			if (name != null) {
+				File file = new File(name);
+				name = file.getName();
+				dir = fd.getFilterPath() + File.separator;
 			}
+			if (name == null)
+				Macro.abort();
+
 		});
 	}
 
 	private boolean noExtension(String name) {
 
-		if(name == null)
+		if (name == null)
 			return false;
 		int dotIndex = name.indexOf(".");
 		return dotIndex == -1 || (name.length() - dotIndex) > 5;
@@ -155,8 +150,8 @@ public class SaveDialog {
 	/** Returns the selected file name. */
 	public String getFileName() {
 
-		if(name != null) {
-			if(IJ.recording() && dir != null)
+		if (name != null) {
+			if (IJ.recording() && dir != null)
 				Recorder.recordPath(title, dir + name);
 			OpenDialog.setLastName(name);
 		}
@@ -167,7 +162,7 @@ public class SaveDialog {
 
 		String title = imp != null ? imp.getTitle() : "Untitled";
 		SaveDialog sd = new SaveDialog("Save As", title, extension);
-		if(sd.getFileName() == null)
+		if (sd.getFileName() == null)
 			return null;
 		else
 			return sd.getDirectory() + sd.getFileName();

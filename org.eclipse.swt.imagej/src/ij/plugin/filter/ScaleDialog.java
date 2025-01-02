@@ -138,30 +138,27 @@ public class ScaleDialog implements PlugInFilter {
 	Composite makeButtonPanel(SetScaleDialog gd) {
 		// Panel panel = new Panel();
 		AtomicReference<Composite> panel = new AtomicReference<Composite>();
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			panel.set(new Composite(gd.getShell(), SWT.NONE));
+			GridLayout layout = new GridLayout(1, true);
+			panel.get().setLayout(layout);
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			panel.get().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			gd.unscaleButton = new org.eclipse.swt.widgets.Button(panel.get(), SWT.NONE);
 
-			public void run() {
-				panel.set(new Composite(gd.getShell(), SWT.NONE));
-				GridLayout layout = new GridLayout(1, true);
-				panel.get().setLayout(layout);
-				layout.marginHeight = 0;
-				layout.marginWidth = 0;
-				panel.get().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				gd.unscaleButton = new org.eclipse.swt.widgets.Button(panel.get(), SWT.NONE);
+			gd.unscaleButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			gd.unscaleButton.setText("Click to Remove Scale");
+			// gd.unscaleButton.addActionListener(gd);
+			gd.unscaleButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
 
-				gd.unscaleButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				gd.unscaleButton.setText("Click to Remove Scale");
-				// gd.unscaleButton.addActionListener(gd);
-				gd.unscaleButton.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
+					gd.actionPerformed(e);
+				}
+			});
+			// panel.add(gd.unscaleButton);
 
-						gd.actionPerformed(e);
-					}
-				});
-				// panel.add(gd.unscaleButton);
-			}
 		});
 		return panel.get();
 	}
@@ -232,7 +229,7 @@ class SetScaleDialog extends GenericDialog {
 			// if (IJ.isMacOSX())
 			// {setVisible(false); setVisible(true);}
 			if (IJ.recording()) {
-				Recorder.disableCommandRecording();				
+				Recorder.disableCommandRecording();
 				if (Recorder.scriptMode())
 					Recorder.recordCall("imp.removeScale();");
 				else

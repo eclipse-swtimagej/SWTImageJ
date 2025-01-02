@@ -46,7 +46,7 @@ import ij.util.StringSorter;
  * 
  * @see ImageJ
  */
-@SuppressWarnings({"removal"})
+@SuppressWarnings({ "removal" })
 public class Menus {
 
 	public static final char PLUGINS_MENU = 'p';
@@ -67,9 +67,8 @@ public class Menus {
 	public static final int MAX_OPEN_RECENT_ITEMS = 15;
 	private static Menus instance;
 	private static org.eclipse.swt.widgets.Menu mbar;
-	private static org.eclipse.swt.widgets.MenuItem gray8Item, gray16Item,
-			gray32Item, color256Item, colorRGBItem, RGBStackItem, HSBStackItem,
-			LabStackItem, HSB32Item;
+	private static org.eclipse.swt.widgets.MenuItem gray8Item, gray16Item, gray32Item, color256Item, colorRGBItem,
+			RGBStackItem, HSBStackItem, LabStackItem, HSB32Item;
 	private static org.eclipse.swt.widgets.Menu popup;
 	private static ImageJ ij;
 	private static Applet applet;
@@ -77,8 +76,7 @@ public class Menus {
 	private static String ImageJPath, pluginsPath, macrosPath;
 	private static Properties menus;
 	private static Properties menuSeparators;
-	private static org.eclipse.swt.widgets.Menu pluginsMenu, saveAsMenu,
-			shortcutsMenu, utilitiesMenu, macrosMenu;
+	private static org.eclipse.swt.widgets.Menu pluginsMenu, saveAsMenu, shortcutsMenu, utilitiesMenu, macrosMenu;
 	static org.eclipse.swt.widgets.Menu window;
 	static org.eclipse.swt.widgets.Menu openRecentMenu;
 	private static Hashtable pluginsTable;
@@ -124,7 +122,7 @@ public class Menus {
 		addSorted = installingJars = duplicateCommand = false;
 		error = null;
 		/* Dispose the old menu bar! */
-		if(mbar != null && !mbar.isDisposed()) {
+		if (mbar != null && !mbar.isDisposed()) {
 			mbar.dispose();
 		}
 		mbar = new Menu(ij.getShell(), SWT.BAR);
@@ -256,7 +254,7 @@ public class Menus {
 		new org.eclipse.swt.widgets.MenuItem(analyzeMenu, SWT.SEPARATOR);
 		addPlugInItem(analyzeMenu, "Set Scale...", "ij.plugin.filter.ScaleDialog", 0, false);
 		addPlugInItem(analyzeMenu, "Calibrate...", "ij.plugin.filter.Calibrator", 0, false);
-		if(IJ.isMacOSX()) {
+		if (IJ.isMacOSX()) {
 			addPlugInItem(analyzeMenu, "Histogram", "ij.plugin.Histogram", 0, false);
 			shortcuts.put(Character.getNumericValue('h'), "Histogram");
 		} else
@@ -280,21 +278,24 @@ public class Menus {
 		addPlugInItem(help, "ImageJ Website...", "ij.plugin.BrowserLauncher", 0, false);
 		// help.addSeparator();
 		new org.eclipse.swt.widgets.MenuItem(help, SWT.SEPARATOR);
-		addPlugInItem(help, "Dev. Resources...", "ij.plugin.BrowserLauncher(\"" + IJ.URL2 + "/developer/index.html\")", 0, false);
-		addPlugInItem(help, "Macro Functions...", "ij.plugin.BrowserLauncher(\"https://wsr.imagej.net/developer/macro/functions.html\")", 0, false);
+		addPlugInItem(help, "Dev. Resources...", "ij.plugin.BrowserLauncher(\"" + IJ.URL2 + "/developer/index.html\")",
+				0, false);
+		addPlugInItem(help, "Macro Functions...",
+				"ij.plugin.BrowserLauncher(\"https://wsr.imagej.net/developer/macro/functions.html\")", 0, false);
 		org.eclipse.swt.widgets.Menu examplesMenu = getExamplesMenu(ij, help);
 		addPlugInItem(examplesMenu, "Open as Panel", "ij.plugin.SimpleCommands(\"opencp\")", 0, false);
 		// help.add(examplesMenu);
 		// help.addSeparator();
 		new org.eclipse.swt.widgets.MenuItem(help, SWT.SEPARATOR);
 		addPlugInItem(help, "Update ImageJ...", "ij.plugin.ImageJ_Updater", 0, false);
-		addPlugInItem(help, "Release Notes...", "ij.plugin.BrowserLauncher(\"https://wsr.imagej.net/notes.html\")", 0, false);
+		addPlugInItem(help, "Release Notes...", "ij.plugin.BrowserLauncher(\"https://wsr.imagej.net/notes.html\")", 0,
+				false);
 		addPlugInItem(help, "Refresh Menus", "ij.plugin.ImageJ_Updater(\"menus\")", 0, false);
 		// help.addSeparator();
 		new org.eclipse.swt.widgets.MenuItem(help, SWT.SEPARATOR);
 		org.eclipse.swt.widgets.Menu aboutMenu = getMenu("Help>About Plugins", true);
 		addPlugInItem(help, "About ImageJ...", "ij.plugin.AboutBox", 0, false);
-		if(applet == null) {
+		if (applet == null) {
 			menuSeparators = new Properties();
 			installPlugins();
 		}
@@ -302,24 +303,25 @@ public class Menus {
 		// file.addSeparator();
 		new org.eclipse.swt.widgets.MenuItem(file, SWT.SEPARATOR);
 		addPlugInItem(file, "Quit", "ij.plugin.Commands(\"quit\")", 0, false);
-		if(fontSize != 0 || scale > 1.0)
+		if (fontSize != 0 || scale > 1.0)
 			/* Changed for SWT! */
 			// mbar.setFont(getFont());
-			if(ij != null) {
+			if (ij != null) {
 				ij.getShell().setMenuBar(mbar);
 				Menus.setMenuBarCount++;
 			}
 		// Add deleted sample images to commands table
 		pluginsTable.put("Lena (68K)", "ij.plugin.URLOpener(\"lena-std.tif\")");
 		pluginsTable.put("Bridge (174K)", "ij.plugin.URLOpener(\"bridge.gif\")");
-		if(pluginError != null)
+		if (pluginError != null)
 			error = error != null ? error += "\n" + pluginError : pluginError;
-		if(jarError != null)
+		if (jarError != null)
 			error = error != null ? error += "\n" + jarError : jarError;
 		return error;
 	}
 
-	public static org.eclipse.swt.widgets.Menu getExamplesMenu(SelectionListener listener, org.eclipse.swt.widgets.Menu help) {
+	public static org.eclipse.swt.widgets.Menu getExamplesMenu(SelectionListener listener,
+			org.eclipse.swt.widgets.Menu help) {
 		// org.eclipse.swt.widgets.Menu menu = new
 		// org.eclipse.swt.widgets.Menu("Examples");
 
@@ -485,10 +487,10 @@ public class Menus {
 	void addOpenRecentSubMenu(org.eclipse.swt.widgets.Menu menu) {
 
 		openRecentMenu = getMenu("File>Open Recent");
-		if(openRecentMenu != null) {
-			for(int i = 0; i < MAX_OPEN_RECENT_ITEMS; i++) {
+		if (openRecentMenu != null) {
+			for (int i = 0; i < MAX_OPEN_RECENT_ITEMS; i++) {
 				String path = Prefs.getString("recent" + (i / 10) % 10 + i % 10);
-				if(path == null)
+				if (path == null)
 					break;
 				org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(openRecentMenu, SWT.PUSH);
 				item.setText(path);
@@ -504,14 +506,14 @@ public class Menus {
 
 	static void addItem(org.eclipse.swt.widgets.Menu menu, String label, int shortcut, boolean shift) {
 
-		if(menu == null)
+		if (menu == null)
 			return;
 		org.eclipse.swt.widgets.MenuItem item;
-		if(shortcut == 0) {
+		if (shortcut == 0) {
 			item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
 			item.setText(label);
 		} else {
-			if(shift) {
+			if (shift) {
 				item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
 				item.setText(label);
 				item.setAccelerator(SWT.SHIFT + shortcut);
@@ -525,9 +527,10 @@ public class Menus {
 				// System.out.println(Integer.valueOf(shortcut)+" "+ label);
 			}
 		}
-		// Listener will be installed in the called methods which disposes first the items:
-		if(addSorted) {
-			if(menu == pluginsMenu)
+		// Listener will be installed in the called methods which disposes first the
+		// items:
+		if (addSorted) {
+			if (menu == pluginsMenu)
 				addItemSorted(menu, item, userPluginsIndex);
 			else
 				addOrdered(menu, item);
@@ -546,10 +549,11 @@ public class Menus {
 		addItem(menu, label, shortcut, shift);
 	}
 
-	org.eclipse.swt.widgets.MenuItem addCheckboxItem(org.eclipse.swt.widgets.Menu menu, String label, String className) {
+	org.eclipse.swt.widgets.MenuItem addCheckboxItem(org.eclipse.swt.widgets.Menu menu, String label,
+			String className) {
 
 		org.eclipse.swt.widgets.MenuItem item = null;
-		if(menu != null) {
+		if (menu != null) {
 			pluginsTable.put(label, className);
 			nPlugins++;
 			item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.CHECK);
@@ -570,26 +574,26 @@ public class Menus {
 		org.eclipse.swt.widgets.Menu submenu = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
 		// Menu submenu = new Menu(name.replace('_', ' '));
 		index = key.indexOf(' ');
-		if(index > 0)
+		if (index > 0)
 			key = key.substring(0, index);
-		for(int count = 1; count < 100; count++) {
+		for (int count = 1; count < 100; count++) {
 			value = Prefs.getString(key + (count / 10) % 10 + count % 10);
-			if(value == null)
+			if (value == null)
 				break;
-			if(count == 1) {
+			if (count == 1) {
 				org.eclipse.swt.widgets.MenuItem subMenuItem = new org.eclipse.swt.widgets.MenuItem(menu, SWT.CASCADE);
 				subMenuItem.setText(name.replace('_', ' '));
 				subMenuItem.setMenu(submenu);
 				// submenu = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
 				// menu.add(submenu);
 			}
-			if(value.equals("-"))
+			if (value.equals("-"))
 				new org.eclipse.swt.widgets.MenuItem(submenu, SWT.SEPARATOR);
 			// submenu.addSeparator();
 			else
 				addPluginItem(submenu, value);
 		}
-		if(name.equals("Lookup Tables") && applet == null)
+		if (name.equals("Lookup Tables") && applet == null)
 			addLuts(submenu);
 		return submenu;
 	}
@@ -597,23 +601,23 @@ public class Menus {
 	static void addLuts(org.eclipse.swt.widgets.Menu submenu) {
 
 		String path = IJ.getDirectory("luts");
-		if(path == null)
+		if (path == null)
 			return;
 		File f = new File(path);
 		String[] list = null;
-		if(applet == null && f.exists() && f.isDirectory())
+		if (applet == null && f.exists() && f.isDirectory())
 			list = f.list();
-		if(list == null)
+		if (list == null)
 			return;
-		if(IJ.isLinux() || IJ.isMacOSX())
+		if (IJ.isLinux() || IJ.isMacOSX())
 			Arrays.sort(list);
 		// submenu.addSeparator();
 		new org.eclipse.swt.widgets.MenuItem(submenu, SWT.SEPARATOR);
-		for(int i = 0; i < list.length; i++) {
+		for (int i = 0; i < list.length; i++) {
 			String name = list[i];
-			if(name.endsWith(".lut")) {
+			if (name.endsWith(".lut")) {
 				name = name.substring(0, name.length() - 4);
-				if(name.contains("_") && !name.contains(" "))
+				if (name.contains("_") && !name.contains(" "))
 					name = name.replace("_", " ");
 				// MenuItem item = new MenuItem(name);
 				org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(submenu, SWT.PUSH);
@@ -628,41 +632,41 @@ public class Menus {
 
 	static void addPluginItem(org.eclipse.swt.widgets.Menu submenu, String s) {
 
-		if(s.startsWith("\"-\"")) {
+		if (s.startsWith("\"-\"")) {
 			// add menu separator if command="-"
 			new org.eclipse.swt.widgets.MenuItem(submenu, SWT.SEPARATOR);
 			// addSeparator(submenu);
 			return;
 		}
 		int lastComma = s.lastIndexOf(',');
-		if(lastComma <= 0)
+		if (lastComma <= 0)
 			return;
 		String command = s.substring(1, lastComma - 1);
 		int keyCode = 0;
 		boolean shift = false;
-		if(command.endsWith("]")) {
+		if (command.endsWith("]")) {
 			int openBracket = command.lastIndexOf('[');
-			if(openBracket > 0) {
+			if (openBracket > 0) {
 				String shortcut = command.substring(openBracket + 1, command.length() - 1);
 				keyCode = convertShortcutToCode(shortcut);
 				boolean functionKey = keyCode >= SWT.F1 && keyCode <= SWT.F12;
-				if(keyCode > 0 && !functionKey)
+				if (keyCode > 0 && !functionKey)
 					command = command.substring(0, openBracket);
 			}
 		}
-		if(keyCode >= SWT.F1 && keyCode <= SWT.F12) {
+		if (keyCode >= SWT.F1 && keyCode <= SWT.F12) {
 			shortcuts.put(Integer.valueOf(keyCode), command);
 			keyCode = 0;
-		} else if(keyCode >= 265 && keyCode <= 322) {
+		} else if (keyCode >= 265 && keyCode <= 322) {
 			keyCode -= 200;
 			shift = true;
 		}
 		addItem(submenu, command, keyCode, shift);
-		while(s.charAt(lastComma + 1) == ' ' && lastComma + 2 < s.length())
+		while (s.charAt(lastComma + 1) == ' ' && lastComma + 2 < s.length())
 			lastComma++; // remove leading spaces
 		String className = s.substring(lastComma + 1, s.length());
 		// IJ.log(command+" "+className);
-		if(installingJars)
+		if (installingJars)
 			duplicateCommand = pluginsTable.get(command) != null;
 		pluginsTable.put(command, className);
 		nPlugins++;
@@ -670,7 +674,7 @@ public class Menus {
 
 	void checkForDuplicate(String command) {
 
-		if(pluginsTable.get(command) != null) {
+		if (pluginsTable.get(command) != null) {
 		}
 	}
 
@@ -680,29 +684,29 @@ public class Menus {
 		int index;
 		// pluginsMenu = new Menu("Plugins");
 		pluginsMenu = getMenu("Plugins");
-		for(int count = 1; count < 100; count++) {
+		for (int count = 1; count < 100; count++) {
 			value = Prefs.getString("plug-in" + (count / 10) % 10 + count % 10);
-			if(value == null)
+			if (value == null)
 				break;
 			char firstChar = value.charAt(0);
-			if(firstChar == '-')
+			if (firstChar == '-')
 				new org.eclipse.swt.widgets.MenuItem(pluginsMenu, SWT.SEPARATOR);
 			// pluginsMenu.addSeparator();
-			else if(firstChar == '>') {
+			else if (firstChar == '>') {
 				String submenu = value.substring(2, value.length() - 1);
 				// Menu menu = getMenu("Plugins>" + submenu, true);
 				org.eclipse.swt.widgets.Menu menu = addSubMenu(pluginsMenu, submenu);
-				if(submenu.equals("Shortcuts"))
+				if (submenu.equals("Shortcuts"))
 					shortcutsMenu = menu;
-				else if(submenu.equals("Utilities"))
+				else if (submenu.equals("Utilities"))
 					utilitiesMenu = menu;
-				else if(submenu.equals("Macros"))
+				else if (submenu.equals("Macros"))
 					macrosMenu = menu;
 			} else
 				addPluginItem(pluginsMenu, value);
 		}
 		userPluginsIndex = pluginsMenu.getItemCount();
-		if(userPluginsIndex < 0)
+		if (userPluginsIndex < 0)
 			userPluginsIndex = 0;
 	}
 
@@ -719,70 +723,70 @@ public class Menus {
 		String[] pluginList = getPlugins();
 		String[] pluginsList2 = null;
 		Hashtable skipList = new Hashtable();
-		for(int index = 0; index < 100; index++) {
+		for (int index = 0; index < 100; index++) {
 			value = Prefs.getString("plugin" + (index / 10) % 10 + index % 10);
-			if(value == null)
+			if (value == null)
 				break;
 			menuCode = value.charAt(0);
-			switch(menuCode) {
-				case PLUGINS_MENU:
-				default:
-					menu = pluginsMenu;
-					break;
-				case IMPORT_MENU:
-					menu = getMenu("File>Import");
-					break;
-				case SAVE_AS_MENU:
-					menu = getMenu("File>Save As");
-					break;
-				case SHORTCUTS_MENU:
-					menu = shortcutsMenu;
-					break;
-				case ABOUT_MENU:
-					menu = getMenu("Help>About Plugins");
-					break;
-				case FILTERS_MENU:
-					menu = getMenu("Process>Filters");
-					break;
-				case TOOLS_MENU:
-					menu = getMenu("Analyze>Tools");
-					break;
-				case UTILITIES_MENU:
-					menu = utilitiesMenu;
-					break;
+			switch (menuCode) {
+			case PLUGINS_MENU:
+			default:
+				menu = pluginsMenu;
+				break;
+			case IMPORT_MENU:
+				menu = getMenu("File>Import");
+				break;
+			case SAVE_AS_MENU:
+				menu = getMenu("File>Save As");
+				break;
+			case SHORTCUTS_MENU:
+				menu = shortcutsMenu;
+				break;
+			case ABOUT_MENU:
+				menu = getMenu("Help>About Plugins");
+				break;
+			case FILTERS_MENU:
+				menu = getMenu("Process>Filters");
+				break;
+			case TOOLS_MENU:
+				menu = getMenu("Analyze>Tools");
+				break;
+			case UTILITIES_MENU:
+				menu = utilitiesMenu;
+				break;
 			}
 			String prefsValue = value;
 			value = value.substring(2, value.length()); // remove menu code and coma
 			className = value.substring(value.lastIndexOf(',') + 1, value.length());
 			boolean found = className.startsWith("ij.");
-			if(!found && pluginList != null) { // does this plugin exist?
-				if(pluginsList2 == null)
+			if (!found && pluginList != null) { // does this plugin exist?
+				if (pluginsList2 == null)
 					pluginsList2 = getStrippedPlugins(pluginList);
-				for(int i = 0; i < pluginsList2.length; i++) {
-					if(className.startsWith(pluginsList2[i])) {
+				for (int i = 0; i < pluginsList2.length; i++) {
+					if (className.startsWith(pluginsList2[i])) {
 						found = true;
 						break;
 					}
 				}
 			}
-			if(found && menu != pluginsMenu) {
+			if (found && menu != pluginsMenu) {
 				addPluginItem(menu, value);
 				pluginsPrefs.addElement(prefsValue);
-				if(className.endsWith("\")")) { // remove any argument
+				if (className.endsWith("\")")) { // remove any argument
 					int argStart = className.lastIndexOf("(\"");
-					if(argStart > 0)
+					if (argStart > 0)
 						className = className.substring(0, argStart);
 				}
 				skipList.put(className, "");
 			}
 		}
-		if(pluginList != null) {
-			for(int i = 0; i < pluginList.length; i++) {
-				if(!skipList.containsKey(pluginList[i]))
+		if (pluginList != null) {
+			for (int i = 0; i < pluginList.length; i++) {
+				if (!skipList.containsKey(pluginList[i]))
 					installUserPlugin(pluginList[i]);
 			}
 		}
-		if((nPlugins - nPlugins0) <= 1 && IJ.getDir("imagej") != null && IJ.getDir("imagej").startsWith("/private")) {
+		if ((nPlugins - nPlugins0) <= 1 && IJ.getDir("imagej") != null && IJ.getDir("imagej").startsWith("/private")) {
 			new org.eclipse.swt.widgets.MenuItem(pluginsMenu, SWT.SEPARATOR);
 			// pluginsMenu.addSeparator();
 			addPlugInItem(pluginsMenu, "Why are Plugins Missing?", "ij.plugin.SimpleCommands(\"missing\")", 0, false);
@@ -794,10 +798,10 @@ public class Menus {
 	/** Installs macros and scripts located in the plugins folder. */
 	void installMacros() {
 
-		if(macroFiles == null)
+		if (macroFiles == null)
 			return;
-		for(int i = 0; i < macroFiles.size(); i++) {
-			String name = (String)macroFiles.elementAt(i);
+		for (int i = 0; i < macroFiles.size(); i++) {
+			String name = (String) macroFiles.elementAt(i);
 			installMacro(name);
 		}
 	}
@@ -811,12 +815,12 @@ public class Menus {
 		org.eclipse.swt.widgets.Menu menu = pluginsMenu;
 		String dir = null;
 		int slashIndex = name.indexOf('/');
-		if(slashIndex > 0) {
+		if (slashIndex > 0) {
 			dir = name.substring(0, slashIndex);
 			name = name.substring(slashIndex + 1, name.length());
 			menu = getPluginsSubmenu(dir);
 			slashIndex = name.indexOf('/');
-			if(slashIndex > 0) {
+			if (slashIndex > 0) {
 				String dir2 = name.substring(0, slashIndex);
 				name = name.substring(slashIndex + 1, name.length());
 				String menuName = "Plugins>" + dir + ">" + dir2;
@@ -825,12 +829,12 @@ public class Menus {
 			}
 		}
 		String command = name.replace('_', ' ');
-		if(command.endsWith(".js") || command.endsWith(".py"))
+		if (command.endsWith(".js") || command.endsWith(".py"))
 			command = command.substring(0, command.length() - 3); // remove ".js" or ".py"
 		else
 			command = command.substring(0, command.length() - 4); // remove ".txt", ".ijm" or ".bsh"
 		command = command.trim();
-		if(pluginsTable.get(command) != null) // duplicate command?
+		if (pluginsTable.get(command) != null) // duplicate command?
 			command = command + " Macro";
 		org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
 		item.setText(command);
@@ -844,13 +848,13 @@ public class Menus {
 
 	static int addPluginSeparatorIfNeeded(org.eclipse.swt.widgets.Menu menu) {
 
-		if(menuSeparators == null)
+		if (menuSeparators == null)
 			return 0;
-		Integer i = (Integer)menuSeparators.get(menu);
-		if(i == null) {
+		Integer i = (Integer) menuSeparators.get(menu);
+		if (i == null) {
 			int itemCount = menu.getItemCount();
 			/* Changes for SWT menu items! */
-			if(itemCount > 0) {
+			if (itemCount > 0) {
 				addSeparator(menu, itemCount);
 			}
 			i = Integer.valueOf(itemCount);
@@ -866,8 +870,8 @@ public class Menus {
 		/* For SWT we have to dispose and recreate the item! */
 		item.dispose();
 		int start = addPluginSeparatorIfNeeded(menu);
-		for(int i = start; i < menu.getItemCount(); i++) {
-			if(label.compareTo(menu.getItem(i).getText()) < 0) {
+		for (int i = start; i < menu.getItemCount(); i++) {
+			if (label.compareTo(menu.getItem(i).getText()) < 0) {
 				org.eclipse.swt.widgets.MenuItem itemNew = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH, i);
 				itemNew.setText(label);
 				itemNew.addSelectionListener(ij);
@@ -881,43 +885,43 @@ public class Menus {
 
 	public static String getJarFileForMenuEntry(String menuEntry) {
 
-		if(instance == null)
+		if (instance == null)
 			return null;
-		return (String)instance.menuEntry2jarFile.get(menuEntry);
+		return (String) instance.menuEntry2jarFile.get(menuEntry);
 	}
 
 	/** Install plugins located in JAR files. */
 	void installJarPlugins() {
 
-		if(jarFiles == null)
+		if (jarFiles == null)
 			return;
 		installingJars = true;
-		for(int i = 0; i < jarFiles.size(); i++) {
+		for (int i = 0; i < jarFiles.size(); i++) {
 			isJarErrorHeading = false;
-			String jar = (String)jarFiles.elementAt(i);
+			String jar = (String) jarFiles.elementAt(i);
 			InputStream is = getConfigurationFile(jar);
-			if(is == null)
+			if (is == null)
 				continue;
 			ArrayList entries = new ArrayList(20);
 			LineNumberReader lnr = new LineNumberReader(new InputStreamReader(is));
 			try {
-				while(true) {
+				while (true) {
 					String s = lnr.readLine();
-					if(s == null)
+					if (s == null)
 						break;
-					if(s.length() >= 3 && !s.startsWith("#"))
+					if (s.length() >= 3 && !s.startsWith("#"))
 						entries.add(s);
 				}
-			} catch(IOException e) {
+			} catch (IOException e) {
 			} finally {
 				try {
-					if(lnr != null)
+					if (lnr != null)
 						lnr.close();
-				} catch(IOException e) {
+				} catch (IOException e) {
 				}
 			}
-			for(int j = 0; j < entries.size(); j++)
-				installJarPlugin(jar, (String)entries.get(j));
+			for (int j = 0; j < entries.size(); j++)
+				installJarPlugin(jar, (String) entries.get(j));
 		}
 	}
 
@@ -927,17 +931,17 @@ public class Menus {
 		addSorted = false;
 		org.eclipse.swt.widgets.Menu menu;
 		s = s.trim();
-		if(s.startsWith("Plugins>")) {
+		if (s.startsWith("Plugins>")) {
 			int firstComma = s.indexOf(',');
-			if(firstComma == -1 || firstComma <= 8)
+			if (firstComma == -1 || firstComma <= 8)
 				menu = null;
 			else {
 				String name = s.substring(8, firstComma);
 				menu = getPluginsSubmenu(name);
 			}
-		} else if(s.startsWith("\"") || s.startsWith("Plugins")) {
+		} else if (s.startsWith("\"") || s.startsWith("Plugins")) {
 			String name = getSubmenuName(jar);
-			if(name != null)
+			if (name != null)
 				menu = getPluginsSubmenu(name);
 			else
 				menu = pluginsMenu;
@@ -946,36 +950,36 @@ public class Menus {
 			int firstQuote = s.indexOf('"');
 			String name = firstQuote < 0 ? s : s.substring(0, firstQuote).trim();
 			int comma = name.indexOf(',');
-			if(comma >= 0)
+			if (comma >= 0)
 				name = name.substring(0, comma);
-			if(name.startsWith("Help>About")) // for backward compatibility
+			if (name.startsWith("Help>About")) // for backward compatibility
 				name = "Help>About Plugins";
 			menu = getMenu(name);
 		}
 		int firstQuote = s.indexOf('"');
-		if(firstQuote == -1)
+		if (firstQuote == -1)
 			return;
 		s = s.substring(firstQuote, s.length()); // remove menu
-		if(menu != null) {
+		if (menu != null) {
 			addPluginSeparatorIfNeeded(menu);
 			addPluginItem(menu, s);
 			addSorted = false;
 		}
 		String menuEntry = s;
-		if(s.startsWith("\"")) {
+		if (s.startsWith("\"")) {
 			int quote = s.indexOf('"', 1);
 			menuEntry = quote < 0 ? s.substring(1) : s.substring(1, quote);
 		} else {
 			int comma = s.indexOf(',');
-			if(comma > 0)
+			if (comma > 0)
 				menuEntry = s.substring(0, comma);
 		}
-		if(duplicateCommand) {
-			if(jarError == null)
+		if (duplicateCommand) {
+			if (jarError == null)
 				jarError = "";
 			addJarErrorHeading(jar);
-			String jar2 = (String)menuEntry2jarFile.get(menuEntry);
-			if(jar2 != null && jar2.startsWith(pluginsPath))
+			String jar2 = (String) menuEntry2jarFile.get(menuEntry);
+			if (jar2 != null && jar2.startsWith(pluginsPath))
 				jar2 = jar2.substring(pluginsPath.length());
 			jarError += "    Duplicate command: " + s + (jar2 != null ? " (already in " + jar2 + ")" : "") + "\n";
 		} else
@@ -985,8 +989,8 @@ public class Menus {
 
 	void addJarErrorHeading(String jar) {
 
-		if(!isJarErrorHeading) {
-			if(!jarError.equals(""))
+		if (!isJarErrorHeading) {
+			if (!jarError.equals(""))
 				jarError += " \n";
 			jarError += "Plugin configuration error: " + jar + "\n";
 			isJarErrorHeading = true;
@@ -999,11 +1003,11 @@ public class Menus {
 	 */
 	public static org.eclipse.swt.widgets.Menu getImageJMenu(String menuPath) {
 
-		if(menus == null && !GraphicsEnvironment.isHeadless())
+		if (menus == null && !GraphicsEnvironment.isHeadless())
 			IJ.init();
-		if(menus == null)
+		if (menus == null)
 			return null;
-		if(menus.get(menuPath) != null)
+		if (menus.get(menuPath) != null)
 			return getMenu(menuPath, false);
 		else
 			return null;
@@ -1016,18 +1020,18 @@ public class Menus {
 
 	private static org.eclipse.swt.widgets.Menu getMenu(String menuName, boolean readFromProps) {
 
-		if(menuName.endsWith(">")) {
+		if (menuName.endsWith(">")) {
 			menuName = menuName.substring(0, menuName.length() - 1);
 		}
-		org.eclipse.swt.widgets.Menu result = (org.eclipse.swt.widgets.Menu)menus.get(menuName);
-		if(result == null) {
+		org.eclipse.swt.widgets.Menu result = (org.eclipse.swt.widgets.Menu) menus.get(menuName);
+		if (result == null) {
 			int offset = menuName.lastIndexOf('>');
-			if(offset < 0) {
+			if (offset < 0) {
 				/* Create a menu bar, necessary? */
-				if(mbar == null) {
+				if (mbar == null) {
 					mbar = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.BAR);
 				}
-				if(menuName.equals("Help")) {
+				if (menuName.equals("Help")) {
 					org.eclipse.swt.widgets.MenuItem helpItem = new org.eclipse.swt.widgets.MenuItem(mbar, SWT.CASCADE);
 					helpItem.setText(menuName);
 					result = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
@@ -1035,15 +1039,16 @@ public class Menus {
 					// mbar.setHelpMenu(result);
 				} else {
 					/* Main menu entry with item as title! */
-					org.eclipse.swt.widgets.MenuItem resultItem = new org.eclipse.swt.widgets.MenuItem(mbar, SWT.CASCADE);
+					org.eclipse.swt.widgets.MenuItem resultItem = new org.eclipse.swt.widgets.MenuItem(mbar,
+							SWT.CASCADE);
 					resultItem.setText(menuName);
 					result = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
 					resultItem.setMenu(result);
 					// mbar.add(result);
 				}
-				if(menuName.equals("Window"))
+				if (menuName.equals("Window"))
 					window = result;
-				else if(menuName.equals("Plugins"))
+				else if (menuName.equals("Plugins"))
 					pluginsMenu = result;
 			} else {
 				String parentName = menuName.substring(0, offset);
@@ -1051,20 +1056,22 @@ public class Menus {
 				/* Recursive call of getMenu! */
 				org.eclipse.swt.widgets.Menu parentMenu = getMenu(parentName);
 				addPluginSeparatorIfNeeded(parentMenu);
-				if(readFromProps) {
+				if (readFromProps) {
 					result = addSubMenu(parentMenu, menuItemName);
-				} else if(parentName.startsWith("Plugins") && menuSeparators != null) {
+				} else if (parentName.startsWith("Plugins") && menuSeparators != null) {
 					int count = parentMenu.getItemCount();
 					int start = parentName.equals("Plugins") ? userPluginsIndex : 0;
-					org.eclipse.swt.widgets.MenuItem resultItem = new org.eclipse.swt.widgets.MenuItem(parentMenu, SWT.CASCADE);
+					org.eclipse.swt.widgets.MenuItem resultItem = new org.eclipse.swt.widgets.MenuItem(parentMenu,
+							SWT.CASCADE);
 					result = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
 					resultItem.setText(menuItemName);
 					resultItem.setMenu(result);
-					for(int i = start; i < count; i++) {
+					for (int i = start; i < count; i++) {
 						org.eclipse.swt.widgets.MenuItem mi = parentMenu.getItem(i);
 						String label = mi.getText();
-						if(menuItemName.compareTo(label) < 0) {
-							org.eclipse.swt.widgets.MenuItem resultItem2 = new org.eclipse.swt.widgets.MenuItem(parentMenu, SWT.CASCADE, i);
+						if (menuItemName.compareTo(label) < 0) {
+							org.eclipse.swt.widgets.MenuItem resultItem2 = new org.eclipse.swt.widgets.MenuItem(
+									parentMenu, SWT.CASCADE, i);
 							result = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
 							resultItem2.setText(menuItemName);
 							resultItem2.setMenu(result);
@@ -1074,19 +1081,20 @@ public class Menus {
 						}
 					}
 					/*
-					 * addItemSorted(parentMenu, resultItem, parentName.equals("Plugins") ?userPluginsIndex : 0);
-					 * See above - cascaded (Plugins submenu) items must be sorted in differently in SWT.
-					 * addItemSorted is not used here!
+					 * addItemSorted(parentMenu, resultItem, parentName.equals("Plugins")
+					 * ?userPluginsIndex : 0); See above - cascaded (Plugins submenu) items must be
+					 * sorted in differently in SWT. addItemSorted is not used here!
 					 */
 				} else {
-					org.eclipse.swt.widgets.MenuItem resultItem = new org.eclipse.swt.widgets.MenuItem(parentMenu, SWT.CASCADE);
+					org.eclipse.swt.widgets.MenuItem resultItem = new org.eclipse.swt.widgets.MenuItem(parentMenu,
+							SWT.CASCADE);
 					result = new org.eclipse.swt.widgets.Menu(ij.getShell(), SWT.DROP_DOWN);
 					resultItem.setText(menuItemName);
 					resultItem.setMenu(result);
 					// resultItem.setMenu(parentMenu);
 				}
 				// parentMenu.add(result);
-				if(menuName.equals("File>Open Recent")) {
+				if (menuName.equals("File>Open Recent")) {
 					openRecentMenu = result;
 				}
 			}
@@ -1103,32 +1111,34 @@ public class Menus {
 	String getSubmenuName(String jarPath) {
 
 		// IJ.log("getSubmenuName: \n"+jarPath+"\n"+pluginsPath);
-		if(pluginsPath == null)
+		if (pluginsPath == null)
 			return null;
-		if(jarPath.startsWith(pluginsPath))
+		if (jarPath.startsWith(pluginsPath))
 			jarPath = jarPath.substring(pluginsPath.length() - 1);
 		int index = jarPath.lastIndexOf(File.separatorChar);
-		if(index < 0)
+		if (index < 0)
 			return null;
 		String name = jarPath.substring(0, index);
 		index = name.lastIndexOf(File.separatorChar);
-		if(index < 0)
+		if (index < 0)
 			return null;
 		name = name.substring(index + 1);
-		if(name.equals("plugins"))
+		if (name.equals("plugins"))
 			return null;
 		return name;
 	}
 
-	static void addItemSorted(org.eclipse.swt.widgets.Menu menu, org.eclipse.swt.widgets.MenuItem item, int startingIndex) {
+	static void addItemSorted(org.eclipse.swt.widgets.Menu menu, org.eclipse.swt.widgets.MenuItem item,
+			int startingIndex) {
 
 		String itemLabel = item.getText();
 		item.dispose();
 		int count = menu.getItemCount();
 		boolean inserted = false;
-		for(int i = startingIndex; i < count; i++) {
-			// IJ.log(i + " " + itemLabel + " " + itemLabel + " " + (itemLabel.compareTo(itemLabel)));
-			if(itemLabel.compareTo(menu.getItem(i).getText()) < 0) {
+		for (int i = startingIndex; i < count; i++) {
+			// IJ.log(i + " " + itemLabel + " " + itemLabel + " " +
+			// (itemLabel.compareTo(itemLabel)));
+			if (itemLabel.compareTo(menu.getItem(i).getText()) < 0) {
 				org.eclipse.swt.widgets.MenuItem itemNew = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH, i);
 				itemNew.setText(itemLabel);
 				itemNew.addSelectionListener(ij);
@@ -1136,7 +1146,7 @@ public class Menus {
 				break;
 			}
 		}
-		if(!inserted) {
+		if (!inserted) {
 			org.eclipse.swt.widgets.MenuItem itemNew = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
 			itemNew.setText(itemLabel);
 			itemNew.addSelectionListener(ij);
@@ -1158,13 +1168,13 @@ public class Menus {
 		try {
 			ZipFile jarFile = new ZipFile(jar);
 			Enumeration entries = jarFile.entries();
-			while(entries.hasMoreElements()) {
-				ZipEntry entry = (ZipEntry)entries.nextElement();
-				if(entry.getName().endsWith("plugins.config"))
+			while (entries.hasMoreElements()) {
+				ZipEntry entry = (ZipEntry) entries.nextElement();
+				if (entry.getName().endsWith("plugins.config"))
 					return jarFile.getInputStream(entry);
 			}
 			jarFile.close();
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			IJ.log(jar + ": " + e);
 		}
 		return autoGenerateConfigFile(jar);
@@ -1177,18 +1187,19 @@ public class Menus {
 		try {
 			ZipFile jarFile = new ZipFile(jar);
 			Enumeration entries = jarFile.entries();
-			while(entries.hasMoreElements()) {
-				ZipEntry entry = (ZipEntry)entries.nextElement();
+			while (entries.hasMoreElements()) {
+				ZipEntry entry = (ZipEntry) entries.nextElement();
 				String name = entry.getName();
-				if(name.endsWith(".class") && name.indexOf("_") > 0 && name.indexOf("$") == -1 && name.indexOf("/_") == -1 && !name.startsWith("_")) {
-					if(Character.isLowerCase(name.charAt(0)) && name.indexOf("/") != -1)
+				if (name.endsWith(".class") && name.indexOf("_") > 0 && name.indexOf("$") == -1
+						&& name.indexOf("/_") == -1 && !name.startsWith("_")) {
+					if (Character.isLowerCase(name.charAt(0)) && name.indexOf("/") != -1)
 						continue;
-					if(sb == null)
+					if (sb == null)
 						sb = new StringBuffer();
 					String className = name.substring(0, name.length() - 6);
 					int slashIndex = className.lastIndexOf('/');
 					String plugins = "Plugins";
-					if(slashIndex >= 0) {
+					if (slashIndex >= 0) {
 						plugins += ">" + className.substring(0, slashIndex).replace('/', '>').replace('_', ' ');
 						name = className.substring(slashIndex + 1);
 					} else
@@ -1199,10 +1210,10 @@ public class Menus {
 				}
 			}
 			jarFile.close();
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			IJ.log(jar + ": " + e);
 		}
-		if(sb == null)
+		if (sb == null)
 			return null;
 		else
 			return new ByteArrayInputStream(sb.toString().getBytes());
@@ -1213,10 +1224,10 @@ public class Menus {
 
 		String[] plugins2 = new String[plugins.length];
 		int slashPos;
-		for(int i = 0; i < plugins2.length; i++) {
+		for (int i = 0; i < plugins2.length; i++) {
 			plugins2[i] = plugins[i];
 			slashPos = plugins2[i].lastIndexOf('/');
-			if(slashPos >= 0)
+			if (slashPos >= 0)
 				plugins2[i] = plugins[i].substring(slashPos + 1, plugins2[i].length());
 		}
 		return plugins2;
@@ -1226,20 +1237,20 @@ public class Menus {
 
 		ImageJPath = pluginsPath = macrosPath = null;
 		String currentDir = Prefs.getHomeDir(); // "user.dir"
-		if(currentDir == null)
+		if (currentDir == null)
 			return;
-		if(currentDir.endsWith("plugins"))
+		if (currentDir.endsWith("plugins"))
 			ImageJPath = pluginsPath = currentDir + File.separator;
 		else {
 			String ijDir = Prefs.getPluginsDirProperty();
-			if(ijDir == null)
+			if (ijDir == null)
 				ijDir = currentDir;
-			else if(ijDir.equals("user.home")) {
+			else if (ijDir.equals("user.home")) {
 				ijDir = System.getProperty("user.home");
-				if(!(new File(ijDir + File.separator + "plugins")).isDirectory())
+				if (!(new File(ijDir + File.separator + "plugins")).isDirectory())
 					ijDir = ijDir + File.separator + "ImageJ";
 				// needed to run plugins when ImageJ launched using Java WebStart
-				if(applet == null)
+				if (applet == null)
 					System.setSecurityManager(null);
 				jnlp = true;
 			}
@@ -1248,15 +1259,15 @@ public class Menus {
 			ImageJPath = ijDir + File.separator;
 		}
 		File f = pluginsPath != null ? new File(pluginsPath) : null;
-		if(f == null || !f.isDirectory()) {
+		if (f == null || !f.isDirectory()) {
 			ImageJPath = currentDir + File.separator;
 			pluginsPath = ImageJPath + "plugins" + File.separator;
 			f = new File(pluginsPath);
-			if(!f.isDirectory()) {
+			if (!f.isDirectory()) {
 				String altPluginsPath = System.getProperty("plugins.dir");
-				if(altPluginsPath != null) {
+				if (altPluginsPath != null) {
 					f = new File(altPluginsPath);
-					if(!f.isDirectory())
+					if (!f.isDirectory())
 						altPluginsPath = null;
 					else {
 						ImageJPath = f.getParent() + File.separator;
@@ -1264,18 +1275,18 @@ public class Menus {
 						macrosPath = ImageJPath + "macros" + File.separator;
 					}
 				}
-				if(altPluginsPath == null)
+				if (altPluginsPath == null)
 					ImageJPath = pluginsPath = null;
 			}
 		}
 		f = macrosPath != null ? new File(macrosPath) : null;
-		if(f != null && !f.isDirectory()) {
+		if (f != null && !f.isDirectory()) {
 			macrosPath = currentDir + File.separator + "macros" + File.separator;
 			f = new File(macrosPath);
-			if(!f.isDirectory())
+			if (!f.isDirectory())
 				macrosPath = null;
 		}
-		if(IJ.debugMode) {
+		if (IJ.debugMode) {
 			IJ.log("Menus.setupPluginsAndMacrosPaths");
 			IJ.log("   user.dir: " + currentDir);
 			IJ.log("   plugins.dir: " + System.getProperty("plugins.dir"));
@@ -1288,36 +1299,36 @@ public class Menus {
 	public static synchronized String[] getPlugins() {
 
 		File f = pluginsPath != null ? new File(pluginsPath) : null;
-		if(f == null || (f != null && !f.isDirectory()))
+		if (f == null || (f != null && !f.isDirectory()))
 			return null;
 		String[] list = f.list();
-		if(list == null)
+		if (list == null)
 			return null;
 		Vector v = new Vector();
 		jarFiles = null;
 		macroFiles = null;
-		for(int i = 0; i < list.length; i++) {
+		for (int i = 0; i < list.length; i++) {
 			String name = list[i];
 			boolean isClassFile = name.endsWith(".class");
 			boolean hasUnderscore = name.indexOf('_') >= 0;
-			if(hasUnderscore && isClassFile && name.indexOf('$') < 0) {
+			if (hasUnderscore && isClassFile && name.indexOf('$') < 0) {
 				name = name.substring(0, name.length() - 6); // remove ".class"
 				v.addElement(name);
-			} else if(hasUnderscore && (name.endsWith(".jar") || name.endsWith(".zip"))) {
-				if(jarFiles == null)
+			} else if (hasUnderscore && (name.endsWith(".jar") || name.endsWith(".zip"))) {
+				if (jarFiles == null)
 					jarFiles = new Vector();
 				jarFiles.addElement(pluginsPath + name);
-			} else if(validMacroName(name, hasUnderscore)) {
-				if(macroFiles == null)
+			} else if (validMacroName(name, hasUnderscore)) {
+				if (macroFiles == null)
 					macroFiles = new Vector();
 				macroFiles.addElement(name);
 			} else {
-				if(!isClassFile)
+				if (!isClassFile)
 					checkSubdirectory(pluginsPath, name, v);
 			}
 		}
 		list = new String[v.size()];
-		v.copyInto((String[])list);
+		v.copyInto((String[]) list);
 		StringSorter.sort(list);
 		return list;
 	}
@@ -1327,58 +1338,58 @@ public class Menus {
 	 */
 	private static void checkSubdirectory(String path, String dir, Vector v) {
 
-		if(dir.endsWith(".java"))
+		if (dir.endsWith(".java"))
 			return;
 		File f = new File(path, dir);
-		if(!f.isDirectory())
+		if (!f.isDirectory())
 			return;
 		String[] list = f.list();
-		if(list == null)
+		if (list == null)
 			return;
 		dir += "/";
 		int classCount = 0, otherCount = 0;
 		String className = null;
-		for(int i = 0; i < list.length; i++) {
+		for (int i = 0; i < list.length; i++) {
 			String name = list[i];
 			boolean hasUnderscore = name.indexOf('_') >= 0;
-			if(hasUnderscore && name.endsWith(".class") && name.indexOf('$') < 0) {
+			if (hasUnderscore && name.endsWith(".class") && name.indexOf('$') < 0) {
 				name = name.substring(0, name.length() - 6); // remove ".class"
 				v.addElement(dir + name);
 				classCount++;
 				className = name;
-			} else if(hasUnderscore && (name.endsWith(".jar") || name.endsWith(".zip"))) {
-				if(jarFiles == null)
+			} else if (hasUnderscore && (name.endsWith(".jar") || name.endsWith(".zip"))) {
+				if (jarFiles == null)
 					jarFiles = new Vector();
 				jarFiles.addElement(f.getPath() + File.separator + name);
 				otherCount++;
-			} else if(validMacroName(name, hasUnderscore)) {
-				if(macroFiles == null)
+			} else if (validMacroName(name, hasUnderscore)) {
+				if (macroFiles == null)
 					macroFiles = new Vector();
 				macroFiles.addElement(dir + name);
 				otherCount++;
 			} else {
 				File f2 = new File(f, name);
-				if(f2.isDirectory())
+				if (f2.isDirectory())
 					installSubdirectorMacros(f2, dir + name);
 			}
 		}
-		if(Prefs.moveToMisc && classCount == 1 && otherCount == 0 && dir.indexOf("_") == -1)
+		if (Prefs.moveToMisc && classCount == 1 && otherCount == 0 && dir.indexOf("_") == -1)
 			v.setElementAt("Miscellaneous/" + className, v.size() - 1);
 	}
 
 	/** Installs macros and scripts located in subdirectories. */
 	private static void installSubdirectorMacros(File f2, String dir) {
 
-		if(dir.endsWith("Launchers"))
+		if (dir.endsWith("Launchers"))
 			return;
 		String[] list = f2.list();
-		if(list == null)
+		if (list == null)
 			return;
-		for(int i = 0; i < list.length; i++) {
+		for (int i = 0; i < list.length; i++) {
 			String name = list[i];
 			boolean hasUnderscore = name.indexOf('_') >= 0;
-			if(validMacroName(name, hasUnderscore)) {
-				if(macroFiles == null)
+			if (validMacroName(name, hasUnderscore)) {
+				if (macroFiles == null)
 					macroFiles = new Vector();
 				macroFiles.addElement(dir + "/" + name);
 			}
@@ -1387,7 +1398,8 @@ public class Menus {
 
 	private static boolean validMacroName(String name, boolean hasUnderscore) {
 
-		return (hasUnderscore && name.endsWith(".txt")) || name.endsWith(".ijm") || name.endsWith(".js") || name.endsWith(".bsh") || name.endsWith(".py");
+		return (hasUnderscore && name.endsWith(".txt")) || name.endsWith(".ijm") || name.endsWith(".js")
+				|| name.endsWith(".bsh") || name.endsWith(".py");
 	}
 
 	/**
@@ -1402,22 +1414,23 @@ public class Menus {
 	public void installUserPlugin(String className, boolean force) {
 
 		int slashIndex = className.indexOf('/');
-		String menuName = slashIndex < 0 ? "Plugins" : "Plugins>" + className.substring(0, slashIndex).replace('/', '>');
+		String menuName = slashIndex < 0 ? "Plugins"
+				: "Plugins>" + className.substring(0, slashIndex).replace('/', '>');
 		org.eclipse.swt.widgets.Menu menu = getMenu(menuName);
 		String command = className;
-		if(slashIndex > 0) {
+		if (slashIndex > 0) {
 			command = className.substring(slashIndex + 1);
 		}
 		command = command.replace('_', ' ');
 		// command = command.trim();
 		boolean itemExists = (pluginsTable.get(command) != null);
-		if(force && itemExists)
+		if (force && itemExists)
 			return;
-		if(!force && itemExists) // duplicate command?
+		if (!force && itemExists) // duplicate command?
 			command = command + " Plugin";
 		org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
 		item.setText(command);
-		if(force)
+		if (force)
 			addItemSorted(menu, item, 0);
 		else
 			addOrdered(menu, item);
@@ -1436,15 +1449,15 @@ public class Menus {
 		/*
 		 * if (fontSize!=0 || scale>1.0) popup.setFont(getFont());
 		 */
-		while(true) {
+		while (true) {
 			count++;
 			s = Prefs.getString("popup" + (count / 10) % 10 + count % 10);
-			if(s == null)
+			if (s == null)
 				break;
-			if(s.equals("-"))
+			if (s.equals("-"))
 				// popup.addSeparator();
 				new org.eclipse.swt.widgets.MenuItem(popup, SWT.SEPARATOR);
-			else if(!s.equals("")) {
+			else if (!s.equals("")) {
 				mi = new org.eclipse.swt.widgets.MenuItem(popup, SWT.NONE);
 				mi.setText(s);
 				mi.addSelectionListener(ij);
@@ -1478,8 +1491,7 @@ public class Menus {
 		return nPlugins;
 	}
 
-	static final int RGB_STACK = 10, HSB_STACK = 11, LAB_STACK = 12,
-			HSB32_STACK = 13;
+	static final int RGB_STACK = 10, HSB_STACK = 11, LAB_STACK = 12, HSB32_STACK = 13;
 
 	/** Updates the Image/Type and Window menus. */
 	public static void updateMenus() {
@@ -1488,7 +1500,7 @@ public class Menus {
 
 			public void run() {
 
-				if(ij == null)
+				if (ij == null)
 					return;
 				gray8Item.setSelection(false);
 				gray16Item.setSelection(false);
@@ -1500,59 +1512,59 @@ public class Menus {
 				LabStackItem.setSelection(false);
 				HSB32Item.setSelection(false);
 				ImagePlus imp = WindowManager.getCurrentImage();
-				if(imp == null)
+				if (imp == null)
 					return;
 				int type = imp.getType();
-				if(imp.getStackSize() > 1) {
+				if (imp.getStackSize() > 1) {
 					ImageStack stack = imp.getStack();
-					if(stack.isRGB())
+					if (stack.isRGB())
 						type = RGB_STACK;
-					else if(stack.isHSB())
+					else if (stack.isHSB())
 						type = HSB_STACK;
-					else if(stack.isLab())
+					else if (stack.isLab())
 						type = LAB_STACK;
-					else if(stack.isHSB32())
+					else if (stack.isHSB32())
 						type = HSB32_STACK;
 				}
-				switch(type) {
-					case ImagePlus.GRAY8:
-						gray8Item.setSelection(true);
-						break;
-					case ImagePlus.GRAY16:
-						gray16Item.setSelection(true);
-						break;
-					case ImagePlus.GRAY32:
-						gray32Item.setSelection(true);
-						break;
-					case ImagePlus.COLOR_256:
-						color256Item.setSelection(true);
-						break;
-					case ImagePlus.COLOR_RGB:
-						colorRGBItem.setSelection(true);
-						break;
-					case RGB_STACK:
-						RGBStackItem.setSelection(true);
-						break;
-					case HSB_STACK:
-						HSBStackItem.setSelection(true);
-						break;
-					case LAB_STACK:
-						LabStackItem.setSelection(true);
-						break;
-					case HSB32_STACK:
-						HSB32Item.setSelection(true);
-						break;
+				switch (type) {
+				case ImagePlus.GRAY8:
+					gray8Item.setSelection(true);
+					break;
+				case ImagePlus.GRAY16:
+					gray16Item.setSelection(true);
+					break;
+				case ImagePlus.GRAY32:
+					gray32Item.setSelection(true);
+					break;
+				case ImagePlus.COLOR_256:
+					color256Item.setSelection(true);
+					break;
+				case ImagePlus.COLOR_RGB:
+					colorRGBItem.setSelection(true);
+					break;
+				case RGB_STACK:
+					RGBStackItem.setSelection(true);
+					break;
+				case HSB_STACK:
+					HSBStackItem.setSelection(true);
+					break;
+				case LAB_STACK:
+					LabStackItem.setSelection(true);
+					break;
+				case HSB32_STACK:
+					HSB32Item.setSelection(true);
+					break;
 				}
 				// update Window menu
 				int nItems = window.getItemCount();
 				int start = WINDOW_MENU_ITEMS + windowMenuItems2;
 				int index = start + WindowManager.getCurrentIndex();
 				try { // workaround for Linux/Java 5.0/bug
-					for(int i = start; i < nItems; i++) {
-						org.eclipse.swt.widgets.MenuItem item = (org.eclipse.swt.widgets.MenuItem)window.getItem(i);
+					for (int i = start; i < nItems; i++) {
+						org.eclipse.swt.widgets.MenuItem item = (org.eclipse.swt.widgets.MenuItem) window.getItem(i);
 						item.setSelection(i == index);
 					}
-				} catch(Exception e) {
+				} catch (Exception e) {
 				}
 			}
 		});
@@ -1561,8 +1573,8 @@ public class Menus {
 	static boolean isColorLut(ImagePlus imp) {
 
 		ImageProcessor ip = imp.getProcessor();
-		IndexColorModel cm = (IndexColorModel)ip.getColorModel();
-		if(cm == null)
+		IndexColorModel cm = (IndexColorModel) ip.getColorModel();
+		if (cm == null)
 			return false;
 		int mapSize = cm.getMapSize();
 		byte[] reds = new byte[mapSize];
@@ -1572,8 +1584,8 @@ public class Menus {
 		cm.getGreens(greens);
 		cm.getBlues(blues);
 		boolean isColor = false;
-		for(int i = 0; i < mapSize; i++) {
-			if((reds[i] != greens[i]) || (greens[i] != blues[i])) {
+		for (int i = 0; i < mapSize; i++) {
+			if ((reds[i] != greens[i]) || (greens[i] != blues[i])) {
 				isColor = true;
 				break;
 			}
@@ -1608,7 +1620,7 @@ public class Menus {
 	/** Returns the hashtable that associates commands with plugins. */
 	public static Hashtable getCommands() {
 
-		if(pluginsTable == null && !GraphicsEnvironment.isHeadless())
+		if (pluginsTable == null && !GraphicsEnvironment.isHeadless())
 			IJ.init();
 		return pluginsTable;
 	}
@@ -1628,7 +1640,7 @@ public class Menus {
 	 */
 	public static Hashtable getMacroShortcuts() {
 
-		if(macroShortcuts == null)
+		if (macroShortcuts == null)
 			macroShortcuts = new Hashtable();
 		return macroShortcuts;
 	}
@@ -1636,18 +1648,18 @@ public class Menus {
 	/** Inserts one item (a non-image window) into the Window menu. */
 	static synchronized void insertWindowMenuItem(Object win) {
 
-		if(ij == null || win == null)
+		if (ij == null || win == null)
 			return;
 		int index = WINDOW_MENU_ITEMS + windowMenuItems2;
-		if(windowMenuItems2 >= 2)
+		if (windowMenuItems2 >= 2)
 			index--;
-		String title = win instanceof Frame ? ((Frame)win).getTitle() : ((Dialog)win).getTitle();
+		String title = win instanceof Frame ? ((Frame) win).getTitle() : ((Dialog) win).getTitle();
 		org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(window, SWT.CHECK, index);
 		item.setText(title);
 		item.addSelectionListener(ij);
 		// window.insert(item, index);
 		windowMenuItems2++;
-		if(windowMenuItems2 == 1) {
+		if (windowMenuItems2 == 1) {
 			new org.eclipse.swt.widgets.MenuItem(window, WINDOW_MENU_ITEMS + windowMenuItems2);
 			// window.insertSeparator(WINDOW_MENU_ITEMS+windowMenuItems2);
 			windowMenuItems2++;
@@ -1658,18 +1670,18 @@ public class Menus {
 	static synchronized void insertShellMenuItem(WindowSwt windowSwt) {
 
 		Shell shell = windowSwt.getShell();
-		if(ij == null || shell.isDisposed() || shell == null)
+		if (ij == null || shell.isDisposed() || shell == null)
 			return;
 		String title = shell.getText();
 		int index = WINDOW_MENU_ITEMS + windowMenuItems2;
-		if(windowMenuItems2 >= 2)
+		if (windowMenuItems2 >= 2)
 			index--;
 		org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(window, SWT.CHECK, index);
 		item.setText(title);
 		item.addSelectionListener(ij);
 		// window.insert(item, index);
 		windowMenuItems2++;
-		if(windowMenuItems2 == 1) {
+		if (windowMenuItems2 == 1) {
 			new org.eclipse.swt.widgets.MenuItem(window, SWT.SEPARATOR, WINDOW_MENU_ITEMS + windowMenuItems2);
 			// window.insertSeparator(WINDOW_MENU_ITEMS+windowMenuItems2);
 			windowMenuItems2++;
@@ -1679,18 +1691,18 @@ public class Menus {
 	/** Inserts one item (a non-image window) into the Window menu. */
 	static synchronized void insertShellMenuItem(Shell shell) {
 
-		if(ij == null || shell.isDisposed() || shell == null)
+		if (ij == null || shell.isDisposed() || shell == null)
 			return;
 		String title = shell.getText();
 		int index = WINDOW_MENU_ITEMS + windowMenuItems2;
-		if(windowMenuItems2 >= 2)
+		if (windowMenuItems2 >= 2)
 			index--;
 		org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(window, SWT.CHECK, index);
 		item.setText(title);
 		item.addSelectionListener(ij);
 		// window.insert(item, index);
 		windowMenuItems2++;
-		if(windowMenuItems2 == 1) {
+		if (windowMenuItems2 == 1) {
 			new org.eclipse.swt.widgets.MenuItem(window, SWT.SEPARATOR, WINDOW_MENU_ITEMS + windowMenuItems2);
 			// window.insertSeparator(WINDOW_MENU_ITEMS+windowMenuItems2);
 			windowMenuItems2++;
@@ -1700,10 +1712,10 @@ public class Menus {
 	/** Inserts one item (a non-image window) into the Window menu. */
 	static synchronized void insertShellMenuItem(org.eclipse.swt.widgets.Dialog dialog) {
 
-		if(ij == null || dialog.getParent().isDisposed() || dialog == null)
+		if (ij == null || dialog.getParent().isDisposed() || dialog == null)
 			return;
 		int index = WINDOW_MENU_ITEMS + windowMenuItems2;
-		if(windowMenuItems2 >= 2)
+		if (windowMenuItems2 >= 2)
 			index--;
 		String title = dialog.getText();
 		org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(window, SWT.CHECK, index);
@@ -1711,7 +1723,7 @@ public class Menus {
 		item.addSelectionListener(ij);
 		// window.insert(item, index);
 		windowMenuItems2++;
-		if(windowMenuItems2 == 1) {
+		if (windowMenuItems2 == 1) {
 			new org.eclipse.swt.widgets.MenuItem(window, SWT.SEPARATOR, WINDOW_MENU_ITEMS + windowMenuItems2);
 			// window.insertSeparator(WINDOW_MENU_ITEMS+windowMenuItems2);
 			windowMenuItems2++;
@@ -1721,7 +1733,7 @@ public class Menus {
 	/** Adds one image to the end of the Window menu. */
 	static synchronized void addWindowMenuItem(ImagePlus imp) {
 
-		if(ij == null)
+		if (ij == null)
 			return;
 		String name = imp.getTitle();
 		String size = ImageWindow.getImageSize(imp);
@@ -1739,29 +1751,26 @@ public class Menus {
 		// System.out.println(index);
 		// IJ.log("removeWindowMenuItem: "+index+" "+windowMenuItems2+"
 		// "+window.getItemCount());
-		if(ij == null)
+		if (ij == null)
 			return;
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				try {
-					if(index >= 0 && index < window.getItemCount()) {
-						// window.remove(WINDOW_MENU_ITEMS+index);
-						window.getItem(WINDOW_MENU_ITEMS + index).dispose();
-						if(index < windowMenuItems2) {
-							windowMenuItems2--;
-							if(windowMenuItems2 == 1) {
-								// window.remove(WINDOW_MENU_ITEMS);
-								window.getItem(WINDOW_MENU_ITEMS).dispose();
-								windowMenuItems2 = 0;
-							}
+			try {
+				if (index >= 0 && index < window.getItemCount()) {
+					// window.remove(WINDOW_MENU_ITEMS+index);
+					window.getItem(WINDOW_MENU_ITEMS + index).dispose();
+					if (index < windowMenuItems2) {
+						windowMenuItems2--;
+						if (windowMenuItems2 == 1) {
+							// window.remove(WINDOW_MENU_ITEMS);
+							window.getItem(WINDOW_MENU_ITEMS).dispose();
+							windowMenuItems2 = 0;
 						}
 					}
-				} catch(Exception e) {
 				}
+			} catch (Exception e) {
 			}
+
 		});
 	}
 
@@ -1778,29 +1787,29 @@ public class Menus {
 
 			public void run() {
 
-				if(oldLabel == null || newLabel == null)
+				if (oldLabel == null || newLabel == null)
 					return;
 				int first = WINDOW_MENU_ITEMS;
 				int count = window.getItemCount();
 				try { // workaround for Linux/Java 5.0/bug
-					for(int i = first; i < count; i++) {
+					for (int i = first; i < count; i++) {
 						org.eclipse.swt.widgets.MenuItem item = window.getItem(i);
 						String label = item.getText();
-						String cmd = (String)item.getData("ActionCommand");
-						if(imp != null) { // remove size (e.g. " 24MB")
+						String cmd = (String) item.getData("ActionCommand");
+						if (imp != null) { // remove size (e.g. " 24MB")
 							int index = label.lastIndexOf(" ");
-							if(index > -1)
+							if (index > -1)
 								label = label.substring(0, index);
 						}
-						if(item != null && label.equals(oldLabel) && (imp == null || ("" + imp.getID()).equals(cmd))) {
+						if (item != null && label.equals(oldLabel) && (imp == null || ("" + imp.getID()).equals(cmd))) {
 							String size = "";
-							if(imp != null)
+							if (imp != null)
 								size = " " + ImageWindow.getImageSize(imp);
 							item.setText(newLabel + size);
 							return;
 						}
 					}
-				} catch(Exception e) {
+				} catch (Exception e) {
 				}
 			}
 		});
@@ -1813,21 +1822,22 @@ public class Menus {
 
 			public void run() {
 
-				if(ij == null)
+				if (ij == null)
 					return;
 				int count = openRecentMenu.getItemCount();
-				for(int i = 0; i < count;) {
-					if(openRecentMenu.getItem(i).getText().equals(path)) {
+				for (int i = 0; i < count;) {
+					if (openRecentMenu.getItem(i).getText().equals(path)) {
 						// openRecentMenu.remove(i);
 						openRecentMenu.getItem(i).dispose();
 						count--;
 					} else
 						i++;
 				}
-				if(count == MAX_OPEN_RECENT_ITEMS)
+				if (count == MAX_OPEN_RECENT_ITEMS)
 					// openRecentMenu.remove(MAX_OPEN_RECENT_ITEMS-1);
 					openRecentMenu.getItem(MAX_OPEN_RECENT_ITEMS - 1).dispose();
-				org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(openRecentMenu, SWT.PUSH, 0);
+				org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(openRecentMenu, SWT.PUSH,
+						0);
 				item.setText(path);
 				// openRecentMenu.insert(item, 0);
 				item.addSelectionListener(ij);
@@ -1848,65 +1858,60 @@ public class Menus {
 	/**
 	 * Adds a plugin based command to the end of a specified menu.
 	 * 
-	 * @param plugin
-	 *            the plugin (e.g. "Inverter_", "Inverter_("arg")")
-	 * @param menuCode
-	 *            PLUGINS_MENU, IMPORT_MENU, SAVE_AS_MENU or HOT_KEYS
-	 * @param command
-	 *            the menu item label (set to "" to uninstall)
-	 * @param shortcut
-	 *            the keyboard shortcut (e.g. "y", "Y", "F1")
-	 * @param ij
-	 *            ImageJ (the action listener)
+	 * @param plugin   the plugin (e.g. "Inverter_", "Inverter_("arg")")
+	 * @param menuCode PLUGINS_MENU, IMPORT_MENU, SAVE_AS_MENU or HOT_KEYS
+	 * @param command  the menu item label (set to "" to uninstall)
+	 * @param shortcut the keyboard shortcut (e.g. "y", "Y", "F1")
+	 * @param ij       ImageJ (the action listener)
 	 *
 	 * @return returns an error code(NORMAL_RETURN,COMMAND_IN_USE_ERROR, etc.)
 	 */
 	public static int installPlugin(String plugin, char menuCode, String command, String shortcut, ImageJ ij) {
 
-		if(command.equals("")) // uninstall
+		if (command.equals("")) // uninstall
 			return NORMAL_RETURN;
-		if(commandInUse(command))
+		if (commandInUse(command))
 			return COMMAND_IN_USE;
-		if(!validShortcut(shortcut))
+		if (!validShortcut(shortcut))
 			return INVALID_SHORTCUT;
-		if(shortcutInUse(shortcut))
+		if (shortcutInUse(shortcut))
 			return SHORTCUT_IN_USE;
 		org.eclipse.swt.widgets.Menu menu;
-		switch(menuCode) {
-			case PLUGINS_MENU:
-				menu = pluginsMenu;
-				break;
-			case IMPORT_MENU:
-				menu = getMenu("File>Import");
-				break;
-			case SAVE_AS_MENU:
-				menu = getMenu("File>Save As");
-				break;
-			case SHORTCUTS_MENU:
-				menu = shortcutsMenu;
-				break;
-			case ABOUT_MENU:
-				menu = getMenu("Help>About Plugins");
-				break;
-			case FILTERS_MENU:
-				menu = getMenu("Process>Filters");
-				break;
-			case TOOLS_MENU:
-				menu = getMenu("Analyze>Tools");
-				break;
-			case UTILITIES_MENU:
-				menu = utilitiesMenu;
-				break;
-			default:
-				return 0;
+		switch (menuCode) {
+		case PLUGINS_MENU:
+			menu = pluginsMenu;
+			break;
+		case IMPORT_MENU:
+			menu = getMenu("File>Import");
+			break;
+		case SAVE_AS_MENU:
+			menu = getMenu("File>Save As");
+			break;
+		case SHORTCUTS_MENU:
+			menu = shortcutsMenu;
+			break;
+		case ABOUT_MENU:
+			menu = getMenu("Help>About Plugins");
+			break;
+		case FILTERS_MENU:
+			menu = getMenu("Process>Filters");
+			break;
+		case TOOLS_MENU:
+			menu = getMenu("Analyze>Tools");
+			break;
+		case UTILITIES_MENU:
+			menu = utilitiesMenu;
+			break;
+		default:
+			return 0;
 		}
 		int code = convertShortcutToCode(shortcut);
 		org.eclipse.swt.widgets.MenuItem item;
 		boolean functionKey = code >= SWT.F1 && code <= SWT.F12;
-		if(code == 0) {
+		if (code == 0) {
 			item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
 			item.setText(command);
-		} else if(functionKey) {
+		} else if (functionKey) {
 			command += " [F" + (code - SWT.F1 + 1) + "]";
 			shortcuts.put(Integer.valueOf(code), command);
 			item = new org.eclipse.swt.widgets.MenuItem(menu, SWT.PUSH);
@@ -1915,7 +1920,7 @@ public class Menus {
 			shortcuts.put(Integer.valueOf(code), command);
 			int keyCode = code;
 			boolean shift = false;
-			if(keyCode >= 265 && keyCode <= 290) {
+			if (keyCode >= 265 && keyCode <= 290) {
 				keyCode -= 200;
 				shift = true;
 			}
@@ -1935,15 +1940,15 @@ public class Menus {
 	public static int uninstallPlugin(String command) {
 
 		boolean found = false;
-		for(Enumeration en = pluginsPrefs.elements(); en.hasMoreElements();) {
-			String cmd = (String)en.nextElement();
-			if(cmd.contains(command)) {
-				boolean ok = pluginsPrefs.removeElement((Object)cmd);
+		for (Enumeration en = pluginsPrefs.elements(); en.hasMoreElements();) {
+			String cmd = (String) en.nextElement();
+			if (cmd.contains(command)) {
+				boolean ok = pluginsPrefs.removeElement((Object) cmd);
 				found = true;
 				break;
 			}
 		}
-		if(found)
+		if (found)
 			return NORMAL_RETURN;
 		else
 			return COMMAND_NOT_FOUND;
@@ -1951,7 +1956,7 @@ public class Menus {
 
 	public static boolean commandInUse(String command) {
 
-		if(pluginsTable.get(command) != null)
+		if (pluginsTable.get(command) != null)
 			return true;
 		else
 			return false;
@@ -1961,69 +1966,69 @@ public class Menus {
 
 		int code = 0;
 		int len = shortcut.length();
-		if(len == 2 && shortcut.charAt(0) == 'F') {
-			code = SWT.F1 + (int)shortcut.charAt(1) - 49;
-			if(code >= SWT.F1 && code <= SWT.F9)
+		if (len == 2 && shortcut.charAt(0) == 'F') {
+			code = SWT.F1 + (int) shortcut.charAt(1) - 49;
+			if (code >= SWT.F1 && code <= SWT.F9)
 				return code;
 			else
 				return 0;
 		}
-		if(len == 3 && shortcut.charAt(0) == 'F') {
-			code = SWT.F10 + (int)shortcut.charAt(2) - 48;
-			if(code >= SWT.F10 && code <= SWT.F12)
+		if (len == 3 && shortcut.charAt(0) == 'F') {
+			code = SWT.F10 + (int) shortcut.charAt(2) - 48;
+			if (code >= SWT.F10 && code <= SWT.F12)
 				return code;
 			else
 				return 0;
 		}
-		if(len == 2 && shortcut.charAt(0) == 'N') { // numeric keypad
-			code = SWT.KEYPAD_0 + (int)shortcut.charAt(1) - 48;
-			if(code >= SWT.KEYPAD_0 && code <= SWT.KEYPAD_9)
+		if (len == 2 && shortcut.charAt(0) == 'N') { // numeric keypad
+			code = SWT.KEYPAD_0 + (int) shortcut.charAt(1) - 48;
+			if (code >= SWT.KEYPAD_0 && code <= SWT.KEYPAD_9)
 				return code;
-			switch(shortcut.charAt(1)) {
-				case '/':
-					return SWT.KEYPAD_DIVIDE;
-				case '*':
-					return SWT.KEYPAD_MULTIPLY;
-				case '-':
-					return SWT.KEYPAD_SUBTRACT;
-				case '+':
-					return SWT.KEYPAD_ADD;
-				case '.':
-					return SWT.KEYPAD_DECIMAL;
-				default:
-					return 0;
+			switch (shortcut.charAt(1)) {
+			case '/':
+				return SWT.KEYPAD_DIVIDE;
+			case '*':
+				return SWT.KEYPAD_MULTIPLY;
+			case '-':
+				return SWT.KEYPAD_SUBTRACT;
+			case '+':
+				return SWT.KEYPAD_ADD;
+			case '.':
+				return SWT.KEYPAD_DECIMAL;
+			default:
+				return 0;
 			}
 		}
-		if(len != 1)
+		if (len != 1)
 			return 0;
-		int c = (int)shortcut.charAt(0);
+		int c = (int) shortcut.charAt(0);
 		/* Changed for SWT (char codes = key code)! */
-		if(c >= 65 && c <= 90) // A-Z
+		if (c >= 65 && c <= 90) // A-Z
 			code = c + 200 + 32;
-		else if(c >= 97 && c <= 122) // a-z
+		else if (c >= 97 && c <= 122) // a-z
 			code = c;
-		else if(c >= 48 && c <= 57) // 0-9
+		else if (c >= 48 && c <= 57) // 0-9
 			code = c;
 		return code;
 	}
 
 	void installStartupMacroSet() {
 
-		if(macrosPath == null) {
+		if (macrosPath == null) {
 			MacroInstaller.installFromJar("/macros/StartupMacros.txt");
 			return;
 		}
 		String path = macrosPath + "StartupMacros.txt";
 		File f = new File(path);
-		if(!f.exists()) {
+		if (!f.exists()) {
 			path = macrosPath + "StartupMacros.ijm";
 			f = new File(path);
-			if(!f.exists()) {
+			if (!f.exists()) {
 				(new MacroInstaller()).installFromIJJar("/macros/StartupMacros.txt");
 				return;
 			}
 		} else {
-			if("StartupMacros.fiji.ijm".equals(f.getName()))
+			if ("StartupMacros.fiji.ijm".equals(f.getName()))
 				path = f.getPath();
 		}
 		String libraryPath = macrosPath + "Library.txt";
@@ -2031,23 +2036,23 @@ public class Menus {
 		boolean isLibrary = f.exists();
 		try {
 			MacroInstaller mi = new MacroInstaller();
-			if(isLibrary)
+			if (isLibrary)
 				mi.installLibrary(libraryPath);
 			/* Has to be ported to SWT! */
 			// mi.installStartupMacros(path);
 			nMacros += mi.getMacroCount();
-		} catch(Exception e) {
+		} catch (Exception e) {
 		}
 	}
 
 	static boolean validShortcut(String shortcut) {
 
 		int len = shortcut.length();
-		if(shortcut.equals(""))
+		if (shortcut.equals(""))
 			return true;
-		else if(len == 1)
+		else if (len == 1)
 			return true;
-		else if(shortcut.startsWith("F") && (len == 2 || len == 3))
+		else if (shortcut.startsWith("F") && (len == 2 || len == 3))
 			return true;
 		else
 			return false;
@@ -2057,7 +2062,7 @@ public class Menus {
 	public static boolean shortcutInUse(String shortcut) {
 
 		int code = convertShortcutToCode(shortcut);
-		if(shortcuts.get(Integer.valueOf(code)) != null)
+		if (shortcuts.get(Integer.valueOf(code)) != null)
 			return true;
 		else
 			return false;
@@ -2069,9 +2074,9 @@ public class Menus {
 	 */
 	public static void setFontSize(int size) {
 
-		if(size < 9 && size != 0)
+		if (size < 9 && size != 0)
 			size = 9;
-		if(size > 24)
+		if (size > 24)
 			size = 24;
 		fontSize = size;
 	}
@@ -2089,30 +2094,31 @@ public class Menus {
 	public static org.eclipse.swt.graphics.Font getFont(boolean checkSize) {
 
 		int size = fontSize == 0 ? 13 : fontSize;
-		size = (int)Math.round(size * scale);
+		size = (int) Math.round(size * scale);
 		int size0 = size;
-		if(checkSize && IJ.isWindows() && scale > 1.0 && size > 17)
+		if (checkSize && IJ.isWindows() && scale > 1.0 && size > 17)
 			size = 17; // Java resets size to 12 if you try to set it to 18 or greater
-		org.eclipse.swt.graphics.Font menuFont = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("SansSerif", size, SWT.NORMAL));
+		org.eclipse.swt.graphics.Font menuFont = new org.eclipse.swt.graphics.Font(Display.getDefault(),
+				new FontData("SansSerif", size, SWT.NORMAL));
 		return menuFont;
 	}
 
 	/** Called once when ImageJ quits. */
 	public static void savePreferences(Properties prefs) {
 
-		if(pluginsPrefs == null)
+		if (pluginsPrefs == null)
 			return;
 		int index = 0;
-		for(Enumeration en = pluginsPrefs.elements(); en.hasMoreElements();) {
+		for (Enumeration en = pluginsPrefs.elements(); en.hasMoreElements();) {
 			String key = "plugin" + (index / 10) % 10 + index % 10;
-			String value = (String)en.nextElement();
+			String value = (String) en.nextElement();
 			prefs.put(key, value);
 			index++;
 		}
 		int n = openRecentMenu.getItemCount();
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			String key = "" + i;
-			if(key.length() == 1)
+			if (key.length() == 1)
 				key = "0" + key;
 			key = "recent" + key;
 			prefs.put(key, openRecentMenu.getItem(i).getText());
@@ -2128,10 +2134,12 @@ public class Menus {
 
 				ArrayList<MenuItemTempStorage> menuTempStack = new ArrayList<MenuItemTempStorage>();
 				Menu menu = getImageJMenu("Window");
-				/* Workaround to restore disposed Window menu items (images, registered Shells)! */
+				/*
+				 * Workaround to restore disposed Window menu items (images, registered Shells)!
+				 */
 				int countItem = menu.getItemCount();
-				for(int i = 0; i < countItem; i++) {
-					if(i > WINDOW_MENU_ITEMS - 1) {
+				for (int i = 0; i < countItem; i++) {
+					if (i > WINDOW_MENU_ITEMS - 1) {
 						org.eclipse.swt.widgets.MenuItem it = menu.getItem(i);
 						MenuItemTempStorage st = new MenuItemTempStorage();
 						st.name = it.getText();
@@ -2148,15 +2156,16 @@ public class Menus {
 				String err = m.addMenuBar();
 				/* Extra call for SWT! */
 				updateMenus();
-				if(err != null)
+				if (err != null)
 					IJ.error(err);
 				m.installStartupMacroSet();
 				IJ.resetClassLoader();
 				Menu menuRecreated = getImageJMenu("Window");
 				/* Add the Shell or WindowSwt items with image selections again! */
-				for(int i = 0; i < menuTempStack.size(); i++) {
+				for (int i = 0; i < menuTempStack.size(); i++) {
 					MenuItemTempStorage itStorage = menuTempStack.get(i);
-					org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(menuRecreated, itStorage.style);
+					org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(menuRecreated,
+							itStorage.style);
 					item.setText(itStorage.name);
 					item.setID(itStorage.id);
 					item.setSelection(itStorage.selected);
@@ -2182,10 +2191,10 @@ public class Menus {
 	/** Adds a command to the ImageJ menu bar. */
 	public static void add(String menuPath, String plugin) {
 
-		if(pluginsTable == null)
+		if (pluginsTable == null)
 			return;
 		int index = menuPath.lastIndexOf(">");
-		if(index == -1 || index == menuPath.length() - 1)
+		if (index == -1 || index == menuPath.length() - 1)
 			return;
 		String label = menuPath.substring(index + 1, menuPath.length());
 		menuPath = menuPath.substring(0, index);

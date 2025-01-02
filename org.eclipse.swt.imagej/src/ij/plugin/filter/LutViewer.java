@@ -134,11 +134,9 @@ public class LutViewer implements PlugInFilter {
 		// imp.show();
 		AtomicReference<ImageProcessor> ipp = new AtomicReference<ImageProcessor>();
 		ipp.set(ip);
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				new LutWindow(imp, new ImageCanvas(imp), ipp.get());
-			}
+			
 		});
 		gc.dispose();
 	}
