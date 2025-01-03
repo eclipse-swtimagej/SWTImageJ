@@ -94,21 +94,20 @@ import ij.util.Tools;
  * when the dialog is displayed. For example, change the checkbox labels "Show
  * Quality" and "Show Residue" to "Show_Quality" and "Show_Residue".
  */
-public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyListener, org.eclipse.swt.events.FocusListener, org.eclipse.swt.events.KeyListener, org.eclipse.swt.events.ShellListener, org.eclipse.swt.events.SelectionListener {
+public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyListener,
+		org.eclipse.swt.events.FocusListener, org.eclipse.swt.events.KeyListener, org.eclipse.swt.events.ShellListener,
+		org.eclipse.swt.events.SelectionListener {
 
-	protected Vector numberField, stringField, checkbox, choice, slider,
-			radioButtonGroups;
+	protected Vector numberField, stringField, checkbox, choice, slider, radioButtonGroups;
 	protected org.eclipse.swt.widgets.Text textArea1, textArea2;
-	protected Vector defaultValues, defaultText, defaultStrings,
-			defaultChoiceIndexes;
+	protected Vector defaultValues, defaultText, defaultStrings, defaultChoiceIndexes;
 	protected Label theLabel;
 	private org.eclipse.swt.widgets.Button okay;
 	private org.eclipse.swt.widgets.Button cancel;
 	private org.eclipse.swt.widgets.Button no, help;
 	private String helpLabel = "Help";
 	private boolean wasCanceled, wasOKed;
-	private int nfIndex, sfIndex, cbIndex, choiceIndex, textAreaIndex,
-			radioButtonIndex;
+	private int nfIndex, sfIndex, cbIndex, choiceIndex, textAreaIndex, radioButtonIndex;
 	private GridBagConstraints c;
 	private boolean firstNumericField = true;
 	private boolean firstSlider = true;
@@ -172,7 +171,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 		this(title, parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	}
-	
+
 	public Shell getShell() {
 
 		return shell;
@@ -188,13 +187,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			public void run() {
 
 				customShellSize = null;
-				if(parent != null) {
+				if (parent != null) {
 					shell = new Shell(shell, style);
 				} else {
 					shell = new Shell(Display.getDefault(), style);
 				}
 				/* Delete old GenericDialog which were made invisible only! */
-				if(oldShell.isEmpty() == false) {
+				if (oldShell.isEmpty() == false) {
 					Shell shell2 = oldShell.get(0);
 					shell2.close();
 					oldShell.clear();
@@ -202,7 +201,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				GenericDialog.this.instance = GenericDialog.this;
 				shell.setText(title);
 				ImageJ ij = IJ.getInstance();
-				if(ij != null) {
+				if (ij != null) {
 					org.eclipse.swt.graphics.Font font = ij.getFont();
 					setFont(font);
 				}
@@ -225,14 +224,12 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * Adds a numeric field. The first word of the label must be unique or command
 	 * recording will not work.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultValue
-	 *            value to be initially displayed
+	 * @param label        the label
+	 * @param defaultValue value to be initially displayed
 	 */
 	public void addNumericField(String label, double defaultValue) {
 
-		int decimalPlaces = (int)defaultValue == defaultValue ? 0 : 3;
+		int decimalPlaces = (int) defaultValue == defaultValue ? 0 : 3;
 		int columnWidth = decimalPlaces == 3 ? 8 : 6;
 		addNumericField(label, defaultValue, decimalPlaces, columnWidth, null);
 	}
@@ -241,12 +238,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * Adds a numeric field. The first word of the label must be unique or command
 	 * recording will not work.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultValue
-	 *            value to be initially displayed
-	 * @param digits
-	 *            number of digits to right of decimal point
+	 * @param label        the label
+	 * @param defaultValue value to be initially displayed
+	 * @param digits       number of digits to right of decimal point
 	 */
 	public void addNumericField(String label, double defaultValue, int digits) {
 
@@ -257,16 +251,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * Adds a numeric field. The first word of the label must be unique or command
 	 * recording will not work.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultValue
-	 *            value to be initially displayed
-	 * @param digits
-	 *            number of digits to right of decimal point
-	 * @param columns
-	 *            width of field in characters
-	 * @param units
-	 *            a string displayed to the right of the field
+	 * @param label        the label
+	 * @param defaultValue value to be initially displayed
+	 * @param digits       number of digits to right of decimal point
+	 * @param columns      width of field in characters
+	 * @param units        a string displayed to the right of the field
 	 */
 	public void addNumericField(String label, double defaultValue, int digitss, int columns, String units) {
 
@@ -278,33 +267,33 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			public void run() {
 
 				String label2 = label;
-				if(label2.indexOf('_') != -1)
+				if (label2.indexOf('_') != -1)
 					label2 = label2.replace('_', ' ');
 				org.eclipse.swt.widgets.Label fieldLabel = makeLabel(label2);
 				GenericDialog.this.lastLabelAdded = fieldLabel;
-				if(addToSameRow) {
+				if (addToSameRow) {
 					// c.insets.left = 0;
 					addToSameRow = false;
 				}
-				if(numberField == null) {
+				if (numberField == null) {
 					numberField = new Vector(5);
 					defaultValues = new Vector(5);
 					defaultText = new Vector(5);
 				}
 				boolean scientificNotationAsNeeded = false;
-				if(digits.get() < 0) {
+				if (digits.get() < 0) {
 					digits.set(-digits.get());
 					scientificNotationAsNeeded = true;
 				}
 				String defaultString = IJ.d2s(defaultValue, digits.get());
-				if(scientificNotationAsNeeded)
+				if (scientificNotationAsNeeded)
 					defaultString = ij.measure.ResultsTable.d2s(defaultValue, digits.get());
-				if(Double.isNaN(defaultValue))
+				if (Double.isNaN(defaultValue))
 					defaultString = "";
 				// if (firstNumericField) tf.selectAll();
 				firstNumericField = false;
 				Text tf;
-				if(units == null || units.equals("")) {
+				if (units == null || units.equals("")) {
 					tf = new Text(shell, SWT.SINGLE | SWT.BORDER);
 					tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 					tf.setText(defaultString);
@@ -339,7 +328,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					Label lab = new Label(panel, SWT.NONE);
 					lab.setText(" " + units);
 				}
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(tf, label);
 			}
 		});
@@ -347,7 +336,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	private Label makeLabel(String label) {
 
-		if(IJ.isMacintosh())
+		if (IJ.isMacintosh())
 			label += " ";
 		// return new Label(label);
 		Label lab = new Label(shell, SWT.NONE);
@@ -357,7 +346,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	private Label makeLabel(String label, Composite comp) {
 
-		if(IJ.isMacintosh())
+		if (IJ.isMacintosh())
 			label += " ";
 		// return new Label(label);
 		Label lab = new Label(comp, SWT.NONE);
@@ -371,13 +360,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	private void saveLabel(Object component, String label) {
 
-		if(labels == null)
+		if (labels == null)
 			labels = new Hashtable();
-		if(label.length() > 0)
+		if (label.length() > 0)
 			label = Macro.trimKey(label.trim());
-		if(label.length() > 0 && hasLabel(label)) { // not a unique label?
+		if (label.length() > 0 && hasLabel(label)) { // not a unique label?
 			label += "_0";
-			for(int n = 1; hasLabel(label); n++) { // while still not a unique label
+			for (int n = 1; hasLabel(label); n++) { // while still not a unique label
 				label = label.substring(0, label.lastIndexOf('_')); // remove counter
 				label += "_" + n;
 			}
@@ -391,8 +380,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	private boolean hasLabel(String label) {
 
-		for(Object o : labels.keySet())
-			if(labels.get(o).equals(label))
+		for (Object o : labels.keySet())
+			if (labels.get(o).equals(label))
 				return true;
 		return false;
 	}
@@ -400,10 +389,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds an 8 column text field.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultText
-	 *            the text initially displayed
+	 * @param label       the label
+	 * @param defaultText the text initially displayed
 	 */
 	public void addStringField(String label, String defaultText) {
 
@@ -413,14 +400,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a text field.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultText
-	 *            text initially displayed
-	 * @param columns
-	 *            width of the text field. If columns is 8 or more,
-	 *            additional items may be added to this line with
-	 *            addToSameRow()
+	 * @param label       the label
+	 * @param defaultText text initially displayed
+	 * @param columns     width of the text field. If columns is 8 or more,
+	 *                    additional items may be added to this line with
+	 *                    addToSameRow()
 	 */
 	public void addStringField(String label, String defaultText, int columns) {
 
@@ -430,18 +414,14 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a text field.
 	 * 
-	 * @param panel
-	 *            a SWT Composite
-	 * @param label
-	 *            the label
-	 * @param defaultText
-	 *            text initially displayed
-	 * @param columns
-	 *            width of the text field. If columns is 8 or more,
-	 *            additional items may be added to this line with
-	 *            addToSameRow() Note: In SWT an exception is thrown if the
-	 *            setText(defaultText) is is null. In AWT a TextField will
-	 *            add a "" String if the default text is null!!!
+	 * @param panel       a SWT Composite
+	 * @param label       the label
+	 * @param defaultText text initially displayed
+	 * @param columns     width of the text field. If columns is 8 or more,
+	 *                    additional items may be added to this line with
+	 *                    addToSameRow() Note: In SWT an exception is thrown if the
+	 *                    setText(defaultText) is is null. In AWT a TextField will
+	 *                    add a "" String if the default text is null!!!
 	 */
 	public void addStringField(Composite panelAdd, String labell, String defaultTextt, int columns) {
 
@@ -454,19 +434,19 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			public void run() {
 
 				Composite panel;
-				if(panelAdd == null) {
+				if (panelAdd == null) {
 					panel = new Composite(shell, SWT.NONE);
 					GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
 					panel.setLayoutData(gd_composite);
 				} else {
 					panel = panelAdd;
 				}
-				if(addToSameRow && label.get().equals("_"))
+				if (addToSameRow && label.get().equals("_"))
 					label.set("");
 				String label2 = label.get();
-				if(label2.indexOf('_') != -1)
+				if (label2.indexOf('_') != -1)
 					label2 = label2.replace('_', ' ');
-				if(addToSameRow) {
+				if (addToSameRow) {
 					Label fieldLabel = makeLabel(label2, panel);
 					GenericDialog.this.lastLabelAdded = fieldLabel;
 					GridLayout layout = new GridLayout(2, true);
@@ -481,12 +461,12 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					layout.marginHeight = 0;
 					layout.marginWidth = 0;
 				}
-				if(stringField == null) {
+				if (stringField == null) {
 					stringField = new Vector(4);
 					defaultStrings = new Vector(4);
 				}
 				Text tf = null;
-				if(panel != null) {
+				if (panel != null) {
 					tf = new Text(panel, SWT.SINGLE | SWT.BORDER);
 					tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 				}
@@ -499,7 +479,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				 * is null) using drag and drop of folders using the virtual stack option (drag
 				 * onto the right expansion arrows of the toolbar!)
 				 **/
-				if(defaultText.get() == null) {
+				if (defaultText.get() == null) {
 					defaultText.set("");
 				}
 				tf.setText(defaultText.get());
@@ -513,7 +493,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				stringField.addElement(tf);
 				defaultStrings.addElement(defaultText.get());
 				new DragAndDropMacro(tf);
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(tf, label.get());
 			}
 		});
@@ -538,14 +518,14 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public void addDirectoryField(String label, String defaultPath) {
 
 		int columns = defaultPath != null ? Math.max(defaultPath.length(), 25) : 25;
-		if(columns > 60)
+		if (columns > 60)
 			columns = 60;
 		addDirectoryField(label, defaultPath, columns);
 	}
 
 	public void addDirectoryField(String label, String defaultPathh, int columns) {
 
-		String defaultPath[] = new String[]{defaultPathh};
+		String defaultPath[] = new String[] { defaultPathh };
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
@@ -554,13 +534,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				Composite panel = new Composite(shell, SWT.NONE);
 				panel.setLayout(new RowLayout(SWT.HORIZONTAL));
 				addStringField(panel, label, defaultPath[0], columns);
-				if(GraphicsEnvironment.isHeadless())
+				if (GraphicsEnvironment.isHeadless())
 					return;
-				Text text = (Text)stringField.lastElement();
+				Text text = (Text) stringField.lastElement();
 				Button btnBrowse = new Button(panel, SWT.NONE);
 				btnBrowse.setText("Browse");
 				btnBrowse.addSelectionListener(new BrowseButtonListener(label, text, "dir"));
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(panel, label);
 			}
 		});
@@ -575,7 +555,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public void addFileField(String label, String defaultPath) {
 
 		int columns = defaultPath != null ? Math.max(defaultPath.length(), 25) : 25;
-		if(columns > 60)
+		if (columns > 60)
 			columns = 60;
 		addFileField(label, defaultPath, columns);
 	}
@@ -583,10 +563,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Add button to the dialog
 	 * 
-	 * @param label
-	 *            button label
-	 * @param listener
-	 *            listener to handle the action when pressing the button
+	 * @param label    button label
+	 * @param listener listener to handle the action when pressing the button
 	 */
 	public void addButton(String label, SelectionListener listener) {
 
@@ -594,7 +572,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 			public void run() {
 
-				if(GraphicsEnvironment.isHeadless())
+				if (GraphicsEnvironment.isHeadless())
 					return;
 				Composite panel = new Composite(shell, SWT.NONE);
 				panel.setLayout(new RowLayout(SWT.HORIZONTAL));
@@ -613,16 +591,16 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 				addStringField(label, defaultPath, columns);
 				Composite panel = new Composite(shell, SWT.NONE);
-				if(GraphicsEnvironment.isHeadless())
+				if (GraphicsEnvironment.isHeadless())
 					return;
 				RowLayout rl_composite_1 = new RowLayout(SWT.HORIZONTAL);
 				rl_composite_1.fill = true;
 				panel.setLayout(rl_composite_1);
-				Text text = (Text)stringField.lastElement();
+				Text text = (Text) stringField.lastElement();
 				Button btnBrowse = new Button(panel, SWT.NONE);
 				btnBrowse.setText("Browse");
 				btnBrowse.addSelectionListener(new BrowseButtonListener(label, text, "file"));
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(panel, label);
 			}
 		});
@@ -633,20 +611,18 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * to retrieve the selected image. Based on the addImageChoice() method in
 	 * Fiji's GenericDialogPlus class.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultImage
-	 *            the image title initially selected in the menu or the
-	 *            first image if null
+	 * @param label        the label
+	 * @param defaultImage the image title initially selected in the menu or the
+	 *                     first image if null
 	 */
 	public void addImageChoice(String label, String defaultImage) {
 
-		if(windowTitles == null) {
+		if (windowTitles == null) {
 			windowIDs = WindowManager.getIDList();
-			if(windowIDs == null)
+			if (windowIDs == null)
 				windowIDs = new int[0];
 			windowTitles = new String[windowIDs.length];
-			for(int i = 0; i < windowIDs.length; i++) {
+			for (int i = 0; i < windowIDs.length; i++) {
 				ImagePlus image = WindowManager.getImage(windowIDs[i]);
 				windowTitles[i] = image == null ? "" : image.getTitle();
 			}
@@ -680,12 +656,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * method = gd.getNextEnumChoice(Method.class);
 	 * </pre>
 	 * 
-	 * @param <E>
-	 *            the generic enum type containing the items to chose from
-	 * @param label
-	 *            the label displayed for this choice group
-	 * @param defaultItem
-	 *            the menu item initially selected
+	 * @param <E>         the generic enum type containing the items to chose from
+	 * @param label       the label displayed for this choice group
+	 * @param defaultItem the menu item initially selected
 	 * 
 	 * @see #addEnumChoice(String, Enum[], Enum)
 	 * @see #getNextEnumChoice(Class)
@@ -695,7 +668,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		Class<E> enumClass = defaultItem.getDeclaringClass();
 		E[] enums = enumClass.getEnumConstants();
 		String[] items = new String[enums.length];
-		for(int i = 0; i < enums.length; i++) {
+		for (int i = 0; i < enums.length; i++) {
 			items[i] = enums[i].name();
 		}
 		this.addChoice(label, items, defaultItem.name());
@@ -724,15 +697,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * method = gd.getNextEnumChoice(Method.class);
 	 * </pre>
 	 * 
-	 * @param <E>
-	 *            the generic enum type containing the items to choose from
-	 * @param label
-	 *            the label displayed for this choice group
-	 * @param enumArray
-	 *            an array of enum items (of type E)
-	 * @param defaultItem
-	 *            the menu item initially selected (of type E, may be
-	 *            {@code null})
+	 * @param <E>         the generic enum type containing the items to choose from
+	 * @param label       the label displayed for this choice group
+	 * @param enumArray   an array of enum items (of type E)
+	 * @param defaultItem the menu item initially selected (of type E, may be
+	 *                    {@code null})
 	 * 
 	 * @see #addEnumChoice(String, Enum)
 	 * @see #getNextEnumChoice(Class)
@@ -741,13 +710,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 		String[] items = new String[enumArray.length];
 		boolean contained = false; // to check if defaultItem is contained in enumArray
-		for(int i = 0; i < enumArray.length; i++) {
-			if(enumArray[i] == defaultItem) {
+		for (int i = 0; i < enumArray.length; i++) {
+			if (enumArray[i] == defaultItem) {
 				contained = true;
 			}
 			items[i] = enumArray[i].name();
 		}
-		if(!contained) {
+		if (!contained) {
 			defaultItem = enumArray[0];
 		}
 		this.addChoice(label, items, defaultItem.name());
@@ -759,10 +728,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * {@code IllegalArgumentException} if the selected item is not a defined
 	 * constant in the specified enum class.
 	 * 
-	 * @param <E>
-	 *            the generic enum type
-	 * @param enumClass
-	 *            the enum type
+	 * @param <E>       the generic enum type
+	 * @param enumClass the enum type
 	 * @return the selected item
 	 */
 	public <E extends Enum<E>> E getNextEnumChoice(Class<E> enumClass) {
@@ -774,10 +741,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a checkbox.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param defaultValue
-	 *            the initial state
+	 * @param label        the label
+	 * @param defaultValue the initial state
 	 */
 	public void addCheckbox(String label, boolean defaultValue) {
 
@@ -796,9 +761,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			public void run() {
 
 				String label2 = label;
-				if(label2.indexOf('_') != -1)
+				if (label2.indexOf('_') != -1)
 					label2 = label2.replace('_', ' ');
-				if(checkbox == null)
+				if (checkbox == null)
 					checkbox = new Vector(4);
 				Button cb = new Button(shell, SWT.CHECK);
 				cb.setText(label2);
@@ -806,9 +771,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				cb.addSelectionListener(GenericDialog.this);
 				cb.addKeyListener(GenericDialog.this);
 				checkbox.addElement(cb);
-				if(!isPreview && (Recorder.record || macro)) // preview checkbox is not recordable
+				if (!isPreview && (Recorder.record || macro)) // preview checkbox is not recordable
 					saveLabel(cb, label);
-				if(isPreview)
+				if (isPreview)
 					previewCheckbox = cb;
 			}
 		});
@@ -826,16 +791,15 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * flags. A previewCheckbox is always off when the filter is started and does
 	 * not get recorded by the Macro Recorder.
 	 *
-	 * @param pfr
-	 *            A reference to the PlugInFilterRunner calling the PlugInFilter if
+	 * @param pfr A reference to the PlugInFilterRunner calling the PlugInFilter if
 	 *            automatic preview is desired, null otherwise.
 	 */
 	public void addPreviewCheckbox(PlugInFilterRunner pfr) {
 
-		if(previewCheckbox != null)
+		if (previewCheckbox != null)
 			return;
 		ImagePlus imp = WindowManager.getCurrentImage();
-		if(imp != null && imp.isComposite() && ((CompositeImage)imp).getMode() == IJ.COMPOSITE)
+		if (imp != null && imp.isComposite() && ((CompositeImage) imp).getMode() == IJ.COMPOSITE)
 			return;
 		this.pfr = pfr;
 		addCheckbox(previewLabel, false, true);
@@ -850,7 +814,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	public void addPreviewCheckbox(PlugInFilterRunner pfr, String label) {
 
-		if(previewCheckbox != null)
+		if (previewCheckbox != null)
 			return;
 		previewLabel = label;
 		this.pfr = pfr;
@@ -860,14 +824,10 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a group of checkboxs using a grid layout.
 	 * 
-	 * @param rows
-	 *            the number of rows
-	 * @param columns
-	 *            the number of columns
-	 * @param labels
-	 *            the labels
-	 * @param defaultValues
-	 *            the initial states
+	 * @param rows          the number of rows
+	 * @param columns       the number of columns
+	 * @param labels        the labels
+	 * @param defaultValues the initial states
 	 */
 	public void addCheckboxGroup(int rows, int columns, String[] labels, boolean[] defaultValues) {
 
@@ -877,17 +837,12 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a group of checkboxs using a grid layout.
 	 * 
-	 * @param rows
-	 *            the number of rows
-	 * @param columns
-	 *            the number of columns
-	 * @param labels
-	 *            the labels
-	 * @param defaultValues
-	 *            the initial states
-	 * @param headings
-	 *            the column headings Example:
-	 *            http://imagej.net/ij/plugins/multi-column-dialog/index.html
+	 * @param rows          the number of rows
+	 * @param columns       the number of columns
+	 * @param labels        the labels
+	 * @param defaultValues the initial states
+	 * @param headings      the column headings Example:
+	 *                      http://imagej.net/ij/plugins/multi-column-dialog/index.html
 	 */
 	public void addCheckboxGroup(int rows, int columns, String[] labels, boolean[] defaultValues, String[] headings) {
 
@@ -902,12 +857,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				panel.setLayout(new GridLayout(columns, false));
 				int nRows = headings != null ? rows + 1 : rows;
 				int startCBIndex = cbIndex;
-				if(checkbox == null)
+				if (checkbox == null)
 					checkbox = new Vector(12);
-				if(headings != null) {
-					org.eclipse.swt.graphics.Font font = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("SansSerif", 12, SWT.BOLD));
-					for(int i = 0; i < columns; i++) {
-						if(i > headings.length - 1 || headings[i] == null)
+				if (headings != null) {
+					org.eclipse.swt.graphics.Font font = new org.eclipse.swt.graphics.Font(Display.getDefault(),
+							new FontData("SansSerif", 12, SWT.BOLD));
+					for (int i = 0; i < columns; i++) {
+						if (i > headings.length - 1 || headings[i] == null)
 							new Label(panel, SWT.NONE).setText("");
 						else {
 							Label label = new Label(panel, SWT.NONE);
@@ -918,26 +874,26 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				}
 				int i1 = 0;
 				int[] index = new int[labels.length];
-				for(int row = 0; row < rows; row++) {
-					for(int col = 0; col < columns; col++) {
+				for (int row = 0; row < rows; row++) {
+					for (int col = 0; col < columns; col++) {
 						int i2 = col * rows + row;
-						if(i2 >= labels.length)
+						if (i2 >= labels.length)
 							break;
 						index[i1] = i2;
 						String label = labels[i1];
-						if(label == null || label.length() == 0) {
+						if (label == null || label.length() == 0) {
 							Label lbl = new Label(panel, SWT.NONE);
 							i1++;
 							continue;
 						}
-						if(label.indexOf('_') != -1)
+						if (label.indexOf('_') != -1)
 							label = label.replace('_', ' ');
 						Button cb = new Button(panel, SWT.CHECK);
 						cb.setText(label);
 						checkbox.addElement(cb);
 						cb.setSelection(defaultValues[i1]);
 						cb.addSelectionListener(GenericDialog.this);
-						if(IJ.recording() || macro)
+						if (IJ.recording() || macro)
 							saveLabel(cb, labels[i1]);
 						i1++;
 					}
@@ -950,16 +906,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a radio button group.
 	 * 
-	 * @param label
-	 *            group label (or null)
-	 * @param items
-	 *            radio button labels
-	 * @param rows
-	 *            number of rows
-	 * @param columns
-	 *            number of columns
-	 * @param defaultItem
-	 *            button initially selected
+	 * @param label       group label (or null)
+	 * @param items       radio button labels
+	 * @param rows        number of rows
+	 * @param columns     number of columns
+	 * @param defaultItem button initially selected
 	 */
 	public void addRadioButtonGroup(String labell, String[] items, int rows, int columns, String defaultItem) {
 
@@ -973,22 +924,22 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				cg.setLayout(new GridLayout(columns, false));
 				addToSameRow = false;
 				int n = items.length;
-				for(int i = 0; i < n; i++) {
+				for (int i = 0; i < n; i++) {
 					Button cb = new Button(cg, SWT.RADIO);
 					cb.setText(items[i]);
-					if(items[i].equals(defaultItem)) {
+					if (items[i].equals(defaultItem)) {
 						cb.setSelection(true);
 					}
 				}
-				if(radioButtonGroups == null)
+				if (radioButtonGroups == null)
 					radioButtonGroups = new Vector();
 				radioButtonGroups.addElement(cg);
-				if(label.get() == null || label.get().equals("")) {
+				if (label.get() == null || label.get().equals("")) {
 					label.set("rbg" + radioButtonGroups.size());
 				} else {
 					cg.setText(label.get());
 				}
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(cg, label.get());
 			}
 		});
@@ -997,12 +948,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/**
 	 * Adds a popup menu.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param items
-	 *            the menu items
-	 * @param defaultItem
-	 *            the menu item initially selected
+	 * @param label       the label
+	 * @param items       the menu items
+	 * @param defaultItem the menu item initially selected
 	 */
 	public void addChoice(String label, String[] items, String defaultItem) {
 
@@ -1011,11 +959,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			public void run() {
 
 				String label2 = label;
-				if(label2.indexOf('_') != -1)
+				if (label2.indexOf('_') != -1)
 					label2 = label2.replace('_', ' ');
 				Label fieldLabel = makeLabel(label2);
 				GenericDialog.this.lastLabelAdded = fieldLabel;
-				if(choice == null) {
+				if (choice == null) {
 					choice = new Vector(4);
 					defaultChoiceIndexes = new Vector(4);
 				}
@@ -1024,9 +972,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				thisChoice.addSelectionListener(GenericDialog.this);
 				thisChoice.setItems(items);
 				thisChoice.select(0);
-				for(int i = 0; i < items.length; i++) {
-					if(defaultItem != null) {
-						if(thisChoice.getItem(i).equals(defaultItem)) {
+				for (int i = 0; i < items.length; i++) {
+					if (defaultItem != null) {
+						if (thisChoice.getItem(i).equals(defaultItem)) {
 							thisChoice.select(i);
 						}
 					}
@@ -1034,7 +982,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				choice.addElement(thisChoice);
 				int index = thisChoice.getSelectionIndex();
 				defaultChoiceIndexes.addElement(Integer.valueOf(index));
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(thisChoice, label);
 			}
 		});
@@ -1066,7 +1014,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			public void run() {
 
 				theLabel = null;
-				if(text.indexOf('\n') >= 0) {
+				if (text.indexOf('\n') >= 0) {
 					theLabel = new Label(shell, SWT.WRAP);
 					GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
 					theLabel.setLayoutData(gd_composite);
@@ -1077,14 +1025,14 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					theLabel.setLayoutData(gd_composite);
 					theLabel.setText(text);
 				}
-				if(addToSameRow) {
+				if (addToSameRow) {
 					addToSameRow = false;
 				} else {
 				}
-				if(font != null) {
+				if (font != null) {
 					theLabel.setFont(font);
 				}
-				if(color != null)
+				if (color != null)
 					theLabel.setForeground(color);
 			}
 		});
@@ -1095,28 +1043,24 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * to the text of the first text area to get vertical scrollbars and
 	 * "SCROLLBARS_BOTH" to get both vertical and horizontal scrollbars.
 	 * 
-	 * @param text1
-	 *            initial contents of the first text area
-	 * @param text2
-	 *            initial contents of the second text area or null
-	 * @param rows
-	 *            the number of rows
-	 * @param columns
-	 *            the number of columns
+	 * @param text1   initial contents of the first text area
+	 * @param text2   initial contents of the second text area or null
+	 * @param rows    the number of rows
+	 * @param columns the number of columns
 	 */
 	public void addTextAreas(String text11, String text2, int rows, int columns) {
 
-		String[] text1 = new String[]{text11};
+		String[] text1 = new String[] { text11 };
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
 
-				if(textArea1 != null)
+				if (textArea1 != null)
 					return;
 				Composite panel = new Composite(shell, SWT.NONE);
 				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
 				panel.setLayoutData(gd_composite);
-				if(text2 != null) {
+				if (text2 != null) {
 					panel.setLayout(new GridLayout(2, true));
 				} else {
 					panel.setLayout(new GridLayout(1, true));
@@ -1125,11 +1069,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				gd_composite.heightHint = rows * textArea1.getLineHeight();
 				textArea1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				textArea1.addModifyListener(GenericDialog.this);
-				if(text1[0] == null) {
+				if (text1[0] == null) {
 					text1[0] = "";
 				}
 				textArea1.setText(text1[0]);
-				if(text1 != null && text1[0].endsWith("SCROLLBARS_BOTH")) {
+				if (text1 != null && text1[0].endsWith("SCROLLBARS_BOTH")) {
 					textArea1.dispose();
 					textArea1 = new Text(panel, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.MULTI);
 					textArea1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -1137,7 +1081,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					text1[0] = text1[0].substring(0, text1[0].length() - 15);
 					textArea1.setText(text1[0]);
 				}
-				if(text1 != null && text1[0].endsWith("SCROLLBARS_VERTICAL_ONLY")) {
+				if (text1 != null && text1[0].endsWith("SCROLLBARS_VERTICAL_ONLY")) {
 					textArea1.dispose();
 					textArea1 = new Text(panel, SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
 					textArea1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -1145,7 +1089,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					text1[0] = text1[0].substring(0, text1[0].length() - 24);
 					textArea1.setText(text1[0]);
 				}
-				if(text2 != null) {
+				if (text2 != null) {
 					textArea2 = new Text(panel, SWT.BORDER | SWT.MULTI);
 					textArea2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 					textArea2.addModifyListener(GenericDialog.this);
@@ -1160,24 +1104,21 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * if (maxValue-minValue)<=5.0 and either defaultValue or minValue are
 	 * non-integer.
 	 * 
-	 * @param label
-	 *            the label
-	 * @param minValue
-	 *            the minimum value of the slider
-	 * @param maxValue
-	 *            the maximum value of the slider
-	 * @param defaultValue
-	 *            the initial value of the slider
+	 * @param label        the label
+	 * @param minValue     the minimum value of the slider
+	 * @param maxValue     the maximum value of the slider
+	 * @param defaultValue the initial value of the slider
 	 */
 	public void addSlider(String label, double minValue, double maxValue, double defaultValue) {
 
-		if(defaultValue < minValue)
+		if (defaultValue < minValue)
 			defaultValue = minValue;
-		if(defaultValue > maxValue)
+		if (defaultValue > maxValue)
 			defaultValue = maxValue;
 		int digits = 0;
 		double scale = 1.0;
-		if((maxValue - minValue) <= 5.0 && (minValue != (int)minValue || maxValue != (int)maxValue || defaultValue != (int)defaultValue)) {
+		if ((maxValue - minValue) <= 5.0
+				&& (minValue != (int) minValue || maxValue != (int) maxValue || defaultValue != (int) defaultValue)) {
 			scale = 50.0;
 			minValue *= scale;
 			maxValue *= scale;
@@ -1193,17 +1134,17 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	public void addSlider(String label, double minValue, double maxValue, double defaultValue, double stepSize) {
 
-		if(stepSize <= 0)
+		if (stepSize <= 0)
 			stepSize = 1;
 		int digits = digits(stepSize);
-		if(digits == 1 && "Angle:".equals(label))
+		if (digits == 1 && "Angle:".equals(label))
 			digits = 2;
 		double scale = 1.0 / Math.abs(stepSize);
-		if(scale <= 0)
+		if (scale <= 0)
 			scale = 1;
-		if(defaultValue < minValue)
+		if (defaultValue < minValue)
 			defaultValue = minValue;
-		if(defaultValue > maxValue)
+		if (defaultValue > maxValue)
 			defaultValue = maxValue;
 		minValue *= scale;
 		maxValue *= scale;
@@ -1214,50 +1155,51 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/** Author: Michael Kaul */
 	private static int digits(double d) {
 
-		if(d == (int)d)
+		if (d == (int) d)
 			return 0;
 		String s = Double.toString(d);
 		int ePos = s.indexOf("E");
-		if(ePos == -1)
+		if (ePos == -1)
 			ePos = s.indexOf("e");
 		int dotPos = s.indexOf(".");
 		int digits = 0;
-		if(ePos == -1)
+		if (ePos == -1)
 			digits = s.substring(dotPos + 1).length();
 		else {
 			String number = s.substring(dotPos + 1, ePos);
-			if(!number.equals("0"))
+			if (!number.equals("0"))
 				digits += number.length();
 			digits = digits - Integer.valueOf(s.substring(ePos + 1));
 		}
 		return digits;
 	}
 
-	private void addSlider(String label, double minValue, double maxValue, double defaultValue, double scale, int digits) {
+	private void addSlider(String label, double minValue, double maxValue, double defaultValue, double scale,
+			int digits) {
 
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
 
 				int columns = 4 + digits - 2;
-				if(columns < 4)
+				if (columns < 4)
 					columns = 4;
-				if(minValue < 0.0)
+				if (minValue < 0.0)
 					columns++;
 				String mv = IJ.d2s(maxValue, 0);
-				if(mv.length() > 4 && digits == 0)
+				if (mv.length() > 4 && digits == 0)
 					columns += mv.length() - 4;
 				String label2 = label;
-				if(label2.indexOf('_') != -1)
+				if (label2.indexOf('_') != -1)
 					label2 = label2.replace('_', ' ');
 				Label fieldLabel = makeLabel(label2);
 				GenericDialog.this.lastLabelAdded = fieldLabel;
-				if(addToSameRow) {
+				if (addToSameRow) {
 				} else {
 				}
 				Composite panel = new Composite(shell, SWT.NONE);
 				panel.setLayout(new GridLayout(3, false));
-				if(slider == null) {
+				if (slider == null) {
 					slider = new Vector(5);
 					sliderIndexes = new Vector(5);
 					sliderScales = new Vector(5);
@@ -1265,12 +1207,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				}
 				Slider s = new Slider(panel, SWT.NONE);
 				s.setThumb(1);
-				s.setSelection((int)defaultValue);
-				s.setMinimum((int)minValue);
-				s.setMaximum((int)maxValue + 1);
+				s.setSelection((int) defaultValue);
+				s.setMinimum((int) minValue);
+				s.setMaximum((int) maxValue + 1);
 				s.setIncrement(1);
 				s.setPageIncrement(1);
-				if (IJ.debugMode) IJ.log("Scrollbar: "+scale+" "+defaultValue+" "+minValue+" "+maxValue);
+				if (IJ.debugMode)
+					IJ.log("Scrollbar: " + scale + " " + defaultValue + " " + minValue + " " + maxValue);
 				s.addSelectionListener(new SelectionAdapter() {
 
 					@Override
@@ -1280,34 +1223,34 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					}
 				});
 				slider.addElement(s);
-				if(IJ.isMacOSX())
+				if (IJ.isMacOSX())
 					s.addKeyListener(GenericDialog.this);
 				s.addMouseWheelListener(new org.eclipse.swt.events.MouseWheelListener() {
 
 					public void mouseScrolled(MouseEvent e) {
 
-						Slider sb = (Slider)e.getSource();
+						Slider sb = (Slider) e.getSource();
 						int value = sb.getSelection() + e.count;
 						sb.setSelection(value);
-						for(int i = 0; i < slider.size(); i++) {
-							if(sb == slider.elementAt(i)) {
-								int index = ((Integer)sliderIndexes.get(i)).intValue();
-								TextField tf = (TextField)numberField.elementAt(index);
-								double scale = ((Double)sliderScales.get(i)).doubleValue();
-								int digits = ((Integer)sliderDigits.get(i)).intValue();
+						for (int i = 0; i < slider.size(); i++) {
+							if (sb == slider.elementAt(i)) {
+								int index = ((Integer) sliderIndexes.get(i)).intValue();
+								TextField tf = (TextField) numberField.elementAt(index);
+								double scale = ((Double) sliderScales.get(i)).doubleValue();
+								int digits = ((Integer) sliderDigits.get(i)).intValue();
 								tf.setText("" + IJ.d2s(sb.getSelection() / scale, digits));
 							}
 						}
 					}
 				});
-				if(numberField == null) {
+				if (numberField == null) {
 					numberField = new Vector(5);
 					defaultValues = new Vector(5);
 					defaultText = new Vector(5);
 				}
-				if(IJ.isWindows())
+				if (IJ.isWindows())
 					columns -= 2;
-				if(columns < 1)
+				if (columns < 1)
 					columns = 1;
 				// IJ.log("scale=" + scale + ", columns=" + columns + ", digits=" + digits);
 				Text tf = new Text(panel, SWT.BORDER | SWT.MULTI);
@@ -1332,7 +1275,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				defaultText.addElement(tf.getText());
 				tf.setEditable(true);
 				firstSlider = false;
-				if(IJ.recording() || macro)
+				if (IJ.recording() || macro)
 					saveLabel(tf, label);
 			}
 		});
@@ -1346,13 +1289,10 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	public void addPanel(org.eclipse.swt.widgets.Composite composite) {
 
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			composite.setParent(shell);
 
-				composite.setParent(shell);
-			}
 		});
 	}
 	/** Adds a Panel to the dialog. */
@@ -1375,20 +1315,17 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/** Adds an SWT image to the dialog. */
 	public void addImage(ImagePlus image) {
 
-		if(image == null)
+		if (image == null)
 			return;
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			ImagePanelSwt imagePanel = new ImagePanelSwt(shell, image);
+			imagePanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			// addPanel(imagePanel);
+			if (imagePanels == null)
+				imagePanels = new Vector();
+			imagePanels.add(imagePanel);
 
-				ImagePanelSwt imagePanel = new ImagePanelSwt(shell, image);
-				imagePanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				// addPanel(imagePanel);
-				if(imagePanels == null)
-					imagePanels = new Vector();
-				imagePanels.add(imagePanel);
-			}
 		});
 	}
 
@@ -1478,9 +1415,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public void enableYesNoCancel(String yesLabel, String noLabel) {
 
 		okayButtonText = yesLabel;
-		if(no != null)
+		if (no != null)
 			noButtonText = noLabel;
-		else if(noLabel != null) {
+		else if (noLabel != null) {
 			createNoButton = true;
 			noButtonText = noLabel;
 		}
@@ -1505,12 +1442,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 * dialog. For other listeners, the OK button will not cause a call to
 	 * dialogItemChanged; the CANCEL button will never cause such a call.
 	 * 
-	 * @param dl
-	 *            the Object that wants to listen.
+	 * @param dl the Object that wants to listen.
 	 */
 	public void addDialogListener(DialogListener dl) {
 
-		if(dialogListeners == null)
+		if (dialogListeners == null)
 			dialogListeners = new Vector();
 		dialogListeners.addElement(dl);
 	}
@@ -1518,7 +1454,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/** Returns true if the user clicked on "Cancel". */
 	public boolean wasCanceled() {
 
-		if(wasCanceled && !Thread.currentThread().getName().endsWith("Script_Macro$"))
+		if (wasCanceled && !Thread.currentThread().getName().endsWith("Script_Macro$"))
 			Macro.abort();
 		return wasCanceled;
 	}
@@ -1536,9 +1472,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public double getNextNumber() {
 
 		AtomicReference<String> theText = new AtomicReference<String>();
-		if(numberField == null)
+		if (numberField == null)
 			return -1.0;
-		Text tf = (Text)numberField.elementAt(nfIndex);
+		Text tf = (Text) numberField.elementAt(nfIndex);
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
@@ -1547,35 +1483,35 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			}
 		});
 		String label = null;
-		if(macro) {
-			label = (String)labels.get((Object)tf);
+		if (macro) {
+			label = (String) labels.get((Object) tf);
 			theText.set(Macro.getValue(macroOptions, label, theText.get()));
 		}
-		String originalText = (String)defaultText.elementAt(nfIndex);
-		double defaultValue = ((Double)(defaultValues.elementAt(nfIndex))).doubleValue();
+		String originalText = (String) defaultText.elementAt(nfIndex);
+		double defaultValue = ((Double) (defaultValues.elementAt(nfIndex))).doubleValue();
 		double value;
 		boolean skipRecording = false;
-		if(theText.get().equals(originalText)) {
+		if (theText.get().equals(originalText)) {
 			value = defaultValue;
-			if(smartRecording)
+			if (smartRecording)
 				skipRecording = true;
-		} else if(theText.get().startsWith("0x")) {
+		} else if (theText.get().startsWith("0x")) {
 			value = parseHex(theText.get().substring(2));
 		} else {
 			Double d = getValue(theText.get());
-			if(d != null)
+			if (d != null)
 				value = d.doubleValue();
 			else {
 				// Is the value a macro variable?
-				if(theText.get().startsWith("&"))
+				if (theText.get().startsWith("&"))
 					theText.set(theText.get().substring(1));
 				Interpreter interp = Interpreter.getInstance();
 				value = interp != null ? interp.getVariable2(theText.get()) : Double.NaN;
-				if(Double.isNaN(value)) {
+				if (Double.isNaN(value)) {
 					invalidNumber = true;
 					errorMessage = "\"" + theText + "\" is an invalid number";
 					value = Double.NaN;
-					if(macro) {
+					if (macro) {
 						String[] text = new String[1];
 						Display.getDefault().syncExec(new Runnable() {
 
@@ -1584,12 +1520,15 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 								text[0] = shell.getText();
 							}
 						});
-						IJ.error("Macro Error", "Numeric value expected in run() function\n \n" + "   Dialog box title: \"" + text[0] + "\"\n" + "   Key: \"" + label.toLowerCase(Locale.US) + "\"\n" + "   Value or variable name: \"" + theText + "\"");
+						IJ.error("Macro Error",
+								"Numeric value expected in run() function\n \n" + "   Dialog box title: \"" + text[0]
+										+ "\"\n" + "   Key: \"" + label.toLowerCase(Locale.US) + "\"\n"
+										+ "   Value or variable name: \"" + theText + "\"");
 					}
 				}
 			}
 		}
-		if(recorderOn && !skipRecording) {
+		if (recorderOn && !skipRecording) {
 			recordOption(tf, trim(theText.get()));
 		}
 		nfIndex++;
@@ -1602,34 +1541,34 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		;
 		try {
 			n = Integer.parseInt(hexString, 16);
-		} catch(NumberFormatException e) {
+		} catch (NumberFormatException e) {
 		}
 		return n;
 	}
 
 	private String trim(String value) {
 
-		if(value.endsWith(".0"))
+		if (value.endsWith(".0"))
 			value = value.substring(0, value.length() - 2);
-		if(value.endsWith(".00"))
+		if (value.endsWith(".00"))
 			value = value.substring(0, value.length() - 3);
 		return value;
 	}
 
 	private void recordOption(Object component, String value) {
 
-		if(labels == null)
+		if (labels == null)
 			return;
-		String label = (String)labels.get(component);
-		if(value.equals(""))
+		String label = (String) labels.get(component);
+		if (value.equals(""))
 			value = "[]";
 		Recorder.recordOption(label, value);
 	}
 
 	private void recordCheckboxOption(Button cb) {
 
-		String label = (String)labels.get((Object)cb);
-		if(label != null) {
+		String label = (String) labels.get((Object) cb);
+		if (label != null) {
 			AtomicReference<Boolean> selection = new AtomicReference<Boolean>();
 			Display.getDefault().syncExec(new Runnable() {
 
@@ -1638,9 +1577,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					selection.set(cb.getSelection());
 				}
 			});
-			if(selection.get()) // checked
+			if (selection.get()) // checked
 				Recorder.recordOption(label);
-			else if(Recorder.getCommandOptions() == null)
+			else if (Recorder.getCommandOptions() == null)
 				Recorder.recordOption(" ");
 		}
 	}
@@ -1650,7 +1589,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		Double d;
 		try {
 			d = Double.valueOf(text);
-		} catch(NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			d = null;
 		}
 		return d;
@@ -1658,11 +1597,11 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	public double parseDouble(String s) {
 
-		if(s == null)
+		if (s == null)
 			return Double.NaN;
 		double value = Tools.parseDouble(s);
-		if(Double.isNaN(value)) {
-			if(s.startsWith("&"))
+		if (Double.isNaN(value)) {
+			if (s.startsWith("&"))
 				s = s.substring(1);
 			Interpreter interp = Interpreter.getInstance();
 			value = interp != null ? interp.getVariable2(s) : Double.NaN;
@@ -1694,9 +1633,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public String getNextString() {
 
 		AtomicReference<String> theText = new AtomicReference<String>();
-		if(stringField == null)
+		if (stringField == null)
 			return "";
-		Text tf = (Text)(stringField.elementAt(sfIndex));
+		Text tf = (Text) (stringField.elementAt(sfIndex));
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
@@ -1704,28 +1643,31 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				theText.set(tf.getText());
 			}
 		});
-		String label = labels != null ? (String)labels.get((Object)tf) : "";
-		boolean numberExpected = theText != null && theText.get().length() > 0 && (Character.isDigit(theText.get().charAt(0)) || theText.get().startsWith("-"));
-		if(macro) {
+		String label = labels != null ? (String) labels.get((Object) tf) : "";
+		boolean numberExpected = theText != null && theText.get().length() > 0
+				&& (Character.isDigit(theText.get().charAt(0)) || theText.get().startsWith("-"));
+		if (macro) {
 			theText.set(Macro.getValue(macroOptions, label, theText.get()));
-			if(theText != null && (theText.get().startsWith("&") || numberExpected || label.toLowerCase(Locale.US).startsWith(theText.get()))) {
+			if (theText != null && (theText.get().startsWith("&") || numberExpected
+					|| label.toLowerCase(Locale.US).startsWith(theText.get()))) {
 				// Is the value a macro variable?
-				if(theText.get().startsWith("&"))
+				if (theText.get().startsWith("&"))
 					theText.set(theText.get().substring(1));
 				Interpreter interp = Interpreter.getInstance();
 				String s = interp != null ? interp.getVariableAsString(theText.get()) : null;
-				if(s != null)
+				if (s != null)
 					theText.set(s);
 			}
 		}
-		if(recorderOn && !label.equals("")) {
+		if (recorderOn && !label.equals("")) {
 			String s = theText.get();
-			if(s != null && s.length() >= 3 && Character.isLetter(s.charAt(0)) && s.charAt(1) == ':' && s.charAt(2) == '\\')
+			if (s != null && s.length() >= 3 && Character.isLetter(s.charAt(0)) && s.charAt(1) == ':'
+					&& s.charAt(2) == '\\')
 				s = s.replaceAll("\\\\", "/"); // replace "\" with "/" in Windows file paths
 			s = Recorder.fixString(s);
-			if(!smartRecording || !s.equals((String)defaultStrings.elementAt(sfIndex)))
+			if (!smartRecording || !s.equals((String) defaultStrings.elementAt(sfIndex)))
 				recordOption(tf, s);
-			else if(Recorder.getCommandOptions() == null)
+			else if (Recorder.getCommandOptions() == null)
 				Recorder.recordOption(" ");
 		}
 		sfIndex++;
@@ -1736,10 +1678,10 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public boolean getNextBoolean() {
 
 		AtomicReference<Boolean> state = new AtomicReference<Boolean>();
-		if(checkbox == null)
+		if (checkbox == null)
 			return false;
-		Button cb = (Button)(checkbox.elementAt(cbIndex));
-		if(recorderOn)
+		Button cb = (Button) (checkbox.elementAt(cbIndex));
+		if (recorderOn)
 			recordCheckboxOption(cb);
 		Display.getDefault().syncExec(new Runnable() {
 
@@ -1748,8 +1690,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				state.set(cb.getSelection());
 			}
 		});
-		if(macro) {
-			String label = (String)labels.get((Object)cb);
+		if (macro) {
+			String label = (String) labels.get((Object) cb);
 			String key = Macro.trimKey(label);
 			state.set(isMatch(macroOptions, key + " "));
 		}
@@ -1761,29 +1703,29 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	// "[literal]")
 	boolean isMatch(String s1, String s2) {
 
-		if(s1.startsWith(s2))
+		if (s1.startsWith(s2))
 			return true;
 		s2 = " " + s2;
 		int len1 = s1.length();
 		int len2 = s2.length();
 		boolean match, inLiteral = false;
 		char c;
-		for(int i = 0; i < len1 - len2 + 1; i++) {
+		for (int i = 0; i < len1 - len2 + 1; i++) {
 			c = s1.charAt(i);
-			if(inLiteral && c == ']')
+			if (inLiteral && c == ']')
 				inLiteral = false;
-			else if(c == '[')
+			else if (c == '[')
 				inLiteral = true;
-			if(c != s2.charAt(0) || inLiteral || (i > 1 && s1.charAt(i - 1) == '='))
+			if (c != s2.charAt(0) || inLiteral || (i > 1 && s1.charAt(i - 1) == '='))
 				continue;
 			match = true;
-			for(int j = 0; j < len2; j++) {
-				if(s2.charAt(j) != s1.charAt(i + j)) {
+			for (int j = 0; j < len2; j++) {
+				if (s2.charAt(j) != s1.charAt(i + j)) {
 					match = false;
 					break;
 				}
 			}
-			if(match)
+			if (match)
 				return true;
 		}
 		return false;
@@ -1793,9 +1735,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public String getNextChoice() {
 
 		AtomicReference<String> item = new AtomicReference<String>();
-		if(choice == null)
+		if (choice == null)
 			return "";
-		Combo thisChoice = (Combo)(choice.elementAt(choiceIndex));
+		Combo thisChoice = (Combo) (choice.elementAt(choiceIndex));
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
@@ -1803,13 +1745,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				item.set(thisChoice.getText());
 			}
 		});
-		if(macro) {
-			String label = (String)labels.get((Object)thisChoice);
+		if (macro) {
+			String label = (String) labels.get((Object) thisChoice);
 			item.set(Macro.getValue(macroOptions, label, item.get()));
-			if(item != null && item.get().startsWith("&")) // value is macro variable
+			if (item != null && item.get().startsWith("&")) // value is macro variable
 				item.set(getChoiceVariable(item.get()));
 		}
-		if(recorderOn)
+		if (recorderOn)
 			recordOption(thisChoice, item.get());
 		choiceIndex++;
 		return item.get();
@@ -1818,45 +1760,45 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/** Returns the index of the selected item in the next popup menu. */
 	public int getNextChoiceIndex() {
 
-		if(choice == null)
+		if (choice == null)
 			return -1;
 		AtomicReference<Integer> index = new AtomicReference<Integer>();
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
 
-				Combo thisChoice = (Combo)(choice.elementAt(choiceIndex));
+				Combo thisChoice = (Combo) (choice.elementAt(choiceIndex));
 				int selectionIndex = thisChoice.getSelectionIndex();
 				index.set(selectionIndex);
-				if(macro) {
-					String label = (String)labels.get((Object)thisChoice);
+				if (macro) {
+					String label = (String) labels.get((Object) thisChoice);
 					String oldItem = thisChoice.getItem(selectionIndex);
 					int oldIndex = thisChoice.getSelectionIndex();
 					String item = Macro.getValue(macroOptions, label, oldItem);
-					if(item != null && item.startsWith("&")) // value is macro variable
+					if (item != null && item.startsWith("&")) // value is macro variable
 						item = getChoiceVariable(item);
 					/* We must find the index for SWT! */
-					for(int i = 0; i < thisChoice.getItemCount(); i++) {
-						if(thisChoice.getItem(i).equals(item)) {
+					for (int i = 0; i < thisChoice.getItemCount(); i++) {
+						if (thisChoice.getItem(i).equals(item)) {
 							thisChoice.select(i);
 						}
 					}
 					index.set(thisChoice.getSelectionIndex());
-					if(index.get() == oldIndex && !item.equals(oldItem)) {
+					if (index.get() == oldIndex && !item.equals(oldItem)) {
 						// is value a macro variable?
 						Interpreter interp = Interpreter.getInstance();
 						String s = interp != null ? interp.getStringVariable(item) : null;
-						if(s == null)
+						if (s == null)
 							IJ.error(shell.getText(), "\"" + item + "\" is not a valid choice for \"" + label + "\"");
 						else
 							item = s;
 					}
 				}
-				if(recorderOn) {
-					int defaultIndex = ((Integer)(defaultChoiceIndexes.elementAt(choiceIndex))).intValue();
-					if(!(smartRecording && index.get() == defaultIndex)) {
+				if (recorderOn) {
+					int defaultIndex = ((Integer) (defaultChoiceIndexes.elementAt(choiceIndex))).intValue();
+					if (!(smartRecording && index.get() == defaultIndex)) {
 						String item = thisChoice.getItem(selectionIndex);
-						if(!(item.equals("*None*") && shell.getText().equals("Merge Channels")))
+						if (!(item.equals("*None*") && shell.getText().equals("Merge Channels")))
 							recordOption(thisChoice, thisChoice.getItem(selectionIndex));
 					}
 				}
@@ -1869,36 +1811,36 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	/** Returns the selected item in the next radio button group. */
 	public String getNextRadioButton() {
 
-		if(radioButtonGroups == null)
+		if (radioButtonGroups == null)
 			return null;
 		AtomicReference<String> itemToReturn = new AtomicReference<String>();
 		Display.getDefault().syncExec(new Runnable() {
 
 			public void run() {
 
-				Composite cg = (Composite)(radioButtonGroups.elementAt(radioButtonIndex));
+				Composite cg = (Composite) (radioButtonGroups.elementAt(radioButtonIndex));
 				radioButtonIndex++;
 				Control[] controls = cg.getChildren();
 				Button checkbox = null;
-				for(int i = 0; i < controls.length; i++) {
-					if(controls[i] instanceof Button) {
-						Button b = (Button)controls[i];
-						if(b.getSelection()) {
+				for (int i = 0; i < controls.length; i++) {
+					if (controls[i] instanceof Button) {
+						Button b = (Button) controls[i];
+						if (b.getSelection()) {
 							checkbox = b;
 						}
 					}
 				}
 				String item = "null";
-				if(checkbox != null) {
+				if (checkbox != null) {
 					item = checkbox.getText();
 					itemToReturn.set(item);
 				}
-				if(macro) {
-					String label = (String)labels.get((Object)cg);
+				if (macro) {
+					String label = (String) labels.get((Object) cg);
 					item = Macro.getValue(macroOptions, label, item);
 					itemToReturn.set(item);
 				}
-				if(recorderOn)
+				if (recorderOn)
 					recordOption(cg, itemToReturn.get());
 			}
 		});
@@ -1910,16 +1852,16 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		item = item.substring(1);
 		Interpreter interp = Interpreter.getInstance();
 		String s = interp != null ? interp.getStringVariable(item) : null;
-		if(s == null) {
+		if (s == null) {
 			double value = interp != null ? interp.getVariable2(item) : Double.NaN;
-			if(!Double.isNaN(value)) {
-				if((int)value == value)
-					s = "" + (int)value;
+			if (!Double.isNaN(value)) {
+				if ((int) value == value)
+					s = "" + (int) value;
 				else
 					s = "" + value;
 			}
 		}
-		if(s != null)
+		if (s != null)
 			item = s;
 		return item;
 	}
@@ -1936,24 +1878,24 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				text.set(textt);
 				//
 				String key = "text1";
-				if(textAreaIndex == 0 && textArea1 != null) {
+				if (textAreaIndex == 0 && textArea1 != null) {
 					text.set(textArea1.getText());
-					if(macro)
+					if (macro)
 						text.set(Macro.getValue(macroOptions, "text1", text.get()));
-				} else if(textAreaIndex == 1 && textArea2 != null) {
+				} else if (textAreaIndex == 1 && textArea2 != null) {
 					text.set(textArea2.getText());
-					if(macro)
+					if (macro)
 						text.set(Macro.getValue(macroOptions, "text2", text.get()));
 					key = "text2";
 				}
 				textAreaIndex++;
-				if(recorderOn && text != null) {
+				if (recorderOn && text != null) {
 					String text2 = text.get();
 					String cmd = Recorder.getCommand();
-					if(cmd != null && cmd.equals("Calibrate..."))
+					if (cmd != null && cmd.equals("Calibrate..."))
 						text2 = text2.replace('\n', ' ');
-					if(cmd != null && cmd.equals("Convolve...")) {
-						if(!text2.endsWith("\n"))
+					if (cmd != null && cmd.equals("Convolve...")) {
+						if (!text2.endsWith("\n"))
 							text2 += "\n";
 					}
 					text2 = Recorder.fixString(text2);
@@ -1974,7 +1916,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				Composite buttons = new Composite(shell, SWT.NONE);
 				showDialogCalled = true;
 				addToSameRow = false;
-				if(macro) {
+				if (macro) {
 					/*
 					 * Important to set the variable finally execute the close operation (see
 					 * closeShell method) in macro mode!
@@ -2009,20 +1951,21 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					 * notifyListeners(e);
 					 */
 				} else {
-					if(pfr != null) // prepare preview (not in macro mode): tell the PlugInFilterRunner to listen
+					if (pfr != null) // prepare preview (not in macro mode): tell the PlugInFilterRunner to listen
 						/* To do in SWT! */
 						pfr.setDialog(GenericDialog.this);
-					if(!hideCancelButton) {
+					if (!hideCancelButton) {
 						// cancel.addActionListener(this);
 						/*
 						 * cancel = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 						 * cancel.setText(cancelButtonText); cancel.addSelectionListener(new
 						 * SelectionAdapter() {
+						 * 
 						 * @Override public void widgetSelected(SelectionEvent e) { actionPerformed(e);
 						 * } }); cancel.addKeyListener(this);
 						 */
 					}
-					if(no != null) {
+					if (no != null) {
 						no = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 						no.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 						no.setText("No");
@@ -2036,29 +1979,30 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					 * org.eclipse.swt.widgets.Button(buttons, SWT.NONE); help.setText(helpLabel);
 					 * // help.addActionListener(this); help.addSelectionListener(new
 					 * SelectionAdapter() {
+					 * 
 					 * @Override public void widgetSelected(SelectionEvent e) { actionPerformed(e);
 					 * } }); help.addKeyListener(this); }
 					 */
-					if(IJ.isWindows() || Prefs.dialogCancelButtonOnRight) {
+					if (IJ.isWindows() || Prefs.dialogCancelButtonOnRight) {
 						okay = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 						okay.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 						okay.setText(okayButtonText);
 						okay.addSelectionListener(GenericDialog.this);
 						okay.addKeyListener(GenericDialog.this);
-						if(no != null) {
+						if (no != null) {
 							no = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 							no.setText("No");
 							no.addSelectionListener(GenericDialog.this);
 							no.addKeyListener(GenericDialog.this);
 						}
-						if(!hideCancelButton) {
+						if (!hideCancelButton) {
 							cancel = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 							cancel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 							cancel.setText(cancelButtonText);
 							cancel.addSelectionListener(GenericDialog.this);
 							cancel.addKeyListener(GenericDialog.this);
 						}
-						if(addHelp) {
+						if (addHelp) {
 							help = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 							help.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 							help.setText(helpLabel);
@@ -2066,21 +2010,21 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 							help.addKeyListener(GenericDialog.this);
 						}
 					} else {
-						if(addHelp) {
+						if (addHelp) {
 							help = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 							help.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 							help.setText(helpLabel);
 							help.addSelectionListener(GenericDialog.this);
 							help.addKeyListener(GenericDialog.this);
 						}
-						if(no != null) {
+						if (no != null) {
 							no = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 							no.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 							no.setText("No");
 							no.addSelectionListener(GenericDialog.this);
 							no.addKeyListener(GenericDialog.this);
 						}
-						if(!hideCancelButton) {
+						if (!hideCancelButton) {
 							cancel = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 							cancel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 							cancel.setText(cancelButtonText);
@@ -2097,9 +2041,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					 * buttons are created! They are stord in a string and boolean for SWT!
 					 */
 					okay.setText(okayButtonText);
-					if(no != null)
+					if (no != null)
 						no.setText(noButtonText);
-					if(createNoButton) {
+					if (createNoButton) {
 						no = new org.eclipse.swt.widgets.Button(buttons, SWT.NONE);
 						no.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 						no.setText("No");
@@ -2114,12 +2058,15 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 					buttons.setLayout(new GridLayout(buttons.getChildren().length, true));
 					buttons.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, 1, 1));
 					instance = GenericDialog.this;
-					if(okay != null && numberField == null && stringField == null && checkbox == null && choice == null && slider == null && radioButtonGroups == null && textArea1 == null)
+					if (okay != null && numberField == null && stringField == null && checkbox == null && choice == null
+							&& slider == null && radioButtonGroups == null && textArea1 == null)
 						okay.setFocus();
 					setup();
-					if(centerDialog) {
-						org.eclipse.swt.graphics.Rectangle screenSize = Display.getDefault().getPrimaryMonitor().getBounds();
-						shell.setLocation((screenSize.width - shell.getBounds().width) / 2, (screenSize.height - shell.getBounds().height) / 2);
+					if (centerDialog) {
+						org.eclipse.swt.graphics.Rectangle screenSize = Display.getDefault().getPrimaryMonitor()
+								.getBounds();
+						shell.setLocation((screenSize.width - shell.getBounds().width) / 2,
+								(screenSize.height - shell.getBounds().height) / 2);
 					}
 					resetCounters();
 					/* Open the shell! */
@@ -2144,7 +2091,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		shell.open();
 		// shell.layout(true, true);
 		org.eclipse.swt.graphics.Point newSize;
-		if(customShellSize == null) {
+		if (customShellSize == null) {
 			newSize = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		} else {
 			newSize = customShellSize;
@@ -2152,8 +2099,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		shell.setSize(newSize);
 		Display display = shell.getDisplay();
 		/* We monitor the visibility instead of a disposed shell! */
-		while(shell.isVisible()) {
-			if(!display.readAndDispatch()) {
+		while (shell.isVisible()) {
+			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
@@ -2165,16 +2112,17 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	void finalizeRecording() {
 
-		if(optionsRecorded)
+		if (optionsRecorded)
 			return;
 		optionsRecorded = true;
-		if(!wasCanceled && dialogListeners != null && dialogListeners.size() > 0) {
+		if (!wasCanceled && dialogListeners != null && dialogListeners.size() > 0) {
 			try {
 				resetCounters();
-				((DialogListener)dialogListeners.elementAt(0)).dialogItemChanged(this, null);
-			} catch(Exception err) { // for exceptions, don't cover the input by a window
+				((DialogListener) dialogListeners.elementAt(0)).dialogItemChanged(this, null);
+			} catch (Exception err) { // for exceptions, don't cover the input by a window
 				IJ.beep(); // but show them at in the "Log"
-				IJ.log("ERROR: " + err + "\nin DialogListener of " + dialogListeners.elementAt(0) + "\nat " + (err.getStackTrace()[0]) + "\nfrom " + (err.getStackTrace()[1]));
+				IJ.log("ERROR: " + err + "\nin DialogListener of " + dialogListeners.elementAt(0) + "\nat "
+						+ (err.getStackTrace()[0]) + "\nfrom " + (err.getStackTrace()[1]));
 			}
 			recorderOn = false;
 		}
@@ -2275,7 +2223,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	public Button[] getButtons() {
 
-		return new Button[]{okay, cancel, no, help};
+		return new Button[] { okay, cancel, no, help };
 	}
 
 	/**
@@ -2284,7 +2232,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	public void previewRunning(boolean isRunning) {
 
-		if(previewCheckbox != null) {
+		if (previewCheckbox != null) {
 			Display.getDefault().syncExec(new Runnable() {
 
 				public void run() {
@@ -2317,7 +2265,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	public void setDefaultString(int index, String str) {
 
-		if(defaultStrings != null && index >= 0 && index < defaultStrings.size())
+		if (defaultStrings != null && index >= 0 && index < defaultStrings.size())
 			defaultStrings.set(index, str);
 	}
 
@@ -2332,16 +2280,16 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	public void actionPerformed(TypedEvent e) {
 
-		if(e.widget instanceof Button) {
-			Button source = (Button)e.widget;
-			if(source == okay || source == cancel | source == no) {
+		if (e.widget instanceof Button) {
+			Button source = (Button) e.widget;
+			if (source == okay || source == cancel | source == no) {
 				// System.out.println("Source: " + source);
 				wasCanceled = source == cancel;
 				wasOKed = source == okay;
 				dispose();
-			} else if(source == help) {
-				if(hideCancelButton) {
-					if(helpURL != null && helpURL.equals("")) {
+			} else if (source == help) {
+				if (hideCancelButton) {
+					if (helpURL != null && helpURL.equals("")) {
 						notifyListeners(e);
 						return;
 					} else {
@@ -2367,18 +2315,18 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 		// TextEvent e
 		notifyListeners(e);
-		if(slider == null)
+		if (slider == null)
 			return;
 		Object source = e.getSource();
-		for(int i = 0; i < slider.size(); i++) {
-			int index = ((Integer)sliderIndexes.get(i)).intValue();
-			if(source == numberField.elementAt(index)) {
-				Text tf = (Text)numberField.elementAt(index);
+		for (int i = 0; i < slider.size(); i++) {
+			int index = ((Integer) sliderIndexes.get(i)).intValue();
+			if (source == numberField.elementAt(index)) {
+				Text tf = (Text) numberField.elementAt(index);
 				double value = Tools.parseDouble(tf.getText());
-				if(!Double.isNaN(value)) {
-					Slider sb = (Slider)slider.elementAt(i);
-					double scale = ((Double)sliderScales.get(i)).doubleValue();
-					sb.setSelection((int)Math.round(value*scale));
+				if (!Double.isNaN(value)) {
+					Slider sb = (Slider) slider.elementAt(i);
+					double scale = ((Double) sliderScales.get(i)).doubleValue();
+					sb.setSelection((int) Math.round(value * scale));
 				}
 			}
 		}
@@ -2393,15 +2341,15 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 		Widget c = e.widget;
 		// IJ.log("focusGained: "+c);
-		if(c instanceof Text)
-			((Text)c).selectAll();
+		if (c instanceof Text)
+			((Text) c).selectAll();
 	}
 
 	public void focusLost(org.eclipse.swt.events.FocusEvent e) {
 
 		Widget c = e.widget;
-		if(c instanceof Text)
-			((Text)c).setSelection(0, 0);
+		if (c instanceof Text)
+			((Text) c).setSelection(0, 0);
 	}
 
 	public void keyPressed(org.eclipse.swt.events.KeyEvent e) {
@@ -2410,35 +2358,35 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		int keyCode = e.keyCode;
 		int stateMask = e.stateMask;
 		IJ.setKeyDown(keyCode);
-		if((component instanceof Slider) && (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT)) {
-			Slider sb = (Slider)component;
+		if ((component instanceof Slider) && (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT)) {
+			Slider sb = (Slider) component;
 			int value = sb.getSelection();
-			if(keyCode == KeyEvent.VK_RIGHT)
+			if (keyCode == KeyEvent.VK_RIGHT)
 				sb.setSelection(value + 1);
 			else
 				sb.setSelection(value - 1);
-			for(int i = 0; i < slider.size(); i++) {
-				if(sb == slider.elementAt(i)) {
-					int index = ((Integer)sliderIndexes.get(i)).intValue();
-					Text tf = (Text)numberField.elementAt(index);
-					double scale = ((Double)sliderScales.get(i)).doubleValue();
-					int digits = ((Integer)sliderDigits.get(i)).intValue();
+			for (int i = 0; i < slider.size(); i++) {
+				if (sb == slider.elementAt(i)) {
+					int index = ((Integer) sliderIndexes.get(i)).intValue();
+					Text tf = (Text) numberField.elementAt(index);
+					double scale = ((Double) sliderScales.get(i)).doubleValue();
+					int digits = ((Integer) sliderDigits.get(i)).intValue();
 					tf.setText("" + IJ.d2s(sb.getSelection() / scale, digits));
 				}
 			}
 			notifyListeners(e);
 			return;
 		}
-		if(keyCode == SWT.CR && textArea1 == null && okay != null && okay.isEnabled()) {
+		if (keyCode == SWT.CR && textArea1 == null && okay != null && okay.isEnabled()) {
 			wasOKed = true;
-			if(IJ.isMacOSX())
+			if (IJ.isMacOSX())
 				accessTextFields();
 			dispose();
-		} else if(keyCode == SWT.ESC) {
+		} else if (keyCode == SWT.ESC) {
 			wasCanceled = true;
 			dispose();
 			IJ.resetEscape();
-		} else if((e.character == 'W') && (stateMask & SWT.CTRL) == SWT.CTRL) {
+		} else if ((e.character == 'W') && (stateMask & SWT.CTRL) == SWT.CTRL) {
 			wasCanceled = true;
 			dispose();
 		}
@@ -2446,13 +2394,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	void accessTextFields() {
 
-		if(stringField != null) {
-			for(int i = 0; i < stringField.size(); i++)
-				((Text)(stringField.elementAt(i))).getText();
+		if (stringField != null) {
+			for (int i = 0; i < stringField.size(); i++)
+				((Text) (stringField.elementAt(i))).getText();
 		}
-		if(numberField != null) {
-			for(int i = 0; i < numberField.size(); i++)
-				((Text)(numberField.elementAt(i))).getText();
+		if (numberField != null) {
+			for (int i = 0; i < numberField.size(); i++)
+				((Text) (numberField.elementAt(i))).getText();
 		}
 	}
 
@@ -2465,7 +2413,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		boolean control = (stateMask & SWT.CTRL) == SWT.CTRL;
 		boolean meta = (stateMask & SWT.ALT) == SWT.ALT;
 		boolean shift = (stateMask & SWT.SHIFT) == SWT.SHIFT;
-		if(e.character == 'G' && shift && (control || meta))
+		if (e.character == 'G' && shift && (control || meta))
 			new ScreenGrabber().run("");
 	}
 
@@ -2481,13 +2429,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public void adjustmentValueChanged(SelectionEvent e) {
 
 		Object source = e.getSource();
-		for(int i = 0; i < slider.size(); i++) {
-			if(source == slider.elementAt(i)) {
-				Slider sb = (Slider)source;
-				int index = ((Integer)sliderIndexes.get(i)).intValue();
-				Text tf = (Text)numberField.elementAt(index);
-				double scale = ((Double)sliderScales.get(i)).doubleValue();
-				int digits = ((Integer)sliderDigits.get(i)).intValue();
+		for (int i = 0; i < slider.size(); i++) {
+			if (source == slider.elementAt(i)) {
+				Slider sb = (Slider) source;
+				int index = ((Integer) sliderIndexes.get(i)).intValue();
+				Text tf = (Text) numberField.elementAt(index);
+				double scale = ((Double) sliderScales.get(i)).doubleValue();
+				int digits = ((Integer) sliderDigits.get(i)).intValue();
 				tf.setText("" + IJ.d2s(sb.getSelection() / scale, digits));
 			}
 		}
@@ -2503,28 +2451,29 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	private void notifyListeners(TypedEvent e) {
 
-		if(dialogListeners == null)
+		if (dialogListeners == null)
 			return;
 		boolean everythingOk = true;
-		for(int i = 0; everythingOk && i < dialogListeners.size(); i++) {
+		for (int i = 0; everythingOk && i < dialogListeners.size(); i++) {
 			try {
 				resetCounters();
-				if(this instanceof NonBlockingGenericDialog)
+				if (this instanceof NonBlockingGenericDialog)
 					Recorder.resetCommandOptions();
-				if(!((DialogListener)dialogListeners.elementAt(i)).dialogItemChanged(this, e))
+				if (!((DialogListener) dialogListeners.elementAt(i)).dialogItemChanged(this, e))
 					everythingOk = false; // disable further listeners if false (invalid parameters) returned
-			} catch(Exception err) { // for exceptions, don't cover the input by a window but
+			} catch (Exception err) { // for exceptions, don't cover the input by a window but
 				IJ.beep(); // show them at in the "Log"
-				IJ.log("ERROR: " + err + "\nin DialogListener of " + dialogListeners.elementAt(i) + "\nat " + (err.getStackTrace()[0]) + "\nfrom " + (err.getStackTrace()[1]));
+				IJ.log("ERROR: " + err + "\nin DialogListener of " + dialogListeners.elementAt(i) + "\nat "
+						+ (err.getStackTrace()[0]) + "\nfrom " + (err.getStackTrace()[1]));
 			}
 		}
 		resetCounters();
 		boolean workaroundOSXbug = IJ.isMacOSX() && okay != null && !okay.isEnabled() && everythingOk;
-		if(everythingOk && recorderOn)
+		if (everythingOk && recorderOn)
 			optionsRecorded = true;
-		if(previewCheckbox != null)
+		if (previewCheckbox != null)
 			previewCheckbox.setEnabled(everythingOk);
-		if(okay != null)
+		if (okay != null)
 			okay.setEnabled(everythingOk);
 		// if (workaroundOSXbug)
 		// repaint(); // OSX 10.4 bug delays update of enabled until the next input
@@ -2533,9 +2482,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public void repaint() {
 
 		shell.redraw();
-		if(imagePanels != null) {
-			for(int i = 0; i < imagePanels.size(); i++)
-				((ImagePanelSwt)imagePanels.get(i)).redraw();
+		if (imagePanels != null) {
+			for (int i = 0; i < imagePanels.size(); i++)
+				((ImagePanelSwt) imagePanels.get(i)).redraw();
 		}
 	}
 
@@ -2552,9 +2501,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 	void showHelp() {
 
-		if(helpURL.startsWith("<html>")) {
+		if (helpURL.startsWith("<html>")) {
 			String title = shell.getText() + " " + helpLabel;
-			if(this instanceof NonBlockingGenericDialog)
+			if (this instanceof NonBlockingGenericDialog)
 				new HTMLDialog(shell, title, helpURL, false); // non blocking
 			else
 				new HTMLDialog(shell, title, helpURL); // modal
@@ -2583,20 +2532,20 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		 * GenericDialog is called again the old shell will be disposed (stored
 		 * temporary in a list)!
 		 */
-		if(closeFinally) {
+		if (closeFinally) {
 			e.doit = true;
 			return;
 		} else {
 			e.doit = false;
 		}
 		/* We also need to catch the 'x' cancellation! */
-		if(wasOKed == false) {
+		if (wasOKed == false) {
 			shell.setVisible(false);
 			wasCanceled = true;
 			return;
 		}
 		instance = null;
-		if(!macro) {
+		if (!macro) {
 			recorderOn = Recorder.record;
 			IJ.wait(25);
 		}
@@ -2612,8 +2561,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		shell.setVisible(false);
 		closeFinally = true;
 		/*
-		 * Another solution would be:
-		 * We add time to close the shell after values have been read!
+		 * Another solution would be: We add time to close the shell after values have
+		 * been read!
 		 */
 		/*
 		 * Runnable runnable = new Runnable() { public void run() { closeFinally = true;
@@ -2643,14 +2592,14 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 		String text = null;
 		DataFlavor fileList = DataFlavor.javaFileListFlavor;
-		if(event.isDataFlavorSupported(fileList)) {
+		if (event.isDataFlavorSupported(fileList)) {
 			event.acceptDrop(DnDConstants.ACTION_COPY);
-			java.util.List<File> list = (java.util.List<File>)event.getTransferable().getTransferData(fileList);
+			java.util.List<File> list = (java.util.List<File>) event.getTransferable().getTransferData(fileList);
 			text = list.get(0).getAbsolutePath();
-		} else if(event.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+		} else if (event.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 			event.acceptDrop(DnDConstants.ACTION_COPY);
-			text = (String)event.getTransferable().getTransferData(DataFlavor.stringFlavor);
-			if(text.startsWith("file://"))
+			text = (String) event.getTransferable().getTransferData(DataFlavor.stringFlavor);
+			if (text.startsWith("file://"))
 				text = text.substring(7);
 			text = stripSuffix(stripSuffix(text, "\n"), "\r").replaceAll("%20", " ");
 		} else {
@@ -2679,25 +2628,25 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			// Receive data in Text or File format
 			final TextTransfer textTransfer = TextTransfer.getInstance();
 			final FileTransfer fileTransfer = FileTransfer.getInstance();
-			Transfer[] types = new Transfer[]{fileTransfer, textTransfer};
+			Transfer[] types = new Transfer[] { fileTransfer, textTransfer };
 			target.setTransfer(types);
 			target.addDropListener(new DropTargetListener() {
 
 				public void dragEnter(DropTargetEvent event) {
 
-					if(event.detail == DND.DROP_DEFAULT) {
-						if((event.operations & DND.DROP_COPY) != 0) {
+					if (event.detail == DND.DROP_DEFAULT) {
+						if ((event.operations & DND.DROP_COPY) != 0) {
 							event.detail = DND.DROP_COPY;
 						} else {
 							event.detail = DND.DROP_NONE;
 						}
 					}
 					// will accept text but prefer to have files dropped
-					for(int i = 0; i < event.dataTypes.length; i++) {
-						if(fileTransfer.isSupportedType(event.dataTypes[i])) {
+					for (int i = 0; i < event.dataTypes.length; i++) {
+						if (fileTransfer.isSupportedType(event.dataTypes[i])) {
 							event.currentDataType = event.dataTypes[i];
 							// files should only be copied
-							if(event.detail != DND.DROP_COPY) {
+							if (event.detail != DND.DROP_COPY) {
 								event.detail = DND.DROP_NONE;
 							}
 							break;
@@ -2708,27 +2657,27 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				public void dragOver(DropTargetEvent event) {
 
 					event.feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL;
-					if(textTransfer.isSupportedType(event.currentDataType)) {
+					if (textTransfer.isSupportedType(event.currentDataType)) {
 						// NOTE: on unsupported platforms this will return null
 						Object o = textTransfer.nativeToJava(event.currentDataType);
-						String t = (String)o;
-						if(t != null)
+						String t = (String) o;
+						if (t != null)
 							System.out.println(t);
 					}
 				}
 
 				public void dragOperationChanged(DropTargetEvent event) {
 
-					if(event.detail == DND.DROP_DEFAULT) {
-						if((event.operations & DND.DROP_COPY) != 0) {
+					if (event.detail == DND.DROP_DEFAULT) {
+						if ((event.operations & DND.DROP_COPY) != 0) {
 							event.detail = DND.DROP_COPY;
 						} else {
 							event.detail = DND.DROP_NONE;
 						}
 					}
 					// allow text to be moved but files should only be copied
-					if(fileTransfer.isSupportedType(event.currentDataType)) {
-						if(event.detail != DND.DROP_COPY) {
+					if (fileTransfer.isSupportedType(event.currentDataType)) {
+						if (event.detail != DND.DROP_COPY) {
 							event.detail = DND.DROP_NONE;
 						}
 					}
@@ -2744,32 +2693,32 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 				public void drop(DropTargetEvent event) {
 
-					if(textTransfer.isSupportedType(event.currentDataType)) {
-						String path = (String)event.data;
-						if(path.startsWith("file://"))
+					if (textTransfer.isSupportedType(event.currentDataType)) {
+						String path = (String) event.data;
+						if (path.startsWith("file://"))
 							path = path.substring(7);
 						path = stripSuffix(stripSuffix(path, "\n"), "\r").replaceAll("%20", " ");
 						try {
 							path = Recorder.fixPath(path);
-							if(!path.endsWith("/") && (new File(path)).isDirectory())
+							if (!path.endsWith("/") && (new File(path)).isDirectory())
 								path = path + "/";
 							text.setText(path);
-						} catch(Exception e) {
+						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
-					if(fileTransfer.isSupportedType(event.currentDataType)) {
-						if(fileTransfer.isSupportedType(event.currentDataType)) {
-							String[] files = (String[])event.data;
-							for(int i = 0; i < files.length; i++) {
+					if (fileTransfer.isSupportedType(event.currentDataType)) {
+						if (fileTransfer.isSupportedType(event.currentDataType)) {
+							String[] files = (String[]) event.data;
+							for (int i = 0; i < files.length; i++) {
 								File file = new File(files[i]);
 								String path = file.getAbsolutePath();
 								try {
 									path = Recorder.fixPath(path);
-									if(!path.endsWith("/") && (new File(path)).isDirectory())
+									if (!path.endsWith("/") && (new File(path)).isDirectory())
 										path = path + "/";
 									text.setText(path);
-								} catch(Exception e) {
+								} catch (Exception e) {
 									e.printStackTrace();
 								}
 							}
@@ -2798,30 +2747,30 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 			String path = null;
 			String dialogTitle = label;
-			if(dialogTitle == null || dialogTitle.length() == 0)
+			if (dialogTitle == null || dialogTitle.length() == 0)
 				dialogTitle = mode.equals("dir") ? "a Folder" : "a File";
-			else if(dialogTitle.endsWith(":")) // remove trailing colon
+			else if (dialogTitle.endsWith(":")) // remove trailing colon
 				dialogTitle = dialogTitle.substring(0, dialogTitle.length() - 1);
 			dialogTitle = "Select " + dialogTitle;
-			if(mode.equals("dir")) {
+			if (mode.equals("dir")) {
 				String saveDefaultDir = OpenDialog.getDefaultDirectory();
 				String dir = this.textField.getText();
 				boolean setDefaultDir = dir != null && !dir.equals("");
-				if(setDefaultDir)
+				if (setDefaultDir)
 					OpenDialog.setDefaultDirectory(dir);
 				path = IJ.getDir(dialogTitle);
-				if(setDefaultDir)
+				if (setDefaultDir)
 					OpenDialog.setDefaultDirectory(saveDefaultDir);
 			} else {
 				OpenDialog od = new OpenDialog(dialogTitle, null);
 				String directory = od.getDirectory();
 				String name = od.getFileName();
-				if(name != null)
+				if (name != null)
 					path = directory + name;
 			}
-			if(path != null) {
-				//if (IJ.isWindows())
-				//	path = path.replaceAll("\\\\", "/"); // replace "\" with "/"
+			if (path != null) {
+				// if (IJ.isWindows())
+				// path = path.replaceAll("\\\\", "/"); // replace "\" with "/"
 				this.textField.setText(path);
 			}
 		}

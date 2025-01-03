@@ -31,7 +31,7 @@ public class BioformatsComposite extends Composite {
 			public void widgetSelected(SelectionEvent e) {
 
 				String id = openFileDialog();
-				if(id == null) {
+				if (id == null) {
 					return;
 				}
 				openFile(id);
@@ -46,7 +46,7 @@ public class BioformatsComposite extends Composite {
 		ImporterOptions options = null;
 		try {
 			options = new ImporterOptions();
-		} catch(IOException e) {
+		} catch (IOException e) {
 		}
 		options.setId(id);
 		// options.setAutoscale(true);
@@ -55,11 +55,11 @@ public class BioformatsComposite extends Composite {
 		options.setColorMode(ImporterOptions.COLOR_MODE_COMPOSITE);
 		try {
 			ImagePlus[] imps = BF.openImagePlus(options);
-			for(ImagePlus imp : imps)
+			for (ImagePlus imp : imps)
 				imp.show();
-		} catch(FormatException exc) {
+		} catch (FormatException exc) {
 			IJ.error("Sorry, an error occurred: " + exc.getMessage());
-		} catch(IOException exc) {
+		} catch (IOException exc) {
 			IJ.error("Sorry, an error occurred: " + exc.getMessage());
 		}
 	}
@@ -73,18 +73,15 @@ public class BioformatsComposite extends Composite {
 	public static String openFileDialog() {
 
 		AtomicReference<String> fileRef = new AtomicReference<String>();
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			Shell s = new Shell(SWT.ON_TOP);
+			FileDialog fd = new FileDialog(s, SWT.OPEN);
+			fd.setText("Load");
+			String[] filterExt = { "*.*" };
+			fd.setFilterExtensions(filterExt);
+			fileRef.set(fd.open());
 
-				Shell s = new Shell(SWT.ON_TOP);
-				FileDialog fd = new FileDialog(s, SWT.OPEN);
-				fd.setText("Load");
-				String[] filterExt = {"*.*"};
-				fd.setFilterExtensions(filterExt);
-				fileRef.set(fd.open());
-			}
 		});
 		return fileRef.get();
 	}
