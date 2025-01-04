@@ -24,9 +24,11 @@ import ij.plugin.frame.SyncWindows;
 
 /**
  * This class is an extended ImageWindow that displays stacks and hyperstacks.
- * In the SWT implementation we use composites with a Button instead of the Scrollbar with Label!
+ * In the SWT implementation we use composites with a Button instead of the
+ * Scrollbar with Label!
  */
-public class StackWindow extends ImageWindow implements Runnable, AdjustmentListener, org.eclipse.swt.events.MouseWheelListener {
+public class StackWindow extends ImageWindow
+		implements Runnable, AdjustmentListener, org.eclipse.swt.events.MouseWheelListener {
 
 	protected Slider sliceSelector; // for backward compatibity with Image5D
 	protected Slider cSelector, zSelector, tSelector;
@@ -57,7 +59,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 		addScrollbars(imp);
 		comp.layout();
 		comp.addMouseWheelListener(this);
-		if(sliceSelector == null && this.getClass().getName().indexOf("Image5D") != -1) {
+		if (sliceSelector == null && this.getClass().getName().indexOf("Image5D") != -1) {
 			compositeSelector = new Composite(comp, SWT.NONE);
 			compositeSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 			GridLayout gl_composite = new GridLayout(2, false);
@@ -78,33 +80,32 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			sliceSelector = new Slider(compositeSelector, SWT.NONE); // prevents Image5D from crashing
 			sliceSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		}
-		if(ic != null)
+		if (ic != null)
 			ic.setMaxBounds();
-		if(IJ.isMacro() && !isVisible()) // 'super' may have called show()
+		if (IJ.isMacro() && !isVisible()) // 'super' may have called show()
 			imp.setDeactivated(); // prepare for waitTillActivated (imp may have been activated before)
 		// show();
-		if(IJ.isMacro())
+		if (IJ.isMacro())
 			imp.waitTillActivated();
 		int previousSlice = imp.getCurrentSlice();
-		if(previousSlice > 1 && previousSlice <= imp.getStackSize())
+		if (previousSlice > 1 && previousSlice <= imp.getStackSize())
 			imp.setSlice(previousSlice);
 		else
 			imp.setSlice(1);
 		thread = new Thread(this, "zSelector");
 		thread.start();
-		if(shell != null) {
+		if (shell != null) {
 			shell.setText(imp.getTitle());
 			shell.setSize(600, 600);
 			shell.open();
-			if(ic.isDisposed() == false) {
+			if (ic.isDisposed() == false) {
 				ic.fitToWindow();
 				shell.layout();
 			}
 		}
 		/*
 		 * while (!shell.isDisposed()) { if (!display.readAndDispatch()) {
-		 * display.sleep(); } }
-		 * display.dispose();
+		 * display.sleep(); } } display.dispose();
 		 */
 	}
 
@@ -118,23 +119,23 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 		// imp.setOpenAsHyperStack(false);
 		int[] dim = imp.getDimensions();
 		int nDimensions = 2 + (dim[2] > 1 ? 1 : 0) + (dim[3] > 1 ? 1 : 0) + (dim[4] > 1 ? 1 : 0);
-		if(nDimensions <= 3 && dim[2] != nSlices)
+		if (nDimensions <= 3 && dim[2] != nSlices)
 			hyperStack = false;
-		if(hyperStack) {
+		if (hyperStack) {
 			nChannels = dim[2];
 			nSlices = dim[3];
 			nFrames = dim[4];
 		}
-		if(nSlices == stackSize)
+		if (nSlices == stackSize)
 			hyperStack = false;
-		if(nChannels * nSlices * nFrames != stackSize)
+		if (nChannels * nSlices * nFrames != stackSize)
 			hyperStack = false;
-		if(cSelector != null || zSelector != null || tSelector != null)
+		if (cSelector != null || zSelector != null || tSelector != null)
 			removeScrollbars();
 		ImageJ ij = IJ.getInstance();
 		// IJ.log("StackWindow: "+hyperStack+" "+nChannels+" "+nSlices+" "+nFrames+"
 		// "+imp);
-		if(nChannels > 1) {
+		if (nChannels > 1) {
 			// cSelector = new Slider(comp, SWT.HORIZONTAL);
 			compositeCChannels = new Composite(comp, SWT.NONE);
 			compositeCChannels.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
@@ -152,7 +153,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			cSelector.setMinimum(1);
 			cSelector.setMaximum(nChannels + 1);
 			int blockIncrement = nFrames / 10;
-			if(blockIncrement < 1)
+			if (blockIncrement < 1)
 				blockIncrement = 1;
 			cSelector.setIncrement(1);
 			cSelector.setPageIncrement(blockIncrement);
@@ -173,9 +174,9 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			 * cSelector.setBlockIncrement(1);
 			 */
 		}
-		if(nSlices > 1) {
+		if (nSlices > 1) {
 			char label = nChannels > 1 || nFrames > 1 ? 'z' : 't';
-			if(stackSize == dim[2] && imp.isComposite())
+			if (stackSize == dim[2] && imp.isComposite())
 				label = 'c';
 			compositeZSlices = new Composite(comp, SWT.NONE);
 			compositeZSlices.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
@@ -203,7 +204,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			});
 			sliceSelector = zSelector;
 			button.setText("" + label);
-			if(label == 't') {
+			if (label == 't') {
 				animationSelector = zSelector;
 				button.setText(">");
 				// button.setImage(null);
@@ -214,22 +215,19 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 
-					Display display = Display.getDefault();
-					display.syncExec(new Runnable() {
+					Display.getDefault().syncExec(() -> {
 
-						public void run() {
-
-							if((e.stateMask & SWT.ALT) != 0) {
-								IJ.doCommand("Animation Options...");
-								return;
-							}
-							IJ.doCommand("Start Animation [\\]");
-							if(getAnimate()) {
-								button.setText(">");
-							} else {
-								button.setText("||");
-							}
+						if ((e.stateMask & SWT.ALT) != 0) {
+							IJ.doCommand("Animation Options...");
+							return;
 						}
+						IJ.doCommand("Start Animation [\\]");
+						if (getAnimate()) {
+							button.setText(">");
+						} else {
+							button.setText("||");
+						}
+
 					});
 				}
 			});
@@ -244,7 +242,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			 * sliceSelector = zSelector.bar;
 			 */
 		}
-		if(nFrames > 1) {
+		if (nFrames > 1) {
 			compositeTFrames = new Composite(comp, SWT.NONE);
 			compositeTFrames.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 			GridLayout gl_composite = new GridLayout(2, false);
@@ -260,12 +258,12 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 
-					if((e.stateMask & SWT.ALT) != 0) {
+					if ((e.stateMask & SWT.ALT) != 0) {
 						IJ.doCommand("Animation Options...");
 						return;
 					}
 					IJ.doCommand("Start Animation [\\]");
-					if(getAnimate()) {
+					if (getAnimate()) {
 						button.setText(">");
 					} else {
 						button.setText("||");
@@ -278,7 +276,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			tSelector.setMinimum(1);
 			tSelector.setMaximum(nFrames + 1);
 			int blockIncrement = nFrames / 10;
-			if(blockIncrement < 1)
+			if (blockIncrement < 1)
 				blockIncrement = 1;
 			tSelector.setIncrement(blockIncrement);
 			tSelector.addSelectionListener(new SelectionAdapter() {
@@ -298,31 +296,28 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			 */
 		}
 		ImageWindow win = imp.getWindow();
-		if(win != null)
+		if (win != null)
 			win.setSliderHeight(sliderHeight);
 	}
 
 	/** Enables or disables the sliders. Used when locking/unlocking an image. */
 	public synchronized void setSlidersEnabled(final boolean b) {
 
-		if(ic.isDisposed() == false) {
+		if (ic.isDisposed() == false) {
 			IJ.getInstance();
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				if (sliceSelector != null && sliceSelector.isDisposed() == false)
+					sliceSelector.setEnabled(b);
+				if (cSelector != null && cSelector.isDisposed() == false)
+					cSelector.setEnabled(b);
+				if (zSelector != null && zSelector.isDisposed() == false)
+					zSelector.setEnabled(b);
+				if (tSelector != null && tSelector.isDisposed() == false)
+					tSelector.setEnabled(b);
+				if (animationSelector != null && animationSelector.isDisposed() == false)
+					animationSelector.setEnabled(b);
 
-					if(sliceSelector != null && sliceSelector.isDisposed() == false)
-						sliceSelector.setEnabled(b);
-					if(cSelector != null && cSelector.isDisposed() == false)
-						cSelector.setEnabled(b);
-					if(zSelector != null && zSelector.isDisposed() == false)
-						zSelector.setEnabled(b);
-					if(tSelector != null && tSelector.isDisposed() == false)
-						tSelector.setEnabled(b);
-					if(animationSelector != null && animationSelector.isDisposed() == false)
-						animationSelector.setEnabled(b);
-				}
 			});
 		}
 	}
@@ -335,42 +330,42 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 	/* Replaces the above interface method! */
 	public synchronized void adjustmentValueChanged(SelectionEvent e) {
 
-		if(!running2 || imp.isHyperStack()) {
-			if(e.getSource() == cSelector) {
+		if (!running2 || imp.isHyperStack()) {
+			if (e.getSource() == cSelector) {
 				c = cSelector.getSelection();
 				// if (c==imp.getChannel()&&e.getAdjustmentType()==AdjustmentEvent.TRACK)
 				// return;
-			} else if(e.getSource() == zSelector) {
+			} else if (e.getSource() == zSelector) {
 				z = zSelector.getSelection();
 				// int slice = hyperStack ? imp.getSlice() : imp.getCurrentSlice();
 				// if (z==slice&&e.getAdjustmentType()==AdjustmentEvent.TRACK) return;
-			} else if(e.getSource() == tSelector) {
+			} else if (e.getSource() == tSelector) {
 				t = tSelector.getSelection();
 				// if (t==imp.getFrame()&&e.getAdjustmentType()==AdjustmentEvent.TRACK) return;
 			}
 			slice = (t - 1) * nChannels * nSlices + (z - 1) * nChannels + c;
 			notify();
 		}
-		if(!running)
+		if (!running)
 			syncWindows(e.getSource());
 	}
 
 	/* Minor changes for SWT! */
 	private void syncWindows(Object source) {
 
-		if(SyncWindows.getInstance() == null)
+		if (SyncWindows.getInstance() == null)
 			return;
-		if(source == cSelector)
+		if (source == cSelector)
 			SyncWindows.setC(this, cSelector.getSelection());
-		else if(source == zSelector) {
+		else if (source == zSelector) {
 			int stackSize = imp.getStackSize();
-			if(imp.getNChannels() == stackSize)
+			if (imp.getNChannels() == stackSize)
 				SyncWindows.setC(this, zSelector.getSelection());
-			else if(imp.getNFrames() == stackSize)
+			else if (imp.getNFrames() == stackSize)
 				SyncWindows.setT(this, zSelector.getSelection());
 			else
 				SyncWindows.setZ(this, zSelector.getSelection());
-		} else if(source == tSelector)
+		} else if (source == tSelector)
 			SyncWindows.setT(this, tSelector.getSelection());
 		else
 			throw new RuntimeException("Unknownsource:" + source);
@@ -379,34 +374,34 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 	/* SWT event! the wheel event must be added to a canvas. Not implemented! */
 	public void mouseScrolled(MouseEvent e) {
 
-		synchronized(this) {
+		synchronized (this) {
 			int rotation = e.count;
 			// boolean ctrl = (e.getModifiers() & Event.CTRL_MASK) != 0;
 			boolean ctrl = (e.stateMask & SWT.CONTROL) != 0;
-			if(hyperStack) // ctrl+scroll wheel adjusts hyperstack slice positions
+			if (hyperStack) // ctrl+scroll wheel adjusts hyperstack slice positions
 				ctrl = false;
-			if((ctrl || IJ.shiftKeyDown()) && ic != null) {
+			if ((ctrl || IJ.shiftKeyDown()) && ic != null) {
 				Point loc = ic.getCursorLoc();
 				int x = ic.screenX(loc.x);
 				int y = ic.screenY(loc.y);
-				if(rotation < 0)
+				if (rotation < 0)
 					ic.zoomIn(x, y);
-				else if(rotation > 0)
+				else if (rotation > 0)
 					ic.zoomOut(x, y);
 				return;
 			}
-			if(!Prefs.mouseWheelStackScrolling)
+			if (!Prefs.mouseWheelStackScrolling)
 				return;
-			if(hyperStack) {
-				if(rotation > 0)
+			if (hyperStack) {
+				if (rotation > 0)
 					IJ.run(imp, "Next Slice [>]", "");
-				else if(rotation < 0)
+				else if (rotation < 0)
 					IJ.run(imp, "Previous Slice [<]", "");
 			} else {
 				int slice = imp.getCurrentSlice() + rotation;
-				if(slice < 1)
+				if (slice < 1)
 					slice = 1;
-				else if(slice > imp.getStack().getSize())
+				else if (slice > imp.getStack().getSize())
 					slice = imp.getStack().getSize();
 				setSlice(imp, slice);
 				imp.updateStatusbarValue();
@@ -417,9 +412,9 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 
 	public boolean close() {
 
-		if(!super.close())
+		if (!super.close())
 			return false;
-		synchronized(this) {
+		synchronized (this) {
 			done = true;
 			notify();
 		}
@@ -429,7 +424,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 	/** Displays the specified slice and updates the stack scrollbar. */
 	public void showSlice(int index) {
 
-		if(imp != null && index >= 1 && index <= imp.getStackSize()) {
+		if (imp != null && index >= 1 && index <= imp.getStackSize()) {
 			setSlice(imp, index);
 			SyncWindows.setZ(this, index);
 		}
@@ -438,38 +433,35 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 	/** Updates the stack scrollbar. */
 	public void updateSliceSelector() {
 
-		if(hyperStack || zSelector == null || imp == null)
+		if (hyperStack || zSelector == null || imp == null)
 			return;
 		int stackSize = imp.getStackSize();
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			int max = zSelector.getMaximum();
+			if (max != (stackSize + 1))
+				zSelector.setMaximum(stackSize + 1);
+			if (imp != null && zSelector != null)
+				zSelector.setSelection(imp.getCurrentSlice());
 
-				int max = zSelector.getMaximum();
-				if(max != (stackSize + 1))
-					zSelector.setMaximum(stackSize + 1);
-				if(imp != null && zSelector != null)
-					zSelector.setSelection(imp.getCurrentSlice());
-			}
 		});
 	}
 
 	public void run() {
 
-		while(!done) {
-			synchronized(this) {
+		while (!done) {
+			synchronized (this) {
 				try {
 					wait();
-				} catch(InterruptedException e) {
+				} catch (InterruptedException e) {
 				}
 			}
-			if(done)
+			if (done)
 				return;
-			if(slice > 0) {
+			if (slice > 0) {
 				int s = slice;
 				slice = 0;
-				if(s != imp.getCurrentSlice()) {
+				if (s != imp.getCurrentSlice()) {
 					/* Changed for SWT. Wrap for SWT in Runnable! */
 					Display.getDefault().syncExec(new Runnable() {
 
@@ -487,29 +479,30 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 	public String createSubtitle() {
 
 		String subtitle = super.createSubtitle();
-		if(!hyperStack || imp.getStackSize() == 1)
+		if (!hyperStack || imp.getStackSize() == 1)
 			return subtitle;
 		String s = "";
 		int[] dim = imp.getDimensions(false);
 		int channels = dim[2], slices = dim[3], frames = dim[4];
-		if(channels > 1) {
+		if (channels > 1) {
 			s += "c:" + imp.getChannel() + "/" + channels;
-			if(slices > 1 || frames > 1)
+			if (slices > 1 || frames > 1)
 				s += " ";
 		}
-		if(slices > 1) {
+		if (slices > 1) {
 			s += "z:" + imp.getSlice() + "/" + slices;
-			if(frames > 1)
+			if (frames > 1)
 				s += " ";
 		}
-		if(frames > 1)
+		if (frames > 1)
 			s += "t:" + imp.getFrame() + "/" + frames;
-		if(running2)
+		if (running2)
 			return s;
 		int index = subtitle.indexOf(";");
-		if(index != -1) {
+		if (index != -1) {
 			int index2 = subtitle.indexOf("(");
-			if(index2 >= 0 && index2 < index && subtitle.length() > index2 + 4 && !subtitle.substring(index2 + 1, index2 + 4).equals("ch:")) {
+			if (index2 >= 0 && index2 < index && subtitle.length() > index2 + 4
+					&& !subtitle.substring(index2 + 1, index2 + 4).equals("ch:")) {
 				index = index2;
 				s = s + " ";
 			}
@@ -526,35 +519,32 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 
 	public void setPosition(int channel, int slice, int frame) {
 
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				if(cSelector != null && channel != c && cSelector.isDisposed() == false) {
-					c = channel;
-					cSelector.setSelection(channel);
-					SyncWindows.setC(StackWindow.this, channel);
-				}
-				if(zSelector != null && slice != z && zSelector.isDisposed() == false) {
-					z = slice;
-					zSelector.setSelection(slice);
-					SyncWindows.setZ(StackWindow.this, slice);
-				}
-				if(tSelector != null && frame != t && tSelector.isDisposed() == false) {
-					t = frame;
-					tSelector.setSelection(frame);
-					SyncWindows.setT(StackWindow.this, frame);
-				}
-				StackWindow.this.slice = (t - 1) * nChannels * nSlices + (z - 1) * nChannels + c;
-				imp.updatePosition(c, z, t);
-				if(StackWindow.this.slice > 0) {
-					int s = StackWindow.this.slice;
-					StackWindow.this.slice = 0;
-					if(s != imp.getCurrentSlice())
-						imp.setSlice(s);
-				}
+			if (cSelector != null && channel != c && cSelector.isDisposed() == false) {
+				c = channel;
+				cSelector.setSelection(channel);
+				SyncWindows.setC(StackWindow.this, channel);
 			}
+			if (zSelector != null && slice != z && zSelector.isDisposed() == false) {
+				z = slice;
+				zSelector.setSelection(slice);
+				SyncWindows.setZ(StackWindow.this, slice);
+			}
+			if (tSelector != null && frame != t && tSelector.isDisposed() == false) {
+				t = frame;
+				tSelector.setSelection(frame);
+				SyncWindows.setT(StackWindow.this, frame);
+			}
+			StackWindow.this.slice = (t - 1) * nChannels * nSlices + (z - 1) * nChannels + c;
+			imp.updatePosition(c, z, t);
+			if (StackWindow.this.slice > 0) {
+				int s = StackWindow.this.slice;
+				StackWindow.this.slice = 0;
+				if (s != imp.getCurrentSlice())
+					imp.setSlice(s);
+			}
+
 		});
 	}
 
@@ -564,7 +554,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 
 			public void run() {
 
-				if(imp.isLocked()) {
+				if (imp.isLocked()) {
 					IJ.beep();
 					IJ.showStatus("Image is locked");
 				} else
@@ -581,9 +571,9 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 		// IJ.log(c+" "+z+" "+t+" "+nChannels+" "+nSlices+" "+nFrames+"
 		// "+imp.getStackSize());
 		int size = imp.getStackSize();
-		if(c == size && c * z * t == size && nSlices == size && nChannels * nSlices * nFrames == size)
+		if (c == size && c * z * t == size && nSlices == size && nChannels * nSlices * nFrames == size)
 			return true;
-		if(c != nChannels || z != nSlices || t != nFrames || c * z * t != size)
+		if (c != nChannels || z != nSlices || t != nFrames || c * z * t != size)
 			return false;
 		else
 			return true;
@@ -595,7 +585,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 
 			public void run() {
 
-				if(running2 != b && animationSelector != null)
+				if (running2 != b && animationSelector != null)
 					// System.out.println("running");
 					// animationSelector.updatePlayPauseIcon();
 					running2 = b;
@@ -611,18 +601,18 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 	public int getNScrollbars() {
 
 		int n = 0;
-		if(cSelector != null)
+		if (cSelector != null)
 			n++;
-		if(zSelector != null)
+		if (zSelector != null)
 			n++;
-		if(tSelector != null)
+		if (tSelector != null)
 			n++;
 		return n;
 	}
 
 	void removeScrollbars() {
 
-		if(cSelector != null && cSelector.isDisposed() == false) {
+		if (cSelector != null && cSelector.isDisposed() == false) {
 			cSelector.dispose();
 			compositeCChannels.dispose();
 			comp.layout();
@@ -630,7 +620,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			// cSelector.removeAdjustmentListener(this);
 			cSelector = null;
 		}
-		if(zSelector != null && zSelector.isDisposed() == false) {
+		if (zSelector != null && zSelector.isDisposed() == false) {
 			zSelector.dispose();
 			compositeZSlices.dispose();
 			comp.layout();
@@ -638,7 +628,7 @@ public class StackWindow extends ImageWindow implements Runnable, AdjustmentList
 			// zSelector.removeAdjustmentListener(this);
 			zSelector = null;
 		}
-		if(tSelector != null && tSelector.isDisposed() == false) {
+		if (tSelector != null && tSelector.isDisposed() == false) {
 			tSelector.dispose();
 			compositeTFrames.dispose();
 			comp.layout();

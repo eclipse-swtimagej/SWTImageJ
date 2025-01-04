@@ -146,12 +146,9 @@ public class ProgressBar extends org.eclipse.swt.widgets.Canvas implements Paint
 	    paint(g);
 	}*/
 	public void repaint() {
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				redraw();
-			}
+			
 		});
 	}
 

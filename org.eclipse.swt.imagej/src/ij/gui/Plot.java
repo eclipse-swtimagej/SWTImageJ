@@ -2031,13 +2031,10 @@ public class Plot implements Cloneable {
 			} else
 				setImagePlus(null);
 		}
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				pw = new PlotWindow(Plot.this); // note: this may set imp to null if pw has listValues and autoClose are
 				pw.getCanvas().getShell().pack(true); // set
-			}
+			
 		});
 		if (IJ.isMacro() && imp != null) // wait for plot to be displayed
 			IJ.selectWindow(imp.getID());
