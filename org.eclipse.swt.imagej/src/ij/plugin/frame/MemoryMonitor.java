@@ -48,40 +48,39 @@ public class MemoryMonitor extends PlugInFrame {
 		}
 		instance = this;
 		mem = new double[width + 1];
-		Display defaultDisplay = Display.getDefault();
-		defaultDisplay.syncExec(new Runnable() {
-			public void run() {
-				WindowManager.addWindow(MemoryMonitor.this);
-				shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-				ic = new PlotCanvas(shell);
-				ic.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				ic.setSize(width, height);
-				// add(ic);
-				// setResizable(false);
-				shell.layout();
-				shell.pack();
-				shell.setSize(width, height + 100);
-				Point loc = Prefs.getLocation(LOC_KEY);
-				if (loc != null)
-					shell.setLocation(loc.x, loc.y);
-				else
-					GUI.centerOnImageJScreen(MemoryMonitor.this.shell);
+		Display display = Display.getDefault();
+		display.syncExec(() -> {
+			WindowManager.addWindow(MemoryMonitor.this);
+			shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+			ic = new PlotCanvas(shell);
+			ic.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			ic.setSize(width, height);
+			// add(ic);
+			// setResizable(false);
+			shell.layout();
+			shell.pack();
+			shell.setSize(width, height + 100);
+			Point loc = Prefs.getLocation(LOC_KEY);
+			if (loc != null)
+				shell.setLocation(loc.x, loc.y);
+			else
+				GUI.centerOnImageJScreen(MemoryMonitor.this.shell);
 
-				shell.setVisible(true);
+			shell.setVisible(true);
 
-				ImageJ ij = IJ.getInstance();
-				if (ij != null) {
-					shell.addKeyListener(ij);
-					ic.addKeyListener(ij);
-					ic.addMouseListener(ij);
-				}
+			ImageJ ij = IJ.getInstance();
+			if (ij != null) {
+				shell.addKeyListener(ij);
+				ic.addKeyListener(ij);
+				ic.addMouseListener(ij);
 			}
+
 		});
 
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		while (!done) {
 
-			defaultDisplay.syncExec(new Runnable() {
+			display.syncExec(new Runnable() {
 				public void run() {
 
 					if (ic.isDisposed() == false)
@@ -186,7 +185,8 @@ public class MemoryMonitor extends PlugInFrame {
 			gc.setForeground(ij.swt.Color.white);
 			gc.fillRectangle(0, 0, width, height);
 			// gc.setFont(new Font("SansSerif",Font.PLAIN,(int)(12*Prefs.getGuiScale())));
-			org.eclipse.swt.graphics.Font font = new org.eclipse.swt.graphics.Font(defaultDisplay, new FontData("SansSerif", 12, SWT.NORMAL));
+			org.eclipse.swt.graphics.Font font = new org.eclipse.swt.graphics.Font(defaultDisplay,
+					new FontData("SansSerif", 12, SWT.NORMAL));
 			gc.setFont(font);
 			updatePlot(gc);
 			addText(gc);

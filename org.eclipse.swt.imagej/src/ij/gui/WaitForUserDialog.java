@@ -76,105 +76,105 @@ public class WaitForUserDialog implements SelectionListener, KeyListener {
 		AtomicReference<String> ref = new AtomicReference<String>();
 		ref.set(text);
 		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
-			public void run() {
-				IJ.protectStatusBar(false);
-				if (text != null && text.startsWith("IJ: "))
-					ref.set(ref.get().substring(4));
+		display.syncExec(() -> {
 
-				// if (!IJ.isLinux()) label.setFont(new Font("SansSerif", Font.PLAIN, 14));
-				if (IJ.isMacOSX()) {
-					RoiManager rm = RoiManager.getInstance();
-					if (rm != null)
-						rm.runCommand("enable interrupts");
-				}
+			IJ.protectStatusBar(false);
+			if (text != null && text.startsWith("IJ: "))
+				ref.set(ref.get().substring(4));
 
-				shell = new Shell(display, SWT.TITLE | SWT.ON_TOP | SWT.ICON_INFORMATION);
-
-				Image img = display.getSystemImage(SWT.ICON_INFORMATION);
-				shell.setImage(img);
-				shell.setText("Select");
-
-				shell.setLayout(new FillLayout(SWT.HORIZONTAL));
-
-				Listener l = new Listener() {
-					Point origin;
-
-					public void handleEvent(Event e) {
-						switch (e.type) {
-						case SWT.MouseDown:
-							origin = new Point(e.x, e.y);
-							break;
-						case SWT.MouseUp:
-							origin = null;
-							break;
-						case SWT.MouseMove:
-							if (origin != null) {
-								Point p = Display.getDefault().map(shell, null, e.x, e.y);
-								shell.setLocation(p.x - origin.x, p.y - origin.y);
-							}
-							break;
-						}
-					}
-				};
-				shell.addListener(SWT.MouseDown, l);
-				shell.addListener(SWT.MouseUp, l);
-				shell.addListener(SWT.MouseMove, l);
-				shell.addListener(SWT.Close, new Listener() {
-					public void handleEvent(Event event) {
-						event.doit = false;
-						synchronized (this) {
-							notify();
-						}
-						xloc = shell.getLocation().x;
-						yloc = shell.getLocation().y;
-						event.doit = true;
-					}
-				});
-
-				Composite composite = new Composite(shell, SWT.NONE);
-				composite.setLayout(new GridLayout(2, true));
-
-				Label lblNewLabel = new Label(composite, SWT.WRAP);
-				lblNewLabel.addKeyListener(WaitForUserDialog.this);
-
-				lblNewLabel.setAlignment(SWT.CENTER);
-				GridData gd_lblNewLabel = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
-				// gd_lblNewLabel.heightHint = 204;
-				lblNewLabel.setLayoutData(gd_lblNewLabel);
-				lblNewLabel.setText(ref.get());
-
-				okButton = new Button(composite, SWT.NONE);
-				GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
-				// layoutData.heightHint = 30;
-				okButton.setLayoutData(layoutData);
-				okButton.setText("OK");
-				okButton.addSelectionListener(WaitForUserDialog.this);
-				okButton.addKeyListener(WaitForUserDialog.this);
-
-				if (IJ.isMacro()) {
-					// cancelButton = new Button(" Cancel ");
-					cancelButton = new Button(composite, SWT.NONE);
-					GridData layoutDatacancel = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
-					// layoutDatacancel.heightHint = 30;
-					cancelButton.setLayoutData(layoutDatacancel);
-					cancelButton.setText(" Cancel ");
-					cancelButton.addSelectionListener(WaitForUserDialog.this);
-					cancelButton.addKeyListener(WaitForUserDialog.this);
-				}
-				shell.pack();
-				// Label label = new Label(text, 175);
-				Rectangle parentSize = IJ.getInstance().getShell().getBounds();
-				Rectangle shellSize = shell.getBounds();
-				int locationX = (parentSize.width - shellSize.width) / 2 + parentSize.x;
-				int locationY = (parentSize.height - shellSize.height) / 2 + parentSize.y;
-				shell.setLocation(new Point(locationX, locationY));
-				shell.open();
-				while (!shell.isDisposed()) {
-					if (!display.readAndDispatch())
-						display.sleep();
-				}
+			// if (!IJ.isLinux()) label.setFont(new Font("SansSerif", Font.PLAIN, 14));
+			if (IJ.isMacOSX()) {
+				RoiManager rm = RoiManager.getInstance();
+				if (rm != null)
+					rm.runCommand("enable interrupts");
 			}
+
+			shell = new Shell(display, SWT.TITLE | SWT.ON_TOP | SWT.ICON_INFORMATION);
+
+			Image img = display.getSystemImage(SWT.ICON_INFORMATION);
+			shell.setImage(img);
+			shell.setText("Select");
+
+			shell.setLayout(new FillLayout(SWT.HORIZONTAL));
+
+			Listener l = new Listener() {
+				Point origin;
+
+				public void handleEvent(Event e) {
+					switch (e.type) {
+					case SWT.MouseDown:
+						origin = new Point(e.x, e.y);
+						break;
+					case SWT.MouseUp:
+						origin = null;
+						break;
+					case SWT.MouseMove:
+						if (origin != null) {
+							Point p = Display.getDefault().map(shell, null, e.x, e.y);
+							shell.setLocation(p.x - origin.x, p.y - origin.y);
+						}
+						break;
+					}
+				}
+			};
+			shell.addListener(SWT.MouseDown, l);
+			shell.addListener(SWT.MouseUp, l);
+			shell.addListener(SWT.MouseMove, l);
+			shell.addListener(SWT.Close, new Listener() {
+				public void handleEvent(Event event) {
+					event.doit = false;
+					synchronized (this) {
+						notify();
+					}
+					xloc = shell.getLocation().x;
+					yloc = shell.getLocation().y;
+					event.doit = true;
+				}
+			});
+
+			Composite composite = new Composite(shell, SWT.NONE);
+			composite.setLayout(new GridLayout(2, true));
+
+			Label lblNewLabel = new Label(composite, SWT.WRAP);
+			lblNewLabel.addKeyListener(WaitForUserDialog.this);
+
+			lblNewLabel.setAlignment(SWT.CENTER);
+			GridData gd_lblNewLabel = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+			// gd_lblNewLabel.heightHint = 204;
+			lblNewLabel.setLayoutData(gd_lblNewLabel);
+			lblNewLabel.setText(ref.get());
+
+			okButton = new Button(composite, SWT.NONE);
+			GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+			// layoutData.heightHint = 30;
+			okButton.setLayoutData(layoutData);
+			okButton.setText("OK");
+			okButton.addSelectionListener(WaitForUserDialog.this);
+			okButton.addKeyListener(WaitForUserDialog.this);
+
+			if (IJ.isMacro()) {
+				// cancelButton = new Button(" Cancel ");
+				cancelButton = new Button(composite, SWT.NONE);
+				GridData layoutDatacancel = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+				// layoutDatacancel.heightHint = 30;
+				cancelButton.setLayoutData(layoutDatacancel);
+				cancelButton.setText(" Cancel ");
+				cancelButton.addSelectionListener(WaitForUserDialog.this);
+				cancelButton.addKeyListener(WaitForUserDialog.this);
+			}
+			shell.pack();
+			// Label label = new Label(text, 175);
+			Rectangle parentSize = IJ.getInstance().getShell().getBounds();
+			Rectangle shellSize = shell.getBounds();
+			int locationX = (parentSize.width - shellSize.width) / 2 + parentSize.x;
+			int locationY = (parentSize.height - shellSize.height) / 2 + parentSize.y;
+			shell.setLocation(new Point(locationX, locationY));
+			shell.open();
+			while (!shell.isDisposed()) {
+				if (!display.readAndDispatch())
+					display.sleep();
+			}
+
 		});
 	}
 

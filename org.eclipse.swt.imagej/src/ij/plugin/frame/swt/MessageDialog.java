@@ -13,18 +13,16 @@ public class MessageDialog {
 
 	public MessageDialog(Shell parent, String title, String message) {
 
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 
-				MessageBox messageBox = new MessageBox(parent, SWT.ICON_WARNING);
-				messageBox.setText(title);
-				messageBox.setMessage(message);
-				result = messageBox.open();
-				if(result == SWT.OK) {
-					escapePressed = true;
-				}
+			MessageBox messageBox = new MessageBox(parent, SWT.ICON_WARNING);
+			messageBox.setText(title);
+			messageBox.setMessage(message);
+			result = messageBox.open();
+			if (result == SWT.OK) {
+				escapePressed = true;
 			}
+
 		});
 	}
 
