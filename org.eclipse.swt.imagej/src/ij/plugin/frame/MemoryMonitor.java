@@ -80,14 +80,13 @@ public class MemoryMonitor extends PlugInFrame {
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		while (!done) {
 
-			display.syncExec(new Runnable() {
-				public void run() {
+			display.syncExec(() -> {
 
-					if (ic.isDisposed() == false)
-						ic.redraw();
-					IJ.wait(50);
-					frames++;
-				}
+				if (ic.isDisposed() == false)
+					ic.redraw();
+				IJ.wait(50);
+				frames++;
+
 			});
 
 		}

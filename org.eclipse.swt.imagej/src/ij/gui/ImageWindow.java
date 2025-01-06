@@ -1093,30 +1093,27 @@ public class ImageWindow implements MouseWheelListener {
 		WindowManager.removeWindow(this);
 		if (ij != null && ij.quitting()) // this may help avoid thread deadlocks
 			return true;
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				Rectangle bounds = getBounds();
-				// dispose();
-				if (embeddedParent == null) {
-					if (!IJ.isMacro() && bounds.y < screenHeight / 3 && (bounds.y + bounds.height) <= screenHeight
-							&& (bounds.x + bounds.width) <= screenWidth) {
-						Prefs.saveLocation(LOC_KEY, new Point(bounds.x, bounds.y));
-						xbase = -1;
-					}
-					if (disposeShell) {
-						shell.dispose();
-					} else {
-						// Will be opened again when an image is replaced (e.g., RGB to RGB stack)
-						shell.setVisible(false);
-					}
+			Rectangle bounds = getBounds();
+			// dispose();
+			if (embeddedParent == null) {
+				if (!IJ.isMacro() && bounds.y < screenHeight / 3 && (bounds.y + bounds.height) <= screenHeight
+						&& (bounds.x + bounds.width) <= screenWidth) {
+					Prefs.saveLocation(LOC_KEY, new Point(bounds.x, bounds.y));
+					xbase = -1;
 				}
-				if (imp != null)
-					imp.flush();
-				imp = null;
+				if (disposeShell) {
+					shell.dispose();
+				} else {
+					// Will be opened again when an image is replaced (e.g., RGB to RGB stack)
+					shell.setVisible(false);
+				}
 			}
+			if (imp != null)
+				imp.flush();
+			imp = null;
+
 		});
 		return true;
 	}

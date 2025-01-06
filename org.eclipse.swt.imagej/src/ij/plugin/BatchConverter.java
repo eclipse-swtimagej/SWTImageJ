@@ -17,12 +17,13 @@ import ij.io.Opener;
 import ij.process.ImageProcessor;
 
 /**
- * This plugin implements the File/ /Convert command,
- * which converts the images in a folder to a specified format.
+ * This plugin implements the File/ /Convert command, which converts the images
+ * in a folder to a specified format.
  */
 public class BatchConverter implements PlugIn, SelectionListener {
 
-	private static final String[] formats = {"TIFF", "8-bit TIFF", "JPEG", "GIF", "PNG", "PGM", "BMP", "FITS", "Text Image", "ZIP", "Raw"};
+	private static final String[] formats = { "TIFF", "8-bit TIFF", "JPEG", "GIF", "PNG", "PGM", "BMP", "FITS",
+			"Text Image", "ZIP", "Raw" };
 	private static String format = formats[0];
 	private static double scale = 1.0;
 	private static boolean useBioFormats;
@@ -39,39 +40,33 @@ public class BatchConverter implements PlugIn, SelectionListener {
 
 	public void run(String arg) {
 
-		if(!showDialog())
+		if (!showDialog())
 			return;
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			inputPath = inputDir.getText();
 
-				inputPath = inputDir.getText();
-			}
 		});
-		if(inputPath.equals("")) {
+		if (inputPath.equals("")) {
 			IJ.error("Batch Converter", "Please choose an input folder");
 			return;
 		}
-		display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			outputPath = outputDir.getText();
 
-				outputPath = outputDir.getText();
-			}
 		});
-		if(outputPath.equals("")) {
+		if (outputPath.equals("")) {
 			IJ.error("Batch Converter", "Please choose an output folder");
 			return;
 		}
 		File f1 = new File(inputPath);
-		if(!f1.exists() || !f1.isDirectory()) {
+		if (!f1.exists() || !f1.isDirectory()) {
 			IJ.error("Batch Converter", "Input does not exist or is not a folder\n \n" + inputPath);
 			return;
 		}
 		File f2 = new File(outputPath);
-		if(!outputPath.equals("") && (!f2.exists() || !f2.isDirectory())) {
+		if (!outputPath.equals("") && (!f2.exists() || !f2.isDirectory())) {
 			IJ.error("Batch Converter", "Output does not exist or is not a folder\n \n" + outputPath);
 			return;
 		}
@@ -80,41 +75,41 @@ public class BatchConverter implements PlugIn, SelectionListener {
 		Opener opener = new Opener();
 		opener.setSilentMode(true);
 		long t0 = System.currentTimeMillis();
-		for(int i = 0; i < list.length; i++) {
-			if(IJ.escapePressed())
+		for (int i = 0; i < list.length; i++) {
+			if (IJ.escapePressed())
 				break;
-			if(IJ.debugMode)
+			if (IJ.debugMode)
 				IJ.log(i + "  " + list[i]);
 			String path = inputPath + list[i];
-			if((new File(path)).isDirectory())
+			if ((new File(path)).isDirectory())
 				continue;
-			if(list[i].startsWith(".") || list[i].endsWith(".avi") || list[i].endsWith(".AVI"))
+			if (list[i].startsWith(".") || list[i].endsWith(".avi") || list[i].endsWith(".AVI"))
 				continue;
 			IJ.showStatus(i + "/" + list.length);
 			IJ.showProgress(i + 1, list.length);
 			ImagePlus imp = null;
 			IJ.redirectErrorMessages(true);
-			if(useBioFormats)
+			if (useBioFormats)
 				imp = Opener.openUsingBioFormats(path);
 			else
 				imp = opener.openImage(inputPath, list[i]);
 			IJ.redirectErrorMessages(false);
-			if(imp == null) {
+			if (imp == null) {
 				String reader = useBioFormats ? "Bio-Formats not found or" : "IJ.openImage()";
 				IJ.log(reader + " returned null: " + path);
 				continue;
 			}
-			if(scale != 1.0) {
-				int width = (int)(scale * imp.getWidth());
-				int height = (int)(scale * imp.getHeight());
+			if (scale != 1.0) {
+				int width = (int) (scale * imp.getWidth());
+				int height = (int) (scale * imp.getHeight());
 				ImageProcessor ip = imp.getProcessor();
 				ip.setInterpolationMethod(interpolationMethod);
 				ip.setProgressBar(null);
 				imp.setProcessor(null, ip.resize(width, height, averageWhenDownSizing));
 				ip = null;
 			}
-			if(format.equals("8-bit TIFF") || format.equals("GIF")) {
-				if(imp.getBitDepth() == 24)
+			if (format.equals("8-bit TIFF") || format.equals("GIF")) {
+				if (imp.getBitDepth() == 24)
 					IJ.run(imp, "8-bit Color", "number=256");
 				else
 					IJ.run(imp, "8-bit", "");
@@ -123,16 +118,14 @@ public class BatchConverter implements PlugIn, SelectionListener {
 			imp.close();
 			imp = null;
 		}
-		IJ.showStatus(list.length + " files converted in " + IJ.d2s((System.currentTimeMillis() - t0) / 1000.0, 2) + " seconds");
+		IJ.showStatus(list.length + " files converted in " + IJ.d2s((System.currentTimeMillis() - t0) / 1000.0, 2)
+				+ " seconds");
 		IJ.showProgress(1, 1);
-		display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			Prefs.set("batch.input", inputDir.getText());
+			Prefs.set("batch.output", outputDir.getText());
 
-				Prefs.set("batch.input", inputDir.getText());
-				Prefs.set("batch.output", outputDir.getText());
-			}
 		});
 	}
 
@@ -149,7 +142,7 @@ public class BatchConverter implements PlugIn, SelectionListener {
 		// gd.addCheckbox("Read images using Bio-Formats", useBioFormats);
 		gd.setOKLabel("Convert");
 		gd.showDialog();
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return false;
 		format = gd.getNextChoice();
 		interpolationMethod = gd.getNextChoiceIndex();
@@ -202,9 +195,9 @@ public class BatchConverter implements PlugIn, SelectionListener {
 		Object source = e.getSource();
 		String s = source == input ? "Input" : "Output";
 		String path = IJ.getDirectory(s + " Folder");
-		if(path == null)
+		if (path == null)
 			return;
-		if(source == input)
+		if (source == input)
 			inputDir.setText(path);
 		else
 			outputDir.setText(path);
