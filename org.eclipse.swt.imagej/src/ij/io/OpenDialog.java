@@ -1,20 +1,20 @@
 package ij.io;
 
-import ij.*;
-import ij.gui.*;
-import ij.plugin.frame.Recorder;
-import ij.util.Java2;
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.io.*;
-import javax.swing.*;
-import javax.swing.filechooser.*;
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.io.File;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
+import ij.IJ;
+import ij.Macro;
+import ij.Prefs;
+import ij.macro.Interpreter;
+import ij.plugin.frame.Recorder;
+import ij.util.Java2;
 
 /**
  * This class displays a dialog window from which the user can select an input
@@ -62,7 +62,7 @@ public class OpenDialog {
 			if (name != null)
 				setDefaultDirectory(dir);
 			this.title = title;
-			recordPath = true; 
+			recordPath = true;
 		} else {
 			decodePath(path);
 			recordPath = IJ.macroRunning();
@@ -82,10 +82,10 @@ public class OpenDialog {
 		if (path != null)
 			decodePath(path);
 		else {
-			/*if (Prefs.useJFileChooser)
-				jOpen(title, defaultDir, defaultName);
-			else*/
-				open(title, defaultDir, defaultName);
+			/*
+			 * if (Prefs.useJFileChooser) jOpen(title, defaultDir, defaultName); else
+			 */
+			open(title, defaultDir, defaultName);
 			this.title = title;
 			recordPath = true;
 		}
@@ -115,107 +115,64 @@ public class OpenDialog {
 	// Uses the JFileChooser class to display the dialog box.
 	// Assumes we are running on the event dispatch thread
 	void jOpenDispatchThread(String title, String path, final String fileName) {
-		/*JFileChooser fc = new JFileChooser();
-		fc.setDialogTitle(title);
-		fc.setDragEnabled(true);
-		//fc.setTransferHandler(new DragAndDropHandler(fc));
-		File fdir = null;
-		if (path != null)
-			fdir = new File(path);
-		if (fdir != null)
-			fc.setCurrentDirectory(fdir);
-		if (fileName != null)
-			fc.setSelectedFile(new File(fileName));
-		int returnVal = fc.showOpenDialog(IJ.getInstance());
-		if (returnVal != JFileChooser.APPROVE_OPTION) {
-			Macro.abort();
-			return;
-		}
-		File file = fc.getSelectedFile();
-		if (file == null) {
-			Macro.abort();
-			return;
-		}
-		name = file.getName();
-		dir = fc.getCurrentDirectory().getPath() + File.separator;*/
+		/*
+		 * JFileChooser fc = new JFileChooser(); fc.setDialogTitle(title);
+		 * fc.setDragEnabled(true); //fc.setTransferHandler(new DragAndDropHandler(fc));
+		 * File fdir = null; if (path != null) fdir = new File(path); if (fdir != null)
+		 * fc.setCurrentDirectory(fdir); if (fileName != null) fc.setSelectedFile(new
+		 * File(fileName)); int returnVal = fc.showOpenDialog(IJ.getInstance()); if
+		 * (returnVal != JFileChooser.APPROVE_OPTION) { Macro.abort(); return; } File
+		 * file = fc.getSelectedFile(); if (file == null) { Macro.abort(); return; }
+		 * name = file.getName(); dir = fc.getCurrentDirectory().getPath() +
+		 * File.separator;
+		 */
 	}
 
 	// Run JFileChooser on event dispatch thread to avoid deadlocks
 	void jOpenInvokeAndWait(final String title, final String path, final String fileName) {
-		/*final boolean isMacro = Thread.currentThread().getName().endsWith("Macro$");
-		try {
-			EventQueue.invokeAndWait(new Runnable() {
-				public void run() {
-					JFileChooser fc = new JFileChooser();
-					fc.setDialogTitle(title);
-					fc.setDragEnabled(true);
-					//fc.setTransferHandler(new DragAndDropHandler(fc));
-					File fdir = null;
-					if (path != null)
-						fdir = new File(path);
-					if (fdir != null)
-						fc.setCurrentDirectory(fdir);
-					if (fileName != null)
-						fc.setSelectedFile(new File(fileName));
-					int returnVal = fc.showOpenDialog(IJ.getInstance());
-					if (returnVal != JFileChooser.APPROVE_OPTION && isMacro) {
-						Interpreter.abort();
-						return;
-					}
-					File file = fc.getSelectedFile();
-					if (file == null && isMacro) {
-						Interpreter.abort();
-						return;
-					}
-					name = file.getName();
-					dir = fc.getCurrentDirectory().getPath() + File.separator;
-				}
-			});
-		} catch (Exception e) {
-		}*/
+		/*
+		 * final boolean isMacro = Thread.currentThread().getName().endsWith("Macro$");
+		 * try { EventQueue.invokeAndWait(new Runnable() { public void run() {
+		 * JFileChooser fc = new JFileChooser(); fc.setDialogTitle(title);
+		 * fc.setDragEnabled(true); //fc.setTransferHandler(new DragAndDropHandler(fc));
+		 * File fdir = null; if (path != null) fdir = new File(path); if (fdir != null)
+		 * fc.setCurrentDirectory(fdir); if (fileName != null) fc.setSelectedFile(new
+		 * File(fileName)); int returnVal = fc.showOpenDialog(IJ.getInstance()); if
+		 * (returnVal != JFileChooser.APPROVE_OPTION && isMacro) { Interpreter.abort();
+		 * return; } File file = fc.getSelectedFile(); if (file == null && isMacro) {
+		 * Interpreter.abort(); return; } name = file.getName(); dir =
+		 * fc.getCurrentDirectory().getPath() + File.separator; } }); } catch (Exception
+		 * e) { }
+		 */
 	}
 
 	/* Changed for Bio7 Linux to Swt! */
 	void open(String title, final String path, final String fileName) {
-		/*
-		 * Frame parent = IJ.getInstance(); if (parent == null) { if (sharedFrame ==
-		 * null) sharedFrame = new Frame(); parent = sharedFrame; }
-		 * 
-		 * if (IJ.isMacOSX() && IJ.isJava18()) { ImageJ ij = IJ.getInstance(); if (ij !=
-		 * null && ij.isActive()) parent = ij; else parent = null; }
-		 */
 
 		Display.getDefault().syncExec(() -> {
-				Shell s = new Shell(SWT.EMBEDDED);
-				fd = new org.eclipse.swt.widgets.FileDialog(s, SWT.OPEN);
-				fd.setText("Load");
-				if (path != null)
-					fd.setFilterPath(path);
-				if (fileName != null)
-					fd.setFileName(fileName);
+			Shell s = new Shell(SWT.EMBEDDED);
+			fd = new org.eclipse.swt.widgets.FileDialog(s, SWT.OPEN);
+			fd.setText("Load");
+			if (path != null)
+				fd.setFilterPath(path);
+			if (fileName != null)
+				fd.setFileName(fileName);
 
-				name = fd.open();
-				if (name != null) {
-					File file = new File(name);
+			name = fd.open();
+			if (name != null) {
+				File file = new File(name);
 
-					name = file.getName();
-					dir = fd.getFilterPath() + File.separator;
-				} else {
+				name = file.getName();
+				dir = fd.getFilterPath() + File.separator;
+			} else {
 
-					Macro.abort();
-					return;
+				Macro.abort();
+				return;
 
-				}
+			}
 
-			
 		});
-		/*
-		 * FileDialog fd = new FileDialog(parent, title); if (path!=null)
-		 * fd.setDirectory(path); if (fileName!=null) fd.setFile(fileName);
-		 * //GUI.center(fd); fd.show(); name = fd.getFile(); if (name==null) { if
-		 * (IJ.isMacOSX()) System.setProperty("apple.awt.fileDialogForDirectories",
-		 * "false"); Macro.abort(); } else dir = fd.getDirectory();
-		 */
+
 	}
 
 	void decodePath(String path) {
@@ -255,12 +212,12 @@ public class OpenDialog {
 			return getDirectory() + getFileName();
 	}
 
-	/** Returns the default directory as a string
-	 * ending in the separator character ("/" or "\"),
-	 * or a null string. Returns the current working
-	 * directory if called from a command line macro
-	 * and setDefaultDirectory() has not been called.
-	*/
+	/**
+	 * Returns the default directory as a string ending in the separator character
+	 * ("/" or "\"), or a null string. Returns the current working directory if
+	 * called from a command line macro and setDefaultDirectory() has not been
+	 * called.
+	 */
 	public static String getDefaultDirectory() {
 		if (Prefs.commandLineMacro() && !defaultDirectorySet)
 			return IJ.getDir("cwd");
@@ -269,7 +226,8 @@ public class OpenDialog {
 		return defaultDirectory;
 	}
 
-	/** Sets the default directory.
+	/**
+	 * Sets the default directory.
 	 * 
 	 * @see ij.plugin.frame.Editor#setDefaultDirectory
 	 */
