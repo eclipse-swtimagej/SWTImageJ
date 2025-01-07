@@ -131,15 +131,12 @@ public class Histogram implements PlugIn, ModifyListener {
 			gd.addCheckbox("Stack histogram", stackHistogram);
 		Vector numbers = gd.getNumericFields();
 		if (numbers != null) {
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
+				minField = (org.eclipse.swt.widgets.Text) numbers.elementAt(1);
+				minField.addModifyListener(Histogram.this);
+				maxField = (org.eclipse.swt.widgets.Text) numbers.elementAt(2);
+				maxField.addModifyListener(Histogram.this);
 
-				public void run() {
-					minField = (org.eclipse.swt.widgets.Text) numbers.elementAt(1);
-					minField.addModifyListener(Histogram.this);
-					maxField = (org.eclipse.swt.widgets.Text) numbers.elementAt(2);
-					maxField.addModifyListener(Histogram.this);
-				}
 			});
 		}
 		checkbox = (org.eclipse.swt.widgets.Button) (gd.getCheckboxes().elementAt(0));

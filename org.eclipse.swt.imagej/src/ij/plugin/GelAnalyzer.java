@@ -493,31 +493,28 @@ class Plots extends ImagePlus {
 
 	/** Overrides ImagePlus.show(). */
 	public void show() {
-		Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			imgSwt = ip.createSwtImage();
 
-			public void run() {
-				imgSwt = ip.createSwtImage();
+			ImageCanvas ic = new PlotsCanvas(Plots.this);
+			win = new ImageWindow(Plots.this, ic);
+			IJ.showStatus("");
+			if (ic.getMagnification() == 1.0)
+				return;
+			while (ic.getMagnification() < 1.0)
+				ic.zoomIn(0, 0);
+			org.eclipse.swt.graphics.Point loc = win.getLocation();
+			int w = getWidth() + 20;
+			int h = getHeight() + 30;
+			Dimension screen = IJ.getScreenSize();
+			if (loc.x + w > screen.width)
+				w = screen.width - loc.x - 20;
+			if (loc.y + h > screen.height)
+				h = screen.height - loc.y - 30;
+			win.setSize(w, h);
+			win.validate();
+			repaintWindow();
 
-				ImageCanvas ic = new PlotsCanvas(Plots.this);
-				win = new ImageWindow(Plots.this, ic);
-				IJ.showStatus("");
-				if (ic.getMagnification() == 1.0)
-					return;
-				while (ic.getMagnification() < 1.0)
-					ic.zoomIn(0, 0);
-				org.eclipse.swt.graphics.Point loc = win.getLocation();
-				int w = getWidth() + 20;
-				int h = getHeight() + 30;
-				Dimension screen = IJ.getScreenSize();
-				if (loc.x + w > screen.width)
-					w = screen.width - loc.x - 20;
-				if (loc.y + h > screen.height)
-					h = screen.height - loc.y - 30;
-				win.setSize(w, h);
-				win.validate();
-				repaintWindow();
-			}
 		});
 	}
 

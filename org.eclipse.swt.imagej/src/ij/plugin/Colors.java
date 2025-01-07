@@ -18,8 +18,10 @@ import org.jfree.swt.SWTUtils;
 /** This plugin implements most of the Edit/Options/Colors command. */
 public class Colors implements PlugIn, SelectionListener {
 
-	public static final String[] colors = {"red", "green", "blue", "magenta", "cyan", "yellow", "orange", "black", "white", "gray", "lightgray", "darkgray", "pink"};
-	private static final String[] colors2 = {"Red", "Green", "Blue", "Magenta", "Cyan", "Yellow", "Orange", "Black", "White", "Gray", "lightGray", "darkGray", "Pink"};
+	public static final String[] colors = { "red", "green", "blue", "magenta", "cyan", "yellow", "orange", "black",
+			"white", "gray", "lightgray", "darkgray", "pink" };
+	private static final String[] colors2 = { "Red", "Green", "Blue", "Magenta", "Cyan", "Yellow", "Orange", "Black",
+			"White", "Gray", "lightGray", "darkGray", "Pink" };
 	private org.eclipse.swt.widgets.Combo fchoice, bchoice, schoice;
 	private Color fc2, bc2, sc2;
 	private static final double gamma = 0.8;
@@ -43,31 +45,28 @@ public class Colors implements PlugIn, SelectionListener {
 		gd.addChoice("Background:", colors, bname);
 		gd.addChoice("Selection:", colors, sname);
 		Vector choices = gd.getChoices();
-		if(choices != null) {
-			fchoice = (org.eclipse.swt.widgets.Combo)choices.elementAt(0);
-			bchoice = (org.eclipse.swt.widgets.Combo)choices.elementAt(1);
-			schoice = (org.eclipse.swt.widgets.Combo)choices.elementAt(2);
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
+		if (choices != null) {
+			fchoice = (org.eclipse.swt.widgets.Combo) choices.elementAt(0);
+			bchoice = (org.eclipse.swt.widgets.Combo) choices.elementAt(1);
+			schoice = (org.eclipse.swt.widgets.Combo) choices.elementAt(2);
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				fchoice.addSelectionListener(Colors.this);
+				bchoice.addSelectionListener(Colors.this);
+				schoice.addSelectionListener(Colors.this);
 
-					fchoice.addSelectionListener(Colors.this);
-					bchoice.addSelectionListener(Colors.this);
-					schoice.addSelectionListener(Colors.this);
-				}
 			});
 		}
 		gd.showDialog();
-		if(gd.wasCanceled()) {
-			if(fc2 != fc)
+		if (gd.wasCanceled()) {
+			if (fc2 != fc)
 				Toolbar.setForegroundColor(fc);
-			if(bc2 != bc)
+			if (bc2 != bc)
 				Toolbar.setBackgroundColor(bc);
-			if(sc2 != sc) {
+			if (sc2 != sc) {
 				Roi.setColor(sc);
 				ImagePlus imp = WindowManager.getCurrentImage();
-				if(imp != null && imp.getRoi() != null)
+				if (imp != null && imp.getRoi() != null)
 					imp.draw();
 			}
 			return;
@@ -78,17 +77,17 @@ public class Colors implements PlugIn, SelectionListener {
 		fc2 = getColor(fname, Color.black);
 		bc2 = getColor(bname, Color.white);
 		sc2 = getColor(sname, Color.yellow);
-		if(fc2 != fc)
+		if (fc2 != fc)
 			Toolbar.setForegroundColor(fc2);
-		if(bc2 != bc)
+		if (bc2 != bc)
 			Toolbar.setBackgroundColor(bc2);
-		if(sc2 != sc) {
+		if (sc2 != sc) {
 			Roi.setColor(sc2);
 			ImagePlus imp = WindowManager.getCurrentImage();
-			if(imp != null)
+			if (imp != null)
 				imp.draw();
 			Toolbar tb = Toolbar.getInstance();
-			if(tb != null)
+			if (tb != null)
 				tb.repaint();
 		}
 	}
@@ -102,9 +101,10 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static String getColorName(Color c, String defaultName) {
 
-		if(c == null)
+		if (c == null)
 			return defaultName;
-		boolean useCapitalizedName = defaultName != null && defaultName.length() > 0 && Character.isUpperCase(defaultName.charAt(0));
+		boolean useCapitalizedName = defaultName != null && defaultName.length() > 0
+				&& Character.isUpperCase(defaultName.charAt(0));
 		return getColorName(c, defaultName, useCapitalizedName);
 	}
 
@@ -115,31 +115,31 @@ public class Colors implements PlugIn, SelectionListener {
 	private static String getColorName(Color c, String defaultName, boolean useCapitalizedName) {
 
 		String[] colorNames = useCapitalizedName ? colors2 : colors;
-		if(c.equals(Color.red))
+		if (c.equals(Color.red))
 			return colorNames[0];
-		else if(c.equals(Color.green))
+		else if (c.equals(Color.green))
 			return colorNames[1];
-		else if(c.equals(Color.blue))
+		else if (c.equals(Color.blue))
 			return colorNames[2];
-		else if(c.equals(Color.magenta))
+		else if (c.equals(Color.magenta))
 			return colorNames[3];
-		else if(c.equals(Color.cyan))
+		else if (c.equals(Color.cyan))
 			return colorNames[4];
-		else if(c.equals(Color.yellow))
+		else if (c.equals(Color.yellow))
 			return colorNames[5];
-		else if(c.equals(Color.orange))
+		else if (c.equals(Color.orange))
 			return colorNames[6];
-		else if(c.equals(Color.black))
+		else if (c.equals(Color.black))
 			return colorNames[7];
-		else if(c.equals(Color.white))
+		else if (c.equals(Color.white))
 			return colorNames[8];
-		else if(c.equals(Color.gray))
+		else if (c.equals(Color.gray))
 			return colorNames[9];
-		else if(c.equals(Color.lightGray))
+		else if (c.equals(Color.lightGray))
 			return colorNames[10];
-		else if(c.equals(Color.darkGray))
+		else if (c.equals(Color.darkGray))
 			return colorNames[11];
-		else if(c.equals(Color.pink))
+		else if (c.equals(Color.pink))
 			return colorNames[12];
 		return defaultName;
 	}
@@ -151,34 +151,34 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static Color getColor(String name, Color defaultColor) {
 
-		if(name == null || name.length() < 2)
+		if (name == null || name.length() < 2)
 			return defaultColor;
 		name = name.toLowerCase(Locale.US);
 		Color c = defaultColor;
-		if(name.contains(colors[7]))
+		if (name.contains(colors[7]))
 			c = Color.black;
-		else if(name.contains(colors[8]))
+		else if (name.contains(colors[8]))
 			c = Color.white;
-		else if(name.contains(colors[0]))
+		else if (name.contains(colors[0]))
 			c = Color.red;
-		else if(name.contains(colors[2]))
+		else if (name.contains(colors[2]))
 			c = Color.blue;
-		else if(name.contains(colors[5]))
+		else if (name.contains(colors[5]))
 			c = Color.yellow;
-		else if(name.contains(colors[1]))
+		else if (name.contains(colors[1]))
 			c = Color.green;
-		else if(name.contains(colors[3]))
+		else if (name.contains(colors[3]))
 			c = Color.magenta;
-		else if(name.contains(colors[4]))
+		else if (name.contains(colors[4]))
 			c = Color.cyan;
-		else if(name.contains(colors[6]))
+		else if (name.contains(colors[6]))
 			c = Color.orange;
-		else if(name.contains(colors[12]))
+		else if (name.contains(colors[12]))
 			c = Color.pink;
-		else if(name.contains(colors[9]) || name.contains("grey")) { // gray or grey
-			if(name.contains("light"))
+		else if (name.contains(colors[9]) || name.contains("grey")) { // gray or grey
+			if (name.contains("light"))
 				c = Color.lightGray;
-			else if(name.contains("dark"))
+			else if (name.contains("dark"))
 				c = Color.darkGray;
 			else
 				c = Color.gray;
@@ -213,22 +213,22 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static Color decode(String hexColor, Color defaultColor) {
 
-		if(hexColor == null || hexColor.length() < 2)
+		if (hexColor == null || hexColor.length() < 2)
 			return defaultColor;
 		Color color = getColor(hexColor, null); // for named colors
-		if(color == null) {
-			if(hexColor.startsWith("#"))
+		if (color == null) {
+			if (hexColor.startsWith("#"))
 				hexColor = hexColor.substring(1);
-			else if(hexColor.startsWith("0x"))
+			else if (hexColor.startsWith("0x"))
 				hexColor = hexColor.substring(2);
 			int len = hexColor.length();
-			if(!(len == 6 || len == 8))
+			if (!(len == 6 || len == 8))
 				return defaultColor;
 			boolean hasAlpha = len == 8;
 			try {
-				int rgba = (int)Long.parseLong(hexColor, 16);
+				int rgba = (int) Long.parseLong(hexColor, 16);
 				color = new Color(rgba, hasAlpha);
-			} catch(NumberFormatException e) {
+			} catch (NumberFormatException e) {
 				return defaultColor;
 			}
 		}
@@ -257,10 +257,10 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static String hexToColor(String hex) {
 
-		if(hex == null)
+		if (hex == null)
 			return null;
 		Color color = decode(hex, null);
-		if(color == null)
+		if (color == null)
 			return null;
 		return getColorName(color, null, false);
 	}
@@ -272,10 +272,10 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static String hexToColor2(String hex) {
 
-		if(hex == null)
+		if (hex == null)
 			return null;
 		Color color = decode(hex, null);
-		if(color == null)
+		if (color == null)
 			return null;
 		return getColorName(color, null, true);
 	}
@@ -286,10 +286,10 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static String colorToString(Color color) {
 
-		if(color == null)
+		if (color == null)
 			return "none";
 		String str = getColorName(color, null, false);
-		if(str == null)
+		if (str == null)
 			str = "#" + getHexString(color);
 		return str;
 	}
@@ -300,10 +300,10 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static String colorToString2(Color color) {
 
-		if(color == null)
+		if (color == null)
 			return "None";
 		String str = getColorName(color, null, true);
-		if(str == null)
+		if (str == null)
 			str = "#" + getHexString(color);
 		return str;
 	}
@@ -317,7 +317,7 @@ public class Colors implements PlugIn, SelectionListener {
 
 		int rgb = color.getRGB();
 		boolean isOpaque = (rgb & 0xff000000) == 0xff000000;
-		if(isOpaque)
+		if (isOpaque)
 			rgb &= 0x00ffffff; // don't show alpha for opaque colors
 		String format = isOpaque ? "%06x" : "%08x";
 		return String.format(format, rgb);
@@ -330,17 +330,17 @@ public class Colors implements PlugIn, SelectionListener {
 	 */
 	public static Color toColor(int red, int green, int blue) {
 
-		if(red < 0)
+		if (red < 0)
 			red = 0;
-		if(green < 0)
+		if (green < 0)
 			green = 0;
-		if(blue < 0)
+		if (blue < 0)
 			blue = 0;
-		if(red > 255)
+		if (red > 255)
 			red = 255;
-		if(green > 255)
+		if (green > 255)
 			green = 255;
-		if(blue > 255)
+		if (blue > 255)
 			blue = 255;
 		return new Color(red, green, blue);
 	}
@@ -348,17 +348,17 @@ public class Colors implements PlugIn, SelectionListener {
 	/** Callback listener for Choice modifications in the dialog */
 	public void itemStateChanged(SelectionEvent e) {
 
-		org.eclipse.swt.widgets.Combo choice = (org.eclipse.swt.widgets.Combo)e.getSource();
+		org.eclipse.swt.widgets.Combo choice = (org.eclipse.swt.widgets.Combo) e.getSource();
 		String item = choice.getText();
 		Color color = getColor(item, Color.black);
-		if(choice == fchoice)
+		if (choice == fchoice)
 			Toolbar.setForegroundColor(color);
-		else if(choice == bchoice)
+		else if (choice == bchoice)
 			Toolbar.setBackgroundColor(color);
-		else if(choice == schoice) {
+		else if (choice == schoice) {
 			Roi.setColor(color);
 			ImagePlus imp = WindowManager.getCurrentImage();
-			if(imp != null && imp.getRoi() != null)
+			if (imp != null && imp.getRoi() != null)
 				imp.draw();
 			Toolbar.getInstance().repaint();
 		}
@@ -373,47 +373,46 @@ public class Colors implements PlugIn, SelectionListener {
 	public static String[] getColors(String... moreColors) {
 
 		ArrayList names = new ArrayList();
-		for(String arg : moreColors) {
-			if(arg != null && arg.length() > 0 && (!Character.isLetter(arg.charAt(0)) || arg.equals("None")))
+		for (String arg : moreColors) {
+			if (arg != null && arg.length() > 0 && (!Character.isLetter(arg.charAt(0)) || arg.equals("None")))
 				names.add(arg);
 		}
-		for(String arg : colors2)
+		for (String arg : colors2)
 			names.add(arg);
-		return (String[])names.toArray(new String[names.size()]);
+		return (String[]) names.toArray(new String[names.size()]);
 	}
 
 	/**
-	 * Converts a wavelength (380-750 nm) to color.
-	 * Based on the wavelength_to_rgb.R program at
-	 * https://gist.github.com/friendly/67a7df339aa999e2bcfcfec88311abfc,
+	 * Converts a wavelength (380-750 nm) to color. Based on the wavelength_to_rgb.R
+	 * program at https://gist.github.com/friendly/67a7df339aa999e2bcfcfec88311abfc,
 	 * which in turn is based on a FORTRAN program at
 	 * http://www.physics.sfasu.edu/astro/color.html.
 	 */
 	public static Color wavelengthToColor(double wl) {
 
 		double R, G, B;
-		if(wl >= 380 & wl <= 440) {
+		if (wl >= 380 & wl <= 440) {
 			double attenuation = 0.3 + 0.7 * (wl - 380) / (440 - 380);
 			R = Math.pow((-(wl - 440) / (440 - 380) * attenuation), gamma);
 			G = 0.0;
 			B = Math.pow((1.0 * attenuation), gamma);
-		} else if(wl >= 440 & wl <= 490) {
+		} else if (wl >= 440 & wl <= 490) {
 			R = 0.0;
 			G = Math.pow(((wl - 440) / (490 - 440)), gamma);
 			B = 1.0;
-		} else if(wl >= 490 & wl <= 510) {
+		} else if (wl >= 490 & wl <= 510) {
 			R = 0.0;
 			G = 1.0;
 			B = Math.pow((-(wl - 510) / (510 - 490)), gamma);
-		} else if(wl >= 510 & wl <= 580) {
+		} else if (wl >= 510 & wl <= 580) {
 			R = Math.pow(((wl - 510) / (580 - 510)), gamma);
 			G = 1.0;
 			B = 0.0;
-		} else if(wl >= 580 & wl <= 645) {
+		} else if (wl >= 580 & wl <= 645) {
 			R = 1.0;
 			G = Math.pow((-(wl - 645) / (645 - 580)), gamma);
 			B = 0.0;
-		} else if(wl >= 645 & wl <= 750) {
+		} else if (wl >= 645 & wl <= 750) {
 			double attenuation = 0.3 + 0.7 * (750 - wl) / (750 - 645);
 			R = Math.pow((1.0 * attenuation), gamma);
 			G = 0.0;
@@ -426,7 +425,7 @@ public class Colors implements PlugIn, SelectionListener {
 		R = Math.floor(R * 255);
 		G = Math.floor(G * 255);
 		B = Math.floor(B * 255);
-		return new Color((int)R, (int)G, (int)B);
+		return new Color((int) R, (int) G, (int) B);
 	}
 
 	@Override
