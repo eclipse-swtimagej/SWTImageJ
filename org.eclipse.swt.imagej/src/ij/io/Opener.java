@@ -228,7 +228,7 @@ public class Opener {
 		try {
 			Display display = Display.getDefault();
 			display.syncExec(() -> {
-
+ 
 				String sdir = OpenDialog.getDefaultDirectory();
 				Shell shell = new Shell(display);
 				FileDialog dlg = new FileDialog(shell, SWT.MULTI);

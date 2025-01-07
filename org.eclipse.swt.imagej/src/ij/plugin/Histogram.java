@@ -1,19 +1,27 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.util.Tools;
-import ij.plugin.filter.PlugInFilter;
-import ij.plugin.frame.Recorder;
-import ij.measure.Calibration;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
 import java.util.Vector;
 
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.gui.GenericDialog;
+import ij.gui.HistogramPlot;
+import ij.gui.HistogramWindow;
+import ij.gui.YesNoCancelDialog;
+import ij.measure.Calibration;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.StackStatistics;
+import ij.util.Tools;
 
 /** This plugin implements the Analyze/Histogram command. */
 public class Histogram implements PlugIn, ModifyListener {

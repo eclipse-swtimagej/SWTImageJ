@@ -1,10 +1,6 @@
 package ij.plugin.frame;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Point;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -16,7 +12,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
-import java.awt.event.*;
+import ij.IJ;
+import ij.ImageJ;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GUI;
 
 /**
  * This plugin continuously plots ImageJ's memory utilization. Click on the plot
@@ -45,7 +45,7 @@ public class MemoryMonitor extends PlugInFrame {
 		if (instance != null) {
 			WindowManager.toFront(instance);
 			return;
-		}
+		} 
 		instance = this;
 		mem = new double[width + 1];
 		Display display = Display.getDefault();
