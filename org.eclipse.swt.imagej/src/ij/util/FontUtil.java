@@ -1,6 +1,5 @@
 package ij.util;
-import java.text.*;
-import java.awt.*;
+import java.awt.Font;
 
 /** This class contains static utility methods for replacing fonts that are not available on the
  *  current system.

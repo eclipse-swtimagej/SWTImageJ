@@ -1,9 +1,14 @@
 package ij.util;
 
-import ij.*;
-import ij.Prefs;
-import java.awt.*;
-import javax.swing.*;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
+
+import ij.IJ;
 
 /**
  * This class contains static methods that use the Java 2 API. They are isolated
