@@ -1,6 +1,7 @@
 package ij.process;
-import ij.measure.Calibration;
 import java.util.Arrays;
+
+import ij.measure.Calibration;
 
 /** 32-bit (float) image statistics, including histogram. */
 public class FloatStatistics extends ImageStatistics {

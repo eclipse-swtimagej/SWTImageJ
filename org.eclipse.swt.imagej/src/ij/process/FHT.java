@@ -1,8 +1,9 @@
 package ij.process;
-import ij.*;
-import ij.plugin.FFT;
-import ij.plugin.ContrastEnhancer;
-import java.awt.image.ColorModel; 
+import java.awt.image.ColorModel;
+
+import ij.IJ;
+import ij.ImageStack;
+import ij.plugin.FFT; 
 
 /**
 This class contains a Java implementation of the Fast Hartley

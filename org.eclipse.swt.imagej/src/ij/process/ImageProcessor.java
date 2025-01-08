@@ -1,27 +1,44 @@
 package ij.process;
 
-import java.util.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.font.GlyphVector;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
+import java.awt.image.MemoryImageSource;
+import java.awt.image.SampleModel;
+import java.awt.image.WritableRaster;
+import java.util.Random;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.widgets.Display;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.geom.Rectangle2D;
-import java.awt.font.GlyphVector;
-import java.awt.font.FontRenderContext;
-import ij.gui.*;
-import ij.util.*;
-import ij.plugin.filter.GaussianBlur;
+import ij.Prefs;
+import ij.gui.Arrow;
+import ij.gui.Line;
+import ij.gui.OvalRoi;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.ProgressBar;
+import ij.gui.Roi;
+import ij.gui.ShapeRoi;
+import ij.gui.Toolbar;
+import ij.measure.Measurements;
 import ij.plugin.Binner;
 import ij.plugin.Colors;
+import ij.plugin.filter.GaussianBlur;
 import ij.process.AutoThresholder.Method;
-import ij.Prefs;
-import ij.measure.Measurements;
+import ij.util.Java2;
+import ij.util.Tools;
 
 /**
  * This abstract class is the superclass for classes that process the four data

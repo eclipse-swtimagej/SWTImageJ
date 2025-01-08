@@ -1,6 +1,9 @@
 package ij.process;
-import ij.measure.*;
-import java.awt.*;
+import java.awt.Rectangle;
+
+import ij.gui.Roi;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
 
 /** Statistics, including the histogram, of an image or selection. */
 public class ImageStatistics implements Measurements {

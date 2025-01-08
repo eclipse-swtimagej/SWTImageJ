@@ -1,6 +1,8 @@
 package ij.process;
+import java.awt.Color;
+import java.awt.Rectangle;
+
 import ij.Prefs;
-import java.awt.*;
 
 /** This class does bit blitting of 32-bit floating-point images. */
 public class FloatBlitter implements Blitter {

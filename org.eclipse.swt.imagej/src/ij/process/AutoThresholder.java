@@ -1,6 +1,5 @@
 package ij.process;
 import ij.IJ;
-import java.util.Arrays;
 
 /** Autothresholding methods (limited to 256 bin histograms) from the Auto_Threshold plugin 
     (http://fiji.sc/Auto_Threshold) by G.Landini at bham dot ac dot uk). */

@@ -1,10 +1,16 @@
 package ij.process;
 
-import java.awt.*;
-import java.awt.image.*;
-import ij.*;
-import ij.gui.*;
-import ij.measure.*;
+import java.awt.image.ColorModel;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.LookUpTable;
+import ij.Prefs;
+import ij.gui.ImageWindow;
+import ij.measure.Calibration;
+import ij.measure.CurveFitter;
 import ij.plugin.frame.Recorder;
 
 /** This class converts an ImagePlus object to a different type. */

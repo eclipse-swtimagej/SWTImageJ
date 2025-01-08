@@ -1,6 +1,5 @@
 package ij.process;
 import java.awt.Rectangle;
-import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
 
 /** Used by the Roi classes to return float coordinate arrays and to

@@ -1,5 +1,4 @@
 package ij.process;
-import java.awt.*;
 
 /** This class processes binary images. */
 public class BinaryProcessor extends ByteProcessor {

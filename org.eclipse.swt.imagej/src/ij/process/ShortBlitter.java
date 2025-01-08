@@ -1,5 +1,6 @@
 package ij.process;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 
 /** This class does bit blitting of 16-bit images. */
 public class ShortBlitter implements Blitter {

@@ -1,6 +1,7 @@
 package ij.process;
-import ij.measure.Calibration;
 import java.awt.Rectangle;
+
+import ij.measure.Calibration;
 
 /** 16-bit image statistics, including histogram. */
 public class ShortStatistics extends ImageStatistics {

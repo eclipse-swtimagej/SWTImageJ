@@ -1,7 +1,10 @@
 package ij.process;
-import ij.*;
-import ij.process.*;
 import java.awt.Color;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
 
 /**
 * ColorSpaceConverter

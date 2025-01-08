@@ -1,5 +1,6 @@
 package ij.process;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 
 /** This class does bit blitting of byte images. */
 public class ByteBlitter implements Blitter {
