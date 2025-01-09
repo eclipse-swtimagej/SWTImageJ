@@ -1,16 +1,10 @@
 package ij.plugin.tool;
 
-import ij.*;
-import ij.plugin.frame.PlugInFrame;
-import ij.plugin.frame.PlugInFrame;
-import ij.process.*;
-import ij.measure.*;
-import ij.plugin.filter.Analyzer;
-import ij.gui.*;
-import ij.util.Tools;
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.geom.*;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.Label;
+import java.awt.Point;
+import java.awt.Rectangle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -20,7 +14,29 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.jfree.swt.SWTUtils;
+
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImageListener;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.plugin.filter.Analyzer;
+import ij.plugin.frame.PlugInFrame;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
+import ij.util.Tools;
 
 /**
  * This plugin continuously displays the pixel values of the cursor and its

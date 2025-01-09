@@ -5,15 +5,18 @@
  */
 package ij.plugin.tool;
 
-import ij.*;
-import ij.gui.*;
-import ij.plugin.RoiRotator;
-import ij.plugin.tool.PlugInTool;
-import ij.plugin.frame.Recorder;
-import java.awt.*;
+import java.awt.Rectangle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageRoi;
+import ij.gui.Roi;
+import ij.plugin.RoiRotator;
+import ij.plugin.frame.Recorder;
 
 public class RoiRotationTool extends PlugInTool {
 

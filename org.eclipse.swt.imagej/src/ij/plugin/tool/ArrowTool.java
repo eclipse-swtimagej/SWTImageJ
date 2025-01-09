@@ -1,6 +1,7 @@
 package ij.plugin.tool;
 import org.eclipse.swt.events.MouseEvent;
 import org.jfree.swt.SWTUtils;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Arrow;

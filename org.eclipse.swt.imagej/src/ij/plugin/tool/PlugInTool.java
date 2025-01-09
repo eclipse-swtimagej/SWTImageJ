@@ -1,10 +1,11 @@
 package ij.plugin.tool;
 
+import org.eclipse.swt.events.MouseEvent;
+
 import ij.ImagePlus;
-import ij.plugin.PlugIn;
-import ij.macro.Program;
 import ij.gui.Toolbar;
-import org.eclipse.swt.events.*;
+import ij.macro.Program;
+import ij.plugin.PlugIn;
 
 
 public abstract class PlugInTool implements PlugIn {
