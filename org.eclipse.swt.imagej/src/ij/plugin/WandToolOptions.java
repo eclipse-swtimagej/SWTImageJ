@@ -1,14 +1,13 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.io.*;
-import ij.plugin.filter.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Vector;
-
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
 
 /** This plugin implements the Edit/Options/Wand Tool command. */
 public class WandToolOptions implements PlugIn, DialogListener {

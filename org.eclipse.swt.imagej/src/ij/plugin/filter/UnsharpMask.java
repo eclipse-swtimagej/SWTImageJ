@@ -1,13 +1,15 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.gui.GenericDialog;
-import ij.gui.DialogListener;
-import ij.process.*;
-import ij.plugin.filter.GaussianBlur;
-import ij.measure.Measurements;
-import java.awt.*;
+import java.awt.Rectangle;
 
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 
 /** This plugin-filter implements ImageJ's Unsharp Mask command.
  * Unsharp masking subtracts a blurred copy of the image and rescales the image

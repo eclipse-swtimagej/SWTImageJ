@@ -1,16 +1,28 @@
 package ij.plugin;
 
-import java.awt.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 import org.eclipse.swt.SWT;
 
-import ij.*;
-import ij.io.*;
-import ij.gui.*;
-import ij.plugin.frame.*;
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Menus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.io.FileInfo;
+import ij.io.Opener;
+import ij.plugin.frame.Editor;
+import ij.plugin.frame.Recorder;
 
 /**
  * Opens TIFFs, ZIP compressed TIFFs, DICOMs, GIFs and JPEGs using a URL.

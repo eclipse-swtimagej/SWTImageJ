@@ -1,19 +1,31 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import ij.util.Tools;
-import ij.plugin.frame.Recorder;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.event.FocusEvent;
+import java.util.Vector;
 
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.gui.Toolbar;
+import ij.measure.Calibration;
+import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
+import ij.process.StackProcessor;
+import ij.util.Tools;
 
 /** This plugin implements the Image/Scale command. */
 public class Scaler implements PlugIn, ModifyListener, org.eclipse.swt.events.FocusListener {

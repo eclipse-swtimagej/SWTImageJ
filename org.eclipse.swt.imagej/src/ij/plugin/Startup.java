@@ -1,17 +1,16 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
 import java.util.Vector;
 
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImageJ;
+import ij.gui.GenericDialog;
+import ij.macro.Interpreter;
 
 /** This plugin implements the Edit/Options/Startup command. */
 public class Startup implements PlugIn, SelectionListener {

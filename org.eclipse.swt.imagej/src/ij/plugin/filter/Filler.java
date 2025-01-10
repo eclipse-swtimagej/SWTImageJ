@@ -1,9 +1,20 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Rectangle;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.Arrow;
+import ij.gui.ImageCanvas;
+import ij.gui.Roi;
+import ij.gui.TextRoi;
+import ij.gui.Toolbar;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
 
 /** This plugin implements ImageJ's Fill, Clear, Clear Outside and Draw commands. */
 public class Filler implements PlugInFilter, Measurements {

@@ -1,11 +1,26 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
+import java.awt.Font;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Undo;
+import ij.gui.Arrow;
+import ij.gui.GenericDialog;
+import ij.gui.ImageRoi;
+import ij.gui.Line;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.ShapeRoi;
+import ij.gui.TextRoi;
 import ij.measure.Measurements;
-import java.awt.*;
-import java.awt.geom.*;
+import ij.process.FloatPolygon;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /** This plugin implements the Edit/Selection/Scale command. */
 public class RoiScaler implements PlugIn {

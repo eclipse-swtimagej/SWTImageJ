@@ -1,11 +1,20 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.util.Tools;
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.lang.reflect.*;
+import java.io.BufferedReader;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Vector;
+
+import ij.IJ;
+import ij.ImageJ;
+import ij.Menus;
+import ij.Prefs;
+import ij.gui.GenericDialog;
 
 
 /** This plugin implements the Help/Update ImageJ command. */

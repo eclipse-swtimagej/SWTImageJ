@@ -1,9 +1,19 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
+import java.awt.Color;
+import java.awt.Font;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.TextRoi;
+import ij.process.ImageProcessor;
 import ij.util.Tools;
-import ij.process.*;
-import java.awt.*;
 
 /** This plugin implements the File/New/Hyperstack command. */
 public class HyperStackMaker implements PlugIn {

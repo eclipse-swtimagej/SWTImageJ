@@ -1,12 +1,22 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.Vector;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.VirtualStack;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.io.OpenDialog;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 import ij.util.Tools;
-import java.awt.*;
-import java.io.*;
-import java.util.*;
 
 /** This plugin opens images specified by list of file paths as a virtual stack.
 	It implements the File/Import/Stack From List command. */

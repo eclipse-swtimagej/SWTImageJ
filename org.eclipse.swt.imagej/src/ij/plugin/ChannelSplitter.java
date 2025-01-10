@@ -1,11 +1,12 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.Calibration;
-import ij.plugin.HyperStackReducer;
-import java.awt.*;
 import java.util.Vector;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.measure.Calibration;
+import ij.process.ColorProcessor;
 
 /** This plugin implements the Image/Color/Split Channels command. */
 public class ChannelSplitter implements PlugIn {

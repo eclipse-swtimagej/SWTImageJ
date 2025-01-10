@@ -1,24 +1,33 @@
 package ij.plugin;
 
-import ij.*;
-import static ij.IJ.createImage;
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.widgets.Combo;
 
-import java.awt.datatransfer.*;
-import ij.gui.*;
-import ij.process.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.Line;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.gui.TextRoi;
+import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.plugin.filter.Analyzer;
-import ij.text.TextWindow;
-import ij.measure.*;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /**
  * This plugin implements the Analyze/Tools/Calibration Bar command. Bob

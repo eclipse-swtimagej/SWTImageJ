@@ -1,13 +1,25 @@
 package ij.plugin;
-import ij.*;
-import ij.plugin.filter.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.math.*;
-import java.util.*;
-import ij.measure.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Rectangle;
+import java.awt.image.IndexColorModel;
+import java.util.Date;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.LookUpTable;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.ImageWindow;
+import ij.measure.Calibration;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.Blitter;
+import ij.process.ByteBlitter;
+import ij.process.ByteProcessor;
+import ij.process.ColorBlitter;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 
 
 public class SurfacePlotter implements PlugIn {

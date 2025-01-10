@@ -1,15 +1,23 @@
 package ij.plugin;
-import java.awt.*;
-import java.io.*;
-import java.text.DecimalFormat;	
-import java.util.*;
-import ij.*;
-import ij.io.*;
-import ij.gui.*;
+import java.io.File;
+import java.util.Locale;
+import java.util.Properties;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.io.FileSaver;
 import ij.measure.Calibration;
-import ij.process.*;
 import ij.plugin.frame.Recorder;
-import ij.macro.Interpreter;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
 import ij.util.Tools;
 
 /** This plugin, which saves the images in a stack as separate files, 

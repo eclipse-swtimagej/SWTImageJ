@@ -2,6 +2,7 @@ package ij.plugin.filter;
 
 import java.util.Locale;
 import java.util.Vector;
+
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.widgets.Display;
 

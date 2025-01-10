@@ -1,18 +1,37 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import ij.io.*;
-import ij.util.Tools;
-import ij.plugin.frame.Editor;
-import ij.plugin.filter.Analyzer;
-import ij.text.TextWindow;
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.util.*;
-import java.lang.reflect.*;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Method;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Menus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.EllipseRoi;
+import ij.gui.GUI;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.Line;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
+import ij.io.FileInfo;
+import ij.macro.Interpreter;
+import ij.measure.Calibration;
+import ij.measure.CurveFitter;
+import ij.plugin.filter.Analyzer;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.LUT;
+import ij.text.TextWindow;
+import ij.util.Tools;
 
 /** This plugin implements the Image/Show Info command. */
 public class ImageInfo implements PlugIn {

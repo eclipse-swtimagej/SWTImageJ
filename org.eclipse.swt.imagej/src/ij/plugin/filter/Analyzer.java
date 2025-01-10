@@ -1,17 +1,37 @@
 package ij.plugin.filter;
-import java.awt.*;
-import java.util.Vector;
+import java.awt.Color;
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.util.Properties;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import ij.text.*;
-import ij.plugin.MeasurementsWriter;
-import ij.plugin.Straightener;
-import ij.plugin.frame.RoiManager;
-import ij.util.Tools;
+
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Line;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.ProfilePlot;
+import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
+import ij.gui.Toolbar;
+import ij.gui.YesNoCancelDialog;
 import ij.macro.Interpreter;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
+import ij.plugin.MeasurementsWriter;
+import ij.plugin.frame.RoiManager;
+import ij.process.FloatPolygon;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.text.TextPanel;
 
 /** This plugin implements ImageJ's Analyze/Measure and Analyze/Set Measurements commands. */
 public class Analyzer implements PlugInFilter, Measurements {

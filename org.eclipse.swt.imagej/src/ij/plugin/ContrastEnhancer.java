@@ -1,9 +1,18 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
-import java.awt.*;
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Undo;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.measure.Measurements;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.ShortProcessor;
+import ij.process.StackStatistics;
 
 /** Implements ImageJ's Process/Enhance Contrast command. */
 public class ContrastEnhancer implements PlugIn, Measurements {

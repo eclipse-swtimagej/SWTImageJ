@@ -1,12 +1,16 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.Calibration;
-import java.awt.*;
-import java.util.Vector;
-
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
 
 /** Implements the Image/HyperStacks/Reduce Dimensionality command. */
 public class HyperStackReducer implements PlugIn, DialogListener {

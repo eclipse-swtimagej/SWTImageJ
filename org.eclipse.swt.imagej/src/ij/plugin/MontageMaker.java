@@ -1,11 +1,22 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Image;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Toolbar;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /** Implements the Image/Stacks/Make Montage command. */
 public class MontageMaker implements PlugIn {

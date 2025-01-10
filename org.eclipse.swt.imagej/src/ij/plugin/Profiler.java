@@ -1,7 +1,15 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.gui.GenericDialog;
+import ij.gui.Plot;
+import ij.gui.PlotMaker;
+import ij.gui.PlotWindow;
+import ij.gui.ProfilePlot;
+import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
 import ij.plugin.frame.Recorder;
 
 /**

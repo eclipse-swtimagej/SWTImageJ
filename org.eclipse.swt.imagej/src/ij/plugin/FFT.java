@@ -1,14 +1,18 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.plugin.ContrastEnhancer;
-import ij.measure.Calibration;
-import ij.util.Tools;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.measure.Measurements;
 import ij.plugin.frame.Recorder;
-import java.awt.*;
-import java.util.*;
+import ij.process.ColorProcessor;
+import ij.process.FHT;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /** 
 This class implements the FFT, Inverse FFT and Redisplay Power Spectrum commands 

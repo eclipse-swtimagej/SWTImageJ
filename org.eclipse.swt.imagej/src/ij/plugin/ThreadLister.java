@@ -1,8 +1,11 @@
 package ij.plugin;
-import java.io.*;
-import ij.*;
-import ij.text.*;
+import java.io.CharArrayWriter;
+import java.io.PrintWriter;
+
 import javax.swing.SwingUtilities;
+
+import ij.IJ;
+import ij.text.TextWindow;
 
 /**
 * Displays thread information in a text window.

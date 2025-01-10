@@ -1,14 +1,24 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.util.Tools;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Shape;
+import java.awt.geom.GeneralPath;
+import java.util.Random;
+import java.util.Vector;
 
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Prefs;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.gui.ShapeRoi;
+import ij.measure.Calibration;
+import ij.util.Tools;
 
 /** This class implements the Analyze/Tools/Grid command. */
 public class Grid implements PlugIn, DialogListener {

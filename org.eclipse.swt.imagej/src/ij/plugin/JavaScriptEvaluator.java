@@ -1,7 +1,8 @@
 package ij.plugin;
-import ij.*;
-import ij.plugin.frame.Editor;
-import javax.script.*;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+
+import ij.IJ;
 
 /** Implements the text editor's Macros/Run command, and the
     IJ.runMacroFile() method, when the file name ends with ".js". */

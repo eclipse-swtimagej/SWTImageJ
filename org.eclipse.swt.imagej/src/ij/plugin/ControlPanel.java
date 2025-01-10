@@ -3,6 +3,7 @@ package ij.plugin;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -24,6 +25,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+
 import ij.IJ;
 import ij.ImageJ;
 import ij.Menus;

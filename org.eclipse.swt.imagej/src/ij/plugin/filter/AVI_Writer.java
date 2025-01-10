@@ -1,14 +1,23 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.io.*;
-import ij.plugin.Animator;
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.*;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+
 import javax.imageio.ImageIO;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.gui.GenericDialog;
+import ij.io.FileInfo;
+import ij.io.SaveDialog;
+import ij.plugin.Animator;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 
 /**
 This plugin implements the File/Save As/AVI command.

@@ -1,15 +1,23 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.Calibration;
-import ij.macro.Interpreter;
-import ij.io.FileInfo;
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 
 import org.eclipse.swt.widgets.Display;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.gui.GenericDialog;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.macro.Interpreter;
+import ij.measure.Calibration;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
 
 /** Implements the AddSlice, DeleteSlice and "Stack to Images" commands. */
 public class StackEditor implements PlugIn {

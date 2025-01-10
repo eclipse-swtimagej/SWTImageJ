@@ -1,12 +1,24 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.util.Tools;
-import ij.measure.Measurements;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Rectangle;
 
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Prefs;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.gui.TextRoi;
+import ij.gui.Toolbar;
+import ij.measure.Measurements;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.util.Tools;
 
 
 /** This plugin implements the Image/Stacks/Label command. */

@@ -1,9 +1,26 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
+import java.awt.Image;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Line;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
 import ij.measure.Calibration;
-import java.awt.*;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatPolygon;
+import ij.process.FloatProcessor;
+import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
+import ij.process.StackConverter;
 
 /** This plugin implements the Edit/Selection/Straighten command. */
 public class Straightener implements PlugIn {

@@ -1,18 +1,19 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import ij.io.*;
-
+import java.awt.Color;
+import java.awt.Font;
+import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 
-import java.awt.image.*;
-import java.io.File;
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.TextRoi;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 
 	/** This plugin implements the Help/About ImageJ command by opening
 	 * about.jpg in ij.jar, scaling it 600% and adding text to an overlay.

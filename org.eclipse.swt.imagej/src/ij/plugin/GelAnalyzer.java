@@ -1,17 +1,32 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import ij.plugin.filter.Analyzer;
-
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Rectangle;
+import java.awt.image.IndexColorModel;
 
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.Line;
+import ij.gui.Overlay;
+import ij.gui.ProfilePlot;
+import ij.gui.Roi;
+import ij.gui.Toolbar;
+import ij.measure.Calibration;
+import ij.measure.ResultsTable;
+import ij.process.ByteProcessor;
+import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /**
  * This plugin generates gel profile plots that can be analyzed using the wand

@@ -1,15 +1,18 @@
 package ij.plugin.filter;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.util.Vector;
-import java.io.*;
-import ij.*;
-import ij.process.*;
-import ij.io.*;
-import ij.gui.*;
-import ij.measure.*;
-import java.awt.geom.*;
+import java.awt.Polygon;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.Roi;
+import ij.io.SaveDialog;
+import ij.measure.Calibration;
+import ij.process.FloatPolygon;
+import ij.process.ImageProcessor;
 
 
 /** Saves the XY coordinates of the current ROI boundary. */

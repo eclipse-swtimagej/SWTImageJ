@@ -1,11 +1,15 @@
 package ij.plugin;
-import ij.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
-import java.util.ArrayList;
-import java.util.List;
-import java.awt.Color;
 
 /**
  * This plugin is used by the Image/Stacks/Tools/Make Substack

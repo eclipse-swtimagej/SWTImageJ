@@ -1,10 +1,13 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
+import java.awt.Rectangle;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.Overlay;
 import ij.measure.Calibration;
-import java.awt.*;
-import java.awt.image.*;
+import ij.process.ImageProcessor;
+import ij.process.StackProcessor;
 
 /** Implements the Flip and Rotate commands in the Image/Transform submenu. */
 public class Transformer implements PlugInFilter {	

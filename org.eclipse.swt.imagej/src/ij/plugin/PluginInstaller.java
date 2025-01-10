@@ -1,12 +1,24 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.io.*;
-import ij.macro.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.net.*;
-import java.util.*;
+import java.net.URLConnection;
+import java.util.Locale;
+
+import ij.IJ;
+import ij.Menus;
+import ij.io.OpenDialog;
+import ij.io.Opener;
+import ij.io.SaveDialog;
+import ij.macro.MacroConstants;
+import ij.macro.Program;
+import ij.macro.Symbol;
+import ij.macro.Tokenizer;
 
 /** Installs plugins dragged and dropped on the "ImageJ" window, or plugins,
 	macros or scripts opened using the Plugins/Install command. */

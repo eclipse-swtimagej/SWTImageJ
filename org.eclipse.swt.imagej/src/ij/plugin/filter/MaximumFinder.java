@@ -1,16 +1,32 @@
 package ij.plugin.filter;
 
-import ij.plugin.filter.*;
-import ij.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.process.*;
-import ij.util.Tools;
-import java.awt.*;
-import java.util.*;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.util.Arrays;
+import java.util.Vector;
 
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.Wand;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.util.Tools;
 
 /**
  * This ImageJ plug-in filter finds the maxima (or minima) of an image. It can

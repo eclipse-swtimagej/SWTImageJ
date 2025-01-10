@@ -1,13 +1,14 @@
 package ij.plugin;
-import ij.*;
-import ij.text.*;
-import ij.util.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import org.eclipse.swt.SWT;
 
-import java.awt.*;
-import java.awt.event.*;
+import ij.Menus;
+import ij.text.TextWindow;
 
 /** This class is used by the Plugins/Shortcuts/List Shortcuts 
 	command to display a list keyboard shortcuts. */

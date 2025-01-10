@@ -1,6 +1,5 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.process.*;
+import ij.ImagePlus;
 
 /** ImageJ plugins that process an image may implement this interface.
  *  In addition to the features of PlugInFilter, it is better suited

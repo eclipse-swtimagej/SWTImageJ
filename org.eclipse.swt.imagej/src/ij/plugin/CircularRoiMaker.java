@@ -1,10 +1,14 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.measure.Calibration;
-import java.awt.*;
-
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.OvalRoi;
+import ij.gui.Roi;
+import ij.measure.Calibration;
 
 /** This class implements the Process/FFT/Make Circular Selection command. */
 public class CircularRoiMaker implements PlugIn, DialogListener {

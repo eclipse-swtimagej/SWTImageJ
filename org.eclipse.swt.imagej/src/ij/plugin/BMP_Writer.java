@@ -1,10 +1,13 @@
 package ij.plugin;
-import ij.*;
-import ij.io.*;
-import ij.process.*;
-import java.awt.*;
-import java.io.*;
-import java.awt.image.*;
+import java.awt.Image;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.LookUpTable;
+import ij.WindowManager;
+import ij.io.SaveDialog;
 
 /** Implements the File/Save As/BMP command. Based on BMPFile class from
    http://www.javaworld.com/javaworld/javatips/jw-javatip60-p2.html */

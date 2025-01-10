@@ -10,10 +10,16 @@ This code was modified from Image_Browser by Albert Cardona
 */
 
 package ij.plugin;
-import ij.*;
-import ij.io.*;
-import ij.gui.*;
 import java.io.File;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.YesNoCancelDialog;
+import ij.io.FileInfo;
+import ij.io.FileSaver;
+import ij.io.Opener;
 
 public class NextImageOpener implements PlugIn {
 

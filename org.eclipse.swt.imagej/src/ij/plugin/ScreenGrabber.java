@@ -1,24 +1,19 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.swt.Util;
-import ij.gui.*;
-import java.awt.*;
-import java.awt.image.MultiResolutionImage;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.internal.DPIUtil;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.swt.Util;
 
 /**
  * This plugin implements the Plugins/Utilities/Capture Screen and

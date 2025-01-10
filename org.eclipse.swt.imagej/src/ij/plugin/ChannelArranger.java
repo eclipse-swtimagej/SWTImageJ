@@ -1,15 +1,9 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.ChannelSplitter;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
@@ -29,7 +23,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.process.ImageProcessor;
 
 /**
  * This plugin implements the Image/Colors/Arrange Channels command, which

@@ -1,7 +1,7 @@
 package ij.plugin.filter;
 import ij.ImagePlus;
-import ij.process.ImageProcessor;
 import ij.plugin.ImageInfo;
+import ij.process.ImageProcessor;
 
 /**
 * @deprecated

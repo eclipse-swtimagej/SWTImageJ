@@ -1,12 +1,24 @@
 package ij.plugin.filter;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.macro.*;
-import java.awt.*;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.macro.Interpreter;
+import ij.macro.Program;
+import ij.macro.Tokenizer;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 
 /** This plugin implements ImageJ's Process/Math submenu. */
 public class ImageMath implements ExtendedPlugInFilter, DialogListener {

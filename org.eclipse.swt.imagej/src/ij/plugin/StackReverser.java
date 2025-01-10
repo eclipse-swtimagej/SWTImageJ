@@ -1,6 +1,8 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
 import ij.measure.Calibration;
 
 /** This plugin implements the Image/Transform/Flip Z and

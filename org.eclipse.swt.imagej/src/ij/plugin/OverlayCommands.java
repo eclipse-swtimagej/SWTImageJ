@@ -1,16 +1,34 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.frame.RoiManager;
-import ij.plugin.frame.Recorder;
-import ij.macro.Interpreter;
-import ij.io.RoiDecoder;
-import ij.plugin.filter.PlugInFilter;
-import ij.measure.*;
-import java.awt.*;
-import java.util.ArrayList;
+import java.awt.Color;
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Prefs;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.Arrow;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageRoi;
+import ij.gui.Line;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.RoiProperties;
+import ij.gui.Toolbar;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.frame.Recorder;
+import ij.plugin.frame.RoiManager;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /** This plugin implements the commands in the Image/Overlay menu. */
 public class OverlayCommands implements PlugIn {

@@ -1,10 +1,13 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import ij.measure.*;
-import ij.plugin.TextReader;
+import java.awt.Rectangle;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
 
 /** This plugin implements the File/Import/XY Coordinates command. It reads a
 	two column text file, such as those created by File/Save As/XY Coordinates,

@@ -1,16 +1,29 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.plugin.ContrastEnhancer;
-import ij.util.ThreadUtil;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Arrays;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.awt.Rectangle;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.gui.DialogListener;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.plugin.ContrastEnhancer;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.util.ThreadUtil;
 
 
 /** This plugin implements the Mean, Minimum, Maximum, Variance, Median,

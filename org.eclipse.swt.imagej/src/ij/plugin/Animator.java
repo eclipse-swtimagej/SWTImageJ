@@ -1,10 +1,14 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.StackWindow;
 import ij.measure.Calibration;
 import ij.plugin.frame.Recorder;
-import java.awt.Point;
 
 /** This plugin animates stacks. */
 public class Animator implements PlugIn {

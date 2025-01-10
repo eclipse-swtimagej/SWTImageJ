@@ -7,9 +7,13 @@
 */
 
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import java.awt.*;
+import java.awt.Dimension;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.Plot;
+import ij.gui.ProfilePlot;
 
 public class StackPlotter implements PlugIn {
 	

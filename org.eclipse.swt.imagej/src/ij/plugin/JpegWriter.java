@@ -1,18 +1,28 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.io.FileSaver;
-import ij.io.SaveDialog;
-import java.awt.image.*;
-import java.awt.*;
-import java.io.*;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Iterator;
-import javax.imageio.*;
-import javax.imageio.stream.*;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageOutputStream;
+
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import javax.imageio.metadata.IIOMetadata;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.io.FileSaver;
+import ij.io.SaveDialog;
+import ij.process.ImageProcessor;
 
 
 /** The File/Save As/Jpeg command (FileSaver.saveAsJpeg() method) 

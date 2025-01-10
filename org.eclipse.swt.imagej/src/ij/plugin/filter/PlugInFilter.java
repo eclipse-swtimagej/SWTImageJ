@@ -1,6 +1,6 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.process.*;
+import ij.ImagePlus;
+import ij.process.ImageProcessor;
 
 /** ImageJ plugins that process an image should implement this interface.
  *  For filters that have a dialog asking for options or parameters as well

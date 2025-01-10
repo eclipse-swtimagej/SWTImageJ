@@ -1,22 +1,33 @@
 package ij.plugin;
 
-import java.awt.*;
-import java.io.*;
-import java.awt.event.*;
+import java.awt.GraphicsEnvironment;
 import java.awt.image.ColorModel;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Properties;
+import java.util.Vector;
 
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Display;
 
-import ij.*;
-import ij.io.*;
-import ij.gui.*;
-import ij.process.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.VirtualStack;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.io.FileInfo;
+import ij.io.Opener;
 import ij.measure.Calibration;
-import ij.util.*;
 import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
+import ij.util.DicomTools;
+import ij.util.StringSorter;
+import ij.util.Tools;
 
 /**
  * Implements the File/Import/Image Sequence command, which opens a folder of

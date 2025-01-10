@@ -1,14 +1,14 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.io.*;
-import ij.process.ImageProcessor;
-import ij.plugin.frame.Recorder;
-import java.io.*;
-import java.awt.Point;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
@@ -17,9 +17,16 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.widgets.Display;
 
-import java.util.ArrayList;
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.gui.Toolbar;
+import ij.io.OpenDialog;
+import ij.io.Opener;
+import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
 
 /**
  * This class opens images, roi's, luts and text files dragged and dropped on

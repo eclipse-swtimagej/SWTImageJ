@@ -1,12 +1,14 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import java.awt.image.*;
-import ij.plugin.frame.ContrastAdjuster;
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.ImageWindow;
 import ij.macro.Interpreter;
 import ij.plugin.frame.Recorder;
+import ij.process.ColorProcessor;
 
 /** This plugin implements the Image/Color/Make Composite command. */
 public class CompositeConverter implements PlugIn {

@@ -1,19 +1,20 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.io.*;
-import ij.plugin.filter.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import ij.util.Tools;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Vector;
 
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Display;
 import org.jfree.swt.SWTUtils;
+
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.gui.Toolbar;
 
 /** This plugin implements most of the Edit/Options/Colors command. */
 public class Colors implements PlugIn, SelectionListener {

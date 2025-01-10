@@ -1,12 +1,23 @@
 package ij.plugin;
-import ij.plugin.*;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
+import java.awt.Color;
+import java.awt.Rectangle;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.gui.Plot;
+import ij.gui.PlotMaker;
+import ij.gui.ProfilePlot;
+import ij.gui.Roi;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
 import ij.plugin.filter.Analyzer;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 import ij.util.Tools;
-import java.awt.*;
 
 /** Implements the Image/Stacks/Plot Z-axis Profile command, 
 	which plots the selection mean gray value versus slice number.

@@ -1,14 +1,20 @@
 package ij.plugin;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.util.Vector;
-import java.io.*;
-import ij.*;
-import ij.process.*;
-import ij.io.*;
-import ij.gui.*;
+import java.awt.Rectangle;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.io.SaveDialog;
 import ij.measure.ResultsTable;
+import ij.process.ImageProcessor;
 
 
 /** Writes the XY coordinates and pixel values of all non-background 

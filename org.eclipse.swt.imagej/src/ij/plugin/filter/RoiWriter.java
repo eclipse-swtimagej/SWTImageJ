@@ -1,12 +1,13 @@
 package ij.plugin.filter;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
-import ij.*;
-import ij.process.*;
-import ij.io.*;
-import ij.gui.*;
+import java.io.IOException;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.Roi;
+import ij.io.RoiEncoder;
+import ij.io.SaveDialog;
+import ij.process.ImageProcessor;
 
 /** Saves the current ROI outline to a file. RoiDecoder.java 
 	has a description of the file format.

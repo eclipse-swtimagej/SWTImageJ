@@ -1,26 +1,29 @@
 package ij.plugin;
 
-import ij.*;
-import ij.macro.Interpreter;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import ij.measure.*;
-import ij.plugin.filter.*;
-import ij.plugin.frame.Recorder;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.image.ColorModel;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.Vector;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
-import java.lang.*;
-import java.awt.image.ColorModel;
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Menus;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.macro.Interpreter;
+import ij.measure.Calibration;
+import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
 
 /**
  * This plugin, which concatenates two or more images or stacks,

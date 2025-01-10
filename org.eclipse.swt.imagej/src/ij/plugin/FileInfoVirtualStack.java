@@ -1,12 +1,22 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.io.*;
-import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.VirtualStack;
+import ij.io.FileInfo;
+import ij.io.FileOpener;
+import ij.io.OpenDialog;
+import ij.io.TiffDecoder;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 /**
  * This plugin opens a multi-page TIFF file, or a set of raw images, as a

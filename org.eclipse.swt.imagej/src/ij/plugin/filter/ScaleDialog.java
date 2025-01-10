@@ -20,8 +20,8 @@ import ij.gui.GenericDialog;
 import ij.gui.Line;
 import ij.gui.Roi;
 import ij.io.FileOpener;
-import ij.plugin.frame.Recorder;
 import ij.measure.Calibration;
+import ij.plugin.frame.Recorder;
 import ij.process.ImageProcessor;
 import ij.util.Tools;
 

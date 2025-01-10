@@ -1,7 +1,13 @@
 package ij.plugin;
-import ij.*;
-import ij.gui.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import ij.IJ;
+import ij.Prefs;
+import ij.gui.GenericDialog;
 import ij.util.Tools;
 
 

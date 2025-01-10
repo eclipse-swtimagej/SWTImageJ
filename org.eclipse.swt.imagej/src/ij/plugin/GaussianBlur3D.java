@@ -1,9 +1,11 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import ij.plugin.filter.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.plugin.filter.GaussianBlur;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 
 public class GaussianBlur3D implements PlugIn {
 	private static double xsigma=2, ysigma=2, zsigma=2;

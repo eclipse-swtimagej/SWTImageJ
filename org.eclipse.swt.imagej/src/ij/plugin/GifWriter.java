@@ -1,13 +1,26 @@
 package ij.plugin;
-import ij.*;
-import ij.io.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.plugin.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBufferByte;
+import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import javax.imageio.ImageIO;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.gui.Overlay;
+import ij.io.SaveDialog;
+import ij.process.ByteProcessor;
+import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
 
 /** Saves the active image in GIF format, or as an animated GIF if the image is a stack. */
 public class GifWriter implements PlugIn {

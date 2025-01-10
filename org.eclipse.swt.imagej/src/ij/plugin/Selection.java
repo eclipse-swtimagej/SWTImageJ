@@ -6,7 +6,9 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
+
 import org.eclipse.swt.widgets.Display;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
@@ -30,7 +32,6 @@ import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.plugin.filter.EDM;
-import ij.plugin.filter.GaussianBlur;
 import ij.plugin.frame.LineWidthAdjuster;
 import ij.plugin.frame.Recorder;
 import ij.plugin.frame.RoiManager;

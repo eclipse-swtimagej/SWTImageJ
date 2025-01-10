@@ -1,18 +1,23 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.plugin.filter.Analyzer;
-import ij.measure.Measurements;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.awt.Color;
+import java.util.Vector;
 
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.Roi;
+import ij.gui.Toolbar;
 
 /** This plugin implements the Edit/Options/Point Tool command. */
 public class PointToolOptions implements PlugIn, DialogListener {

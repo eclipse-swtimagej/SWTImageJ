@@ -1,13 +1,17 @@
 package ij.plugin.filter;  //##
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.plugin.filter.ParticleAnalyzer;
-import ij.measure.*;
-import ij.util.*;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.Plot;
+import ij.gui.Roi;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.process.ImageProcessor;
+import ij.util.FloatArray;
+import ij.util.Tools;
 
 
 /**

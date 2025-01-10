@@ -1,11 +1,8 @@
 package ij.plugin.filter;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.ResultsTable;
 import java.awt.image.IndexColorModel;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -16,6 +13,15 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.LookUpTable;
+import ij.Prefs;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.measure.ResultsTable;
+import ij.process.ImageProcessor;
 
 /** Displays the active image's look-up table.
 * Implements the Image/Color/Show LUT command.

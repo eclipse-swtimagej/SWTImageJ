@@ -1,21 +1,50 @@
 package ij.plugin.filter;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.image.IndexColorModel;
 import java.util.Properties;
 
 import org.eclipse.swt.widgets.Display;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.*;
-import ij.text.*;
-import ij.plugin.filter.Analyzer;
-import ij.plugin.frame.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.LookUpTable;
+import ij.Macro;
+import ij.Prefs;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.Wand;
+import ij.macro.Interpreter;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
 import ij.plugin.Colors;
 import ij.plugin.LutLoader;
-import ij.macro.Interpreter;
+import ij.plugin.frame.Recorder;
+import ij.plugin.frame.RoiManager;
+import ij.process.ByteProcessor;
+import ij.process.ByteStatistics;
+import ij.process.ColorProcessor;
+import ij.process.ColorStatistics;
+import ij.process.FloatProcessor;
+import ij.process.FloatStatistics;
+import ij.process.FloodFiller;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.LUT;
+import ij.process.PolygonFiller;
+import ij.process.ShortProcessor;
+import ij.process.ShortStatistics;
+import ij.text.TextPanel;
+import ij.text.TextWindow;
 import ij.util.Tools;
 
 /**

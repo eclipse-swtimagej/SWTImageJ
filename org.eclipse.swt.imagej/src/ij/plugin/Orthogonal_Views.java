@@ -1,14 +1,16 @@
 package ij.plugin;
 
-import ij.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.process.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.event.*;
-import java.awt.geom.*;
-import java.util.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.geom.GeneralPath;
+import java.awt.image.ColorModel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -16,6 +18,27 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.widgets.Display;
+
+import ij.CommandListener;
+import ij.CompositeImage;
+import ij.Executer;
+import ij.IJ;
+import ij.ImageListener;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.gui.ShapeRoi;
+import ij.measure.Calibration;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 /**
  * This plugin projects dynamically orthogonal XZ and YZ views of a stack. The

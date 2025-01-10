@@ -1,10 +1,9 @@
 package ij.plugin;
-import ij.*;
-import ij.process.*;
-import ij.io.*;
-import ij.text.*;
+import ij.IJ;
+import ij.WindowManager;
 import ij.plugin.frame.Editor;
-import java.awt.*;
+import ij.text.TextPanel;
+import ij.text.TextWindow;
 
 /** This plugin implements the File/Save As/Text command, which saves the
 	contents of Editor windows and TextWindows (e.g., "Log" and "Results"). */

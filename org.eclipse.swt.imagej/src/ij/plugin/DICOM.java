@@ -1,12 +1,23 @@
 package ij.plugin;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import ij.*;
-import ij.io.*;
-import ij.process.*;
-import ij.util.Tools;
+import java.util.Properties;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Prefs;
+import ij.io.FileInfo;
+import ij.io.FileOpener;
+import ij.io.OpenDialog;
 import ij.measure.Calibration;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.util.Tools;
 
 /** This plugin decodes DICOM files. If 'arg' is empty, it
 	displays a file open dialog and opens and displays the 

@@ -1,12 +1,24 @@
 package ij.plugin;
 
-import ij.*;
-import ij.io.*;
-import ij.process.*;
-import java.awt.*;
-import java.io.*;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
+import java.io.File;
+
 import javax.imageio.ImageIO;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.io.SaveDialog;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 /**
  * Saves in PNG format using the ImageIO classes. RGB images are saved

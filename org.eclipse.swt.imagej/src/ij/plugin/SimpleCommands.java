@@ -1,17 +1,22 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.io.Opener;
-import ij.text.TextWindow;
-import ij.measure.ResultsTable;
-import ij.plugin.frame.Editor;
 import java.awt.Desktop;
-import java.awt.Frame;
 import java.io.File;
 
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Toolbar;
+import ij.io.Opener;
+import ij.measure.ResultsTable;
+import ij.plugin.frame.Editor;
+import ij.process.ImageProcessor;
 
 /**
  * This plugin implements the Plugins/Utilities/Unlock, Image/Rename and

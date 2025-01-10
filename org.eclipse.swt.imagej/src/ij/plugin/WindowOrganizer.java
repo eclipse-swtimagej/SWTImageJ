@@ -1,15 +1,20 @@
 package ij.plugin;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.frame.ThresholdAdjuster;
-import ij.plugin.frame.swt.WindowSwt;
-
-import java.awt.*;
+import java.awt.Frame;
+import java.awt.Rectangle;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.PlotWindow;
+import ij.plugin.frame.swt.WindowSwt;
 
 /**
  * This class implements the Window menu's "Show All", "Main Window", "Cascade"

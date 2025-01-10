@@ -1,12 +1,16 @@
 package ij.plugin.filter;
-import java.awt.*;
-import java.awt.image.*;
-import java.util.*;
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.util.*;
+import java.awt.Rectangle;
+import java.util.StringTokenizer;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.Plot;
+import ij.gui.PlotWindow;
+import ij.measure.CurveFitter;
+import ij.measure.ResultsTable;
+import ij.process.ImageProcessor;
+import ij.util.Tools;
 
 /**
 Calculate the so-called "capacity" fractal dimension.  The algorithm

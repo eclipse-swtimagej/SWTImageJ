@@ -1,12 +1,22 @@
 package ij.plugin;
-import ij.plugin.frame.Recorder;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.measure.Calibration;
-import ij.macro.Interpreter;
-import ij.io.FileInfo;
 import java.awt.Color;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.io.FileInfo;
+import ij.measure.Calibration;
+import ij.plugin.frame.Recorder;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 
 /** Implements the Image/Stacks/Images to Stack" command. */

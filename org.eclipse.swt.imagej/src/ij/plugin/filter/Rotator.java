@@ -1,12 +1,22 @@
 package ij.plugin.filter;
 
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import java.awt.*;
-import java.awt.geom.*;
+import java.awt.Rectangle;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
 
 import org.eclipse.swt.events.TypedEvent;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Undo;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.Overlay;
+import ij.gui.Roi;
+import ij.gui.ShapeRoi;
+import ij.gui.Toolbar;
+import ij.process.ImageProcessor;
 
 /** This plugin implements the Image/Rotate/Arbitrarily command. */
 public class Rotator implements ExtendedPlugInFilter, DialogListener {

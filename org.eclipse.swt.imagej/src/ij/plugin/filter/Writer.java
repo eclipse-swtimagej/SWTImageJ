@@ -1,7 +1,7 @@
 package ij.plugin.filter;
-import ij.*;
-import ij.process.*;
-import ij.io.*;
+import ij.ImagePlus;
+import ij.io.FileSaver;
+import ij.process.ImageProcessor;
 
 
 /** Obsolete
