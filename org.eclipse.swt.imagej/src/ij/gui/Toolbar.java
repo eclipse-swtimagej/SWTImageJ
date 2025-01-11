@@ -1,9 +1,24 @@
 package ij.gui;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.imageio.ImageIO;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -15,19 +30,20 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.jfree.swt.SWTGraphics2D;
-import java.io.File;
-import java.util.Timer;
-import java.util.Hashtable;
-import java.util.TimerTask;
-import java.util.Arrays;
-import java.util.Locale;
-import ij.*;
-import ij.plugin.frame.*;
-import ij.plugin.MacroInstaller;
-import ij.plugin.RectToolOptions;
-import ij.plugin.tool.PlugInTool;
-import ij.plugin.tool.MacroToolRunner;
+
+import ij.IJ;
+import ij.IJEventListener;
+import ij.ImagePlus;
+import ij.Menus;
+import ij.Prefs;
+import ij.WindowManager;
 import ij.macro.Program;
+import ij.plugin.MacroInstaller;
+import ij.plugin.frame.ColorPicker;
+import ij.plugin.frame.Editor;
+import ij.plugin.frame.Recorder;
+import ij.plugin.tool.MacroToolRunner;
+import ij.plugin.tool.PlugInTool;
 
 /** The ImageJ toolbar. */
 public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintListener,
@@ -168,8 +184,10 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 	}
 
 	public void init() {
-
-		dscale = 1;// In SWT not necessary! -> Prefs.getGuiScale();
+        
+		//String deviceZoom = System.getProperty("org.eclipse.swt.internal.deviceZoom");// Get SWT device zoom!
+		//dscale=Double.parseDouble(deviceZoom)/100.0;
+		dscale=Prefs.getGuiScale();
 		scale = (int) Math.round(dscale);
 		if ((dscale >= 1.5 && dscale < 2.0) || (dscale >= 2.5 && dscale < 3.0))
 			dscale = scale;
