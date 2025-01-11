@@ -1,6 +1,7 @@
 package ij.measure;
 
-import ij.*;
+import ij.IJ;
+import ij.ImagePlus;
 import ij.plugin.filter.Analyzer;
 
 /** Calibration objects contain an image's spatial and density calibration data. */

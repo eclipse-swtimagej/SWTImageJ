@@ -1,16 +1,9 @@
 package ij.measure;
-import ij.*;
-import ij.gui.*;
-import ij.macro.*;
-import ij.gui.Roi;
-import ij.gui.PolygonRoi;
-import ij.gui.Line;
-import ij.util.Tools;
-import ij.plugin.frame.RoiManager;
-import java.util.Random;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.Vector;
-import java.util.Hashtable;
+
+import ij.IJ;
 
 /** Minimizer based on Nelder-Mead simplex method (also known as polytope method),
  *  including the 'outside contraction' as described in:

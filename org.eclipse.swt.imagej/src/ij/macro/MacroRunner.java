@@ -1,10 +1,14 @@
 package ij.macro;
-import ij.*;
-import ij.text.*;
-import ij.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Menus;
+import ij.WindowManager;
 import ij.gui.ImageCanvas;
-import java.io.*;
-import java.awt.*;
 import ij.plugin.frame.Editor;
 																																																																																																																																																					   
 

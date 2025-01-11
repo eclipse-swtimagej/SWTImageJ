@@ -1,19 +1,19 @@
 package ij.measure;
 
-import ij.plugin.filter.Analyzer;
-import ij.plugin.frame.Recorder;
-import ij.plugin.*;
-import ij.*;
-import ij.gui.*;
-import ij.text.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
+
+import ij.IJ;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.plugin.filter.Analyzer;
+import ij.plugin.frame.Recorder;
 
 /**
  * This class implements the Apply Macro command in tables.

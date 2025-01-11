@@ -1,6 +1,6 @@
 package ij.macro;
-import ij.*;
-import java.io.*;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
 
 /** This class converts an imageJ macro file file into a token stream. */
 public class Tokenizer implements MacroConstants {

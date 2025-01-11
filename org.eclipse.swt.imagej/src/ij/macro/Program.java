@@ -1,6 +1,7 @@
 package ij.macro;
-import ij.*;
 import java.util.Hashtable;
+
+import ij.IJ;
 
 /** An object of this type is a tokenized macro file and the associated symbol table. */
 public class Program implements MacroConstants {

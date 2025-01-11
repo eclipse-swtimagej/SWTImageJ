@@ -1,20 +1,27 @@
 package ij.macro;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.Macro_Runner;
-import ij.plugin.frame.*;
-import ij.util.Tools;
-import ij.text.*;
-import ij.measure.ResultsTable;
-import java.awt.*;
-import java.util.*;
+import java.awt.Window;
+import java.awt.event.KeyEvent;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Vector;
 
 import org.eclipse.swt.widgets.Display;
 
-import java.awt.event.KeyEvent;
-import java.io.PrintWriter;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.Menus;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.measure.ResultsTable;
+import ij.plugin.frame.Recorder;
+import ij.plugin.frame.RoiManager;
+import ij.process.ColorProcessor;
+import ij.text.TextPanel;
+import ij.text.TextWindow;
+import ij.util.Tools;
 
 /**
  * This is the recursive descent parser/interpreter for the ImageJ macro

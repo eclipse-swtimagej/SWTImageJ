@@ -1,16 +1,20 @@
 package ij.measure;
 
-import ij.*;
-import ij.gui.*;
-import ij.macro.*;
-import ij.util.Tools;
-import ij.util.IJMath;
-import java.util.Arrays;
+import java.awt.Color;
 import java.util.Hashtable;
 
 import org.eclipse.swt.widgets.Display;
 
-import java.awt.Color;
+import ij.IJ;
+import ij.Macro;
+import ij.gui.GenericDialog;
+import ij.gui.Plot;
+import ij.gui.PlotWindow;
+import ij.macro.Interpreter;
+import ij.macro.Program;
+import ij.macro.Tokenizer;
+import ij.util.IJMath;
+import ij.util.Tools;
 
 /**
  * Curve fitting class based on the Simplex method in the Minimizer class

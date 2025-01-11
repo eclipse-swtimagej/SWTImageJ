@@ -1,22 +1,45 @@
 package ij.measure;
 
-import ij.*;
-import ij.plugin.filter.Analyzer;
-import ij.plugin.frame.Editor;
-import ij.text.*;
-import ij.process.*;
-import ij.gui.Roi;
-import ij.util.Tools;
-import ij.io.*;
-import ij.macro.*;
-import java.awt.*;
-import java.text.*;
-import java.util.*;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.swt.widgets.Display;
 
-import java.io.*;
-import java.math.RoundingMode;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.Roi;
+import ij.io.OpenDialog;
+import ij.io.SaveDialog;
+import ij.macro.Interpreter;
+import ij.macro.Program;
+import ij.macro.Tokenizer;
+import ij.macro.Variable;
+import ij.plugin.filter.Analyzer;
+import ij.process.ByteProcessor;
+import ij.process.ByteStatistics;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.text.TextPanel;
+import ij.text.TextWindow;
+import ij.util.Tools;
 
 /**
  * This is a table for storing measurement results and strings as columns of
