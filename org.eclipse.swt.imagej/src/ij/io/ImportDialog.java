@@ -1,16 +1,21 @@
 package ij.io;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.*;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
-import ij.util.*;
-import ij.plugin.frame.Recorder;
-import ij.plugin.*;
+import java.io.File;
+import java.util.Properties;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.Prefs;
+import ij.gui.GenericDialog;
 import ij.measure.Calibration;
+import ij.plugin.FileInfoVirtualStack;
+import ij.plugin.FolderOpener;
+import ij.plugin.Raw;
+import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
+import ij.util.Tools;
 
 
 /** This is a dialog box used to imports raw 8, 16, 24 and 32-bit images. */

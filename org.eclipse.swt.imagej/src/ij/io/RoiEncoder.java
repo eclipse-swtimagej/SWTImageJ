@@ -1,11 +1,28 @@
 package ij.io;
-import ij.gui.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import ij.gui.Arrow;
+import ij.gui.EllipseRoi;
+import ij.gui.ImageRoi;
+import ij.gui.Line;
+import ij.gui.OvalRoi;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
+import ij.gui.ShapeRoi;
+import ij.gui.TextRoi;
 import ij.process.FloatPolygon;
-import java.awt.*;
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import java.awt.geom.*;
 
 
 /** Saves an ROI to a file or stream. RoiDecoder.java has a description of the file format.

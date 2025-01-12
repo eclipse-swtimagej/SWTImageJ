@@ -1,6 +1,8 @@
 package ij.io;
-import ij.IJ;
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.util.Vector;
 
 

@@ -1,13 +1,28 @@
 package ij.io;
 
-import ij.gui.*;
-import ij.ImagePlus;
-import ij.process.*;
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import ij.ImagePlus;
+import ij.gui.Arrow;
+import ij.gui.EllipseRoi;
+import ij.gui.ImageRoi;
+import ij.gui.Line;
+import ij.gui.OvalRoi;
+import ij.gui.Overlay;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
+import ij.gui.ShapeRoi;
+import ij.gui.TextRoi;
 
 /**
  * This class decodes an ImageJ .roi file.

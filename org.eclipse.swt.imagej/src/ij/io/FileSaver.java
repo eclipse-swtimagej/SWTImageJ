@@ -1,18 +1,38 @@
 package ij.io;
-import java.awt.*;
-import java.io.*;
-import java.util.zip.*;
-import ij.*;
-import ij.process.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.LookUpTable;
+import ij.Prefs;
+import ij.VirtualStack;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.Overlay;
+import ij.gui.Plot;
+import ij.gui.PlotWindow;
+import ij.gui.Roi;
 import ij.measure.Calibration;
-import ij.plugin.filter.Analyzer;
-import ij.plugin.frame.Recorder;
+import ij.measure.Measurements;
 import ij.plugin.JpegWriter;
 import ij.plugin.Orthogonal_Views;
-import ij.gui.*;
-import ij.measure.Measurements;
+import ij.plugin.filter.Analyzer;
+import ij.process.FHT;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
 import ij.util.Tools;
-import javax.imageio.*;
 
 /** Saves images in tiff, gif, jpeg, raw, zip and text format. */
 public class FileSaver {

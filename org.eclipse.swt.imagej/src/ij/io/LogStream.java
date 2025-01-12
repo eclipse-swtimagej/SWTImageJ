@@ -1,7 +1,8 @@
 package ij.io;
-import ij.IJ;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+
+import ij.IJ;
 
 /**
  * This class provides the functionality to divert output sent to the System.out

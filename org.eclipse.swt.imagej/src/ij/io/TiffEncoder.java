@@ -1,5 +1,7 @@
 package ij.io;
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**Saves an image described by a FileInfo object as an uncompressed TIFF file.*/
 public class TiffEncoder {

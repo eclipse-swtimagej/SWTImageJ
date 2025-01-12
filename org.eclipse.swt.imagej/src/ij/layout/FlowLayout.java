@@ -28,14 +28,14 @@
  
 package ij.layout; 
  
-import java.awt.ComponentOrientation; 
-import java.util.Locale; 
-import java.util.Vector; 
- 
-import org.eclipse.swt.SWT; 
-import org.eclipse.swt.graphics.Point; 
-import org.eclipse.swt.graphics.Rectangle; 
-import org.eclipse.swt.widgets.Composite; 
+import java.awt.ComponentOrientation;
+import java.util.Locale;
+import java.util.Vector;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control; 
  
 /**

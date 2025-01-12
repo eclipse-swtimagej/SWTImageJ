@@ -1,19 +1,18 @@
 /**/
 package ij.io;
 
-import ij.gui.GenericDialog;
-import java.awt.*;
-import java.io.*;
-import javax.swing.*;
-import javax.swing.filechooser.*;
-import ij.*;
-import ij.plugin.frame.Recorder;
-import ij.util.Java2;
-import ij.macro.Interpreter;
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.macro.Interpreter;
+import ij.plugin.frame.Recorder;
 
 /**
  * This class displays a dialog window from which the user can save a file.

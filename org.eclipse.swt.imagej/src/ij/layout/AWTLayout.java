@@ -28,10 +28,10 @@
  
 package ij.layout; 
  
-import java.awt.Dimension; 
- 
-import org.eclipse.swt.graphics.Point; 
-import org.eclipse.swt.widgets.Control; 
+import java.awt.Dimension;
+
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Layout; 
  
 /**
