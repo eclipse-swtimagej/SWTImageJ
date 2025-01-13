@@ -1,8 +1,6 @@
 package ij.plugin.frame;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.Point;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -16,12 +14,16 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 
-import ij.*;
-import ij.plugin.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.plugin.frame.Recorder;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.Line;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.RoiListener;
+import ij.plugin.PlugIn;
 import ij.util.Tools;
 
 /** Adjusts the width of line selections. */

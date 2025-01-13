@@ -21,7 +21,6 @@ import ij.IJ;
 import ij.ImageListener;
 import ij.ImagePlus;
 import ij.Macro;
-import ij.Menus;
 import ij.Prefs;
 import ij.WindowManager;
 import ij.gui.Arrow;

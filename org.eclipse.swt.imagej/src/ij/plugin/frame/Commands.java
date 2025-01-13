@@ -1,11 +1,6 @@
 package ij.plugin.frame;
 
-import ij.*;
-import ij.gui.*;
-import ij.plugin.frame.swt.WindowSwt;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Point;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -13,6 +8,15 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Display;
+
+import ij.CommandListener;
+import ij.Executer;
+import ij.IJ;
+import ij.ImageJ;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.plugin.frame.swt.WindowSwt;
 
 /** This plugin implements the Plugins>Utiltiees>Recent Commands command. */
 public class Commands extends PlugInFrame implements SelectionListener, CommandListener, WindowSwt {

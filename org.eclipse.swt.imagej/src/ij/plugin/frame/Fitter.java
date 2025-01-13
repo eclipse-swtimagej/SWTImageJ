@@ -1,8 +1,11 @@
 package ij.plugin.frame;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.StringTokenizer;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
@@ -15,17 +18,19 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Display;
 
-import java.io.*;
-import java.awt.datatransfer.*;
-import ij.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.Plot;
+import ij.io.OpenDialog;
+import ij.measure.CurveFitter;
+import ij.measure.Minimizer;
 import ij.plugin.PlugIn;
-import ij.plugin.frame.*;
-import ij.text.*;
-import ij.gui.*;
-import ij.util.*;
-import ij.io.*;
-import ij.process.*;
-import ij.measure.*;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.util.Tools;
 
 /**
  * ImageJ plugin that does curve fitting using the modified CurveFitter class.

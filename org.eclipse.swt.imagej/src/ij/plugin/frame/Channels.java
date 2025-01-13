@@ -1,16 +1,22 @@
 package ij.plugin.frame;
 
-import ij.*;
-import ij.plugin.*;
-import ij.gui.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Frame;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Display;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.HTMLDialog;
+import ij.plugin.PlugIn;
 
 /** Displays the ImageJ "Channels" dialog. */
 public class Channels extends PlugInDialog implements PlugIn, SelectionListener {

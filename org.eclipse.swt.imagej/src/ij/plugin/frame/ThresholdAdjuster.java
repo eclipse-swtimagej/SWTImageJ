@@ -1,8 +1,13 @@
 package ij.plugin.frame;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -15,16 +20,33 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import ij.*;
-import ij.plugin.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.util.Tools;
-import ij.plugin.frame.Recorder;
-import ij.plugin.filter.*;
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImageListener;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.gui.YesNoCancelDialog;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
 import ij.plugin.ChannelSplitter;
+import ij.plugin.PlugIn;
 import ij.plugin.Thresholder;
+import ij.plugin.filter.Analyzer;
+import ij.process.AutoThresholder;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.ShortProcessor;
+import ij.process.StackStatistics;
+import ij.util.Tools;
 
 /**
  * Adjusts the lower and upper threshold levels of the active image. This class

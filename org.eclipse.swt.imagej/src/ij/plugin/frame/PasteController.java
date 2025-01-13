@@ -1,7 +1,6 @@
 package ij.plugin.frame;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Panel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -10,10 +9,13 @@ import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 
-import ij.*;
-import ij.plugin.*;
-import ij.gui.*;
-import ij.process.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.Roi;
+import ij.plugin.PlugIn;
+import ij.process.Blitter;
 
 /** Implements ImageJ's Paste Control window. */
 public class PasteController extends PlugInFrame implements PlugIn, SelectionListener {

@@ -1,11 +1,10 @@
 package ij.plugin.frame;
 
-import ij.*;
-import ij.plugin.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.util.Vector;
-import javax.swing.BoxLayout;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -15,11 +14,17 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import ij.process.*;
-import ij.gui.*;
+import ij.IJ;
+import ij.IJEventListener;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.ColorChooser;
+import ij.gui.GUI;
+import ij.gui.Toolbar;
+import ij.plugin.Colors;
+import ij.process.ColorProcessor;
 
 /** Implements the Image/Color/Color Picker command. */
 public class ColorPicker extends PlugInDialog {

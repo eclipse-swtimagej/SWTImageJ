@@ -1,18 +1,13 @@
 package ij.plugin.frame;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.WindowEvent;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
 import ij.IJ;
 import ij.ImageJ;
-import ij.Menus;
-import ij.Prefs;
 import ij.WindowManager;
 import ij.plugin.PlugIn;
 import ij.plugin.frame.swt.WindowSwt;

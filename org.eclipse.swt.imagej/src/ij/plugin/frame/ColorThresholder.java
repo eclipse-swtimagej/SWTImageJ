@@ -1,11 +1,15 @@
 package ij.plugin.frame;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.util.*;
+import java.awt.Choice;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -18,9 +22,17 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import java.awt.event.*;
-import ij.measure.*;
-import ij.plugin.*;
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.Undo;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.Roi;
+import ij.measure.Measurements;
+import ij.plugin.PlugIn;
 import ij.plugin.filter.ThresholdToSelection;
 /*
  * This plugin isolates pixels in an RGB image or stack according to a range of Hue.
@@ -52,6 +64,12 @@ import ij.plugin.filter.ThresholdToSelection;
  * 5/Jan/2007 v1.8 added warning and commented lines for back/foreground colours
  * 2/Feb/2008 v1.9 closing does not apply the filter if Original was being displayed. Thanks for the hint Bob!
  */
+import ij.process.AutoThresholder;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.ColorSpaceConverter;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 /** Selects pixels according to hsb or rgb components. */
 public class ColorThresholder extends PlugInFrame implements PlugIn, Measurements, SelectionListener, org.eclipse.swt.events.FocusListener, Runnable {
