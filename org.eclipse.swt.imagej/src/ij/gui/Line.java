@@ -1,17 +1,30 @@
 package ij.gui;
 
-import ij.*;
-import ij.process.*;
-import ij.measure.*;
-import ij.plugin.Straightener;
-import ij.plugin.frame.Recorder;
-import ij.plugin.CalibrationBar;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.awt.event.*;
-import java.awt.geom.*;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.measure.Calibration;
+import ij.plugin.CalibrationBar;
+import ij.plugin.Straightener;
+import ij.plugin.frame.Recorder;
+import ij.process.FloatPolygon;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 
 /** This class represents a straight line selection. */
 public class Line extends Roi {

@@ -1,22 +1,41 @@
 package ij.gui;
 
-import java.awt.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Rectangle;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Vector;
 
 import org.eclipse.swt.widgets.Display;
 
-import java.io.*;
-import java.lang.reflect.Method;
-import java.awt.geom.Point2D;
-import ij.*;
-import ij.process.*;
-import ij.util.*;
-import ij.plugin.Colors;
-import ij.plugin.filter.Analyzer;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
+import ij.Undo;
+import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.measure.ResultsTable;
+import ij.plugin.Colors;
+import ij.plugin.filter.Analyzer;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
+import ij.util.FontUtil;
+import ij.util.Tools;
 
 /**
  * This class creates an image that line graphs, scatter plots and plots of

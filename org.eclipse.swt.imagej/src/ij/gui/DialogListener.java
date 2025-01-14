@@ -1,9 +1,5 @@
 package ij.gui;
-import ij.*;
-import java.awt.AWTEvent;
-
 import org.eclipse.swt.events.TypedEvent;
-import org.eclipse.swt.widgets.Event;
 
 /**
 * PlugIns or PlugInFilters that want to listen to changes in a GenericDialog

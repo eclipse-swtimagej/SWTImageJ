@@ -1,9 +1,7 @@
 package ij.gui;
 
-import ij.*;
-import ij.process.*;
-import ij.plugin.frame.Recorder;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.util.Vector;
 
 import org.eclipse.swt.SWT;
@@ -11,6 +9,11 @@ import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.plugin.frame.Recorder;
 
 /*
  * This class contains dialogs for formatting of plots (range, axes, labels, legend, creating a high-resolution plot)

@@ -1,9 +1,10 @@
 package ij.gui;
-import ij.*;
-import ij.process.*;
-import ij.util.*;
-import ij.plugin.Colors;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.TextEvent;
 import java.util.Vector;
 
 import org.eclipse.swt.SWT;
@@ -19,7 +20,10 @@ import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 import org.jfree.swt.SWTGraphics2D;
 
-import java.awt.event.*;
+import ij.Prefs;
+import ij.plugin.Colors;
+import ij.util.Java2;
+import ij.util.Tools;
 
 
  /** Displays a dialog that allows the user to select a color using three sliders. */

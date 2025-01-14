@@ -1,12 +1,19 @@
 package ij.gui;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
-import java.awt.event.*;
-import java.util.*;
-import ij.*;
-import ij.process.*;
+import java.util.Properties;
+import java.util.Random;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.IntProcessor;
+import ij.process.ShortProcessor;
 
 /** New image dialog box plus several static utility methods for creating images.*/
 public class NewImage {

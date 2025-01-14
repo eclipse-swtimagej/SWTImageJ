@@ -1,8 +1,10 @@
 package ij.gui;
-import ij.*;
-import ij.process.*;
-import java.util.*;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.util.Vector;
+
+import ij.IJ;
+import ij.VirtualStack;
+import ij.process.ImageProcessor;
 
 /** This is a virtual stack of frozen plots. */
 public class PlotVirtualStack extends VirtualStack {

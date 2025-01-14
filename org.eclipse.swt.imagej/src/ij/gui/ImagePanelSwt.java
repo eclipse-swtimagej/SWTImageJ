@@ -6,7 +6,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
-import ij.*;
+import ij.ImagePlus;
 
 /** This class is used by GenericDialog to add images to dialogs. */
 public class ImagePanelSwt extends org.eclipse.swt.widgets.Canvas implements PaintListener {

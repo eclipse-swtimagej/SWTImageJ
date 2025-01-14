@@ -1,17 +1,15 @@
 package ij.gui;
 
-import java.awt.*;
-import ij.process.*;
-import ij.*;
-import ij.util.*;
-import java.awt.event.*;
-
-import javax.swing.JPanel;
+import java.awt.Dimension;
+import java.awt.Point;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
+
+import ij.IJ;
+import ij.ImagePlus;
 
 
 

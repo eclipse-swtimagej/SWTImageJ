@@ -1,6 +1,10 @@
 package ij.gui;
-import ij.*;
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Polygon;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
 
 /** Implements the ROI Brush tool.*/
 class RoiBrush implements Runnable {

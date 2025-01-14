@@ -1,8 +1,8 @@
 package ij.gui;
 
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -10,6 +10,8 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Display;
 import org.jfree.swt.SWTGraphics2D;
+
+import ij.macro.Interpreter;
 
 /**
  * This is the progress bar that is displayed in the lower right hand corner of

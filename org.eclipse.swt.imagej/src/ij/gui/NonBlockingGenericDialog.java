@@ -1,18 +1,14 @@
 package ij.gui;
 
-import ij.*;
-import java.awt.event.*;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.widgets.Display;
 
-import java.awt.EventQueue;
-import java.awt.GraphicsEnvironment;
-import java.awt.Frame;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
 
 /**
  * This is an extension of GenericDialog that is non-modal.

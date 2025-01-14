@@ -1,14 +1,27 @@
 package ij.gui;
 
-import ij.*;
-import ij.process.*;
-import ij.plugin.filter.Analyzer;
-import ij.measure.*;
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Rectangle;
+import java.awt.image.ColorModel;
 
 import org.eclipse.swt.widgets.Display;
+
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.LookUpTable;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.measure.Calibration;
+import ij.measure.ResultsTable;
+import ij.plugin.filter.Analyzer;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.LUT;
 
 public class HistogramPlot extends ImagePlus {
 

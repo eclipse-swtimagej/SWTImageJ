@@ -1,8 +1,7 @@
 package ij.gui;
 
-import java.awt.*;
-import java.awt.image.*;
-import ij.*;
+import ij.IJ;
+import ij.ImagePlus;
 
 /** Freehand region of interest or freehand line of interest*/
 public class FreehandRoi extends PolygonRoi {

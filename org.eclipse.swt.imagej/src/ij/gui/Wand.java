@@ -1,8 +1,9 @@
 package ij.gui;
-import ij.*;
-import ij.process.*;
+import java.awt.Polygon;
+
+import ij.IJ;
 import ij.plugin.WandToolOptions;
-import java.awt.*;
+import ij.process.ImageProcessor;
 
 /** This class implements ImageJ's wand (tracing) tool.
   * The wand selects pixels of equal or similar value or thresholded pixels

@@ -1,6 +1,9 @@
 package ij.gui;
-import java.awt.*;
-import javax.swing.*;
+import java.awt.Button;
+import java.awt.Dimension;
+
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
 
 /** This is an extended Button class used to reduce the width of the HUGE buttons on Mac OS X. */
 public class TrimmedButton extends Button {

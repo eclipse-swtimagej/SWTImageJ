@@ -6,8 +6,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import ij.IJ;
-
 /**
  * A modal dialog box with a one line message and "Yes", "No" and "Cancel"
  * buttons.

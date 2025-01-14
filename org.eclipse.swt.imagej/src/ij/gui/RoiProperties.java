@@ -1,15 +1,10 @@
 package ij.gui;
 
-import ij.*;
-import ij.plugin.Colors;
-import ij.io.RoiDecoder;
-import ij.process.*;
-import ij.measure.*;
-import ij.util.Tools;
-import ij.plugin.filter.Analyzer;
-import ij.text.TextWindow;
-import java.awt.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.TextField;
+import java.awt.event.TextEvent;
+import java.util.Vector;
 
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -18,7 +13,17 @@ import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 
-import java.awt.event.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Undo;
+import ij.WindowManager;
+import ij.measure.Calibration;
+import ij.measure.ResultsTable;
+import ij.plugin.Colors;
+import ij.plugin.filter.Analyzer;
+import ij.process.FloatPolygon;
+import ij.text.TextWindow;
+import ij.util.Tools;
 
 /**
  * Displays a dialog that allows the user to specify ROI properties such as

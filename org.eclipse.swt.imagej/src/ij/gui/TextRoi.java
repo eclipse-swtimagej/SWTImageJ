@@ -1,13 +1,24 @@
 package ij.gui;
-import ij.*;
-import ij.process.*;
-import ij.util.*;
-import ij.macro.Interpreter;
-import ij.plugin.frame.Recorder;
-import ij.plugin.Colors;
-import java.awt.geom.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.macro.Interpreter;
+import ij.plugin.Colors;
+import ij.plugin.frame.Recorder;
+import ij.process.ImageProcessor;
+import ij.util.Java2;
+import ij.util.Tools;
 
 
 /** This class is a rectangular ROI containing text. */

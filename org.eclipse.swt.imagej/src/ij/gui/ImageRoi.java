@@ -1,9 +1,17 @@
 package ij.gui;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.DirectColorModel;
+
 import ij.ImagePlus;
-import ij.process.*;
 import ij.io.FileSaver;
-import java.awt.*;
-import java.awt.image.*;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 
 /** An ImageRoi is an Roi that overlays an image. 
 * @see ij.ImagePlus#setOverlay(ij.gui.Overlay)
