@@ -1,16 +1,30 @@
 package ij;
 
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.*;
-import ij.plugin.frame.*;
-import ij.io.FileInfo;
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
+import java.awt.image.DirectColorModel;
+import java.awt.image.IndexColorModel;
+import java.awt.image.MemoryImageSource;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
+import java.awt.image.WritableRaster;
+
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.widgets.Display;
+
+import ij.io.FileInfo;
+import ij.plugin.frame.Channels;
+import ij.plugin.frame.ContrastAdjuster;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
+import ij.process.LUT;
 
 public class CompositeImage extends ImagePlus {
 

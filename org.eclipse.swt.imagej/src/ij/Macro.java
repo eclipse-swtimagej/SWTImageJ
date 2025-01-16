@@ -1,15 +1,10 @@
 package ij;
-import ij.process.*;
-import ij.gui.*;
-import ij.io.*;
-import ij.measure.*;
-import ij.plugin.filter.*;
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.Locale;
 import java.util.Hashtable;
+import java.util.Locale;
+
+import ij.io.FileSaver;
+import ij.io.Opener;
+import ij.macro.Interpreter;
 
 /** The class contains static methods that perform macro operations. */
 public class Macro {

@@ -1,14 +1,20 @@
 package ij;
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.ColorModel;
+import java.awt.image.DirectColorModel;
+import java.awt.image.IndexColorModel;
+import java.awt.image.PixelGrabber;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 
-import ij.process.*;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 
 /** This class represents a color look-up table. */
 public class LookUpTable extends Object {

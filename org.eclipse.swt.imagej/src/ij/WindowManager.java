@@ -1,22 +1,27 @@
 package ij;
 
-import ij.plugin.Converter;
-import ij.plugin.frame.Recorder;
-import ij.plugin.frame.swt.WindowSwt;
-import ij.plugin.frame.Editor;
-import ij.text.TextWindow;
-import ij.plugin.frame.PlugInFrame;
-import ij.plugin.frame.Commands;
-import ij.util.Tools;
-import ij.macro.Interpreter;
-import java.awt.*;
-import java.util.*;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Window;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import ij.gui.*;
+import ij.gui.GenericDialog;
+import ij.gui.HistogramWindow;
+import ij.gui.ImageWindow;
+import ij.gui.PlotWindow;
+import ij.macro.Interpreter;
+import ij.plugin.frame.Commands;
+import ij.plugin.frame.Editor;
+import ij.plugin.frame.Recorder;
+import ij.plugin.frame.swt.WindowSwt;
+import ij.text.TextWindow;
+import ij.util.Tools;
 
 /** This class consists of static methods used to manage ImageJ's windows. */
 public class WindowManager {
