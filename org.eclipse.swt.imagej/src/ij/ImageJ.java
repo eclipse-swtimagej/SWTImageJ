@@ -426,17 +426,15 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 
 		file = null;
 		final Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		display.syncExec(() -> {
 
-			public void run() {
+			Shell s = new Shell(SWT.ON_TOP);
+			FileDialog fd = new FileDialog(s, SWT.OPEN);
+			fd.setText("Load");
+			String[] filterExt = { "*.*" };
+			fd.setFilterExtensions(filterExt);
+			file = fd.open();
 
-				Shell s = new Shell(SWT.ON_TOP);
-				FileDialog fd = new FileDialog(s, SWT.OPEN);
-				fd.setText("Load");
-				String[] filterExt = { "*.*" };
-				fd.setFilterExtensions(filterExt);
-				file = fd.open();
-			}
 		});
 		return file;
 	}

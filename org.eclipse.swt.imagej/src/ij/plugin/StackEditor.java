@@ -31,20 +31,14 @@ public class StackEditor implements PlugIn {
 		height = imp.getHeight();
 
 		if (arg.equals("add")) {
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
-
-				public void run() {
+			Display.getDefault().syncExec(() -> {
 					addSlice();
-				}
+				
 			});
 		} else if (arg.equals("delete")) {
-			Display display = Display.getDefault();
-			display.syncExec(new Runnable() {
-
-				public void run() {
+			Display.getDefault().syncExec(() -> {
 					deleteSlice();
-				}
+				
 			});
 		} else if (arg.equals("toimages"))
 			convertStackToImages(imp);
