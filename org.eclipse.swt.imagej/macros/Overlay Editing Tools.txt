@@ -276,6 +276,6 @@ macro "Overlay Toolset Help Action Tool - C037T3f18?" {
   "<br>This dialog. You can leave it open to try toolset functions.</p>" + 
   "</html>"; 
   Dialog.createNonBlocking( "Overlay Toolset Help" ); 
-  Dialog.addMessage( html ); 
+  Dialog.addHelp( html ); 
   Dialog.show( ); 
 } 
