@@ -42,7 +42,7 @@ public class GUI {
 	private static Color scrollbarBackground = new Color(245, 245, 245);
 	static Rectangle bounds = null;
 	static {
-		if(IJ.isWindows()) {
+		if (IJ.isWindows()) {
 			String osname = System.getProperty("os.name");
 			isWindows8 = osname.contains("unknown") || osname.contains("8");
 		}
@@ -54,11 +54,11 @@ public class GUI {
 	 */
 	public static void center(Control win, Object target) {
 
-		if(win == null)
+		if (win == null)
 			return;
-		if(target instanceof Component) {
-			bounds = getMaxWindowBounds((Component)target);
-		} else if(target instanceof org.eclipse.swt.widgets.Control) {
+		if (target instanceof Component) {
+			bounds = getMaxWindowBounds((Component) target);
+		} else if (target instanceof org.eclipse.swt.widgets.Control) {
 			Display dis = Display.getDefault();
 			dis.syncExec(new Runnable() {
 
@@ -66,13 +66,13 @@ public class GUI {
 
 					Monitor[] monitors = Display.getDefault().getMonitors();
 					Monitor activeMonitor = null;
-					org.eclipse.swt.widgets.Control target2 = (Shell)target;
-					if(((org.eclipse.swt.widgets.Control)target).isDisposed()) {
+					org.eclipse.swt.widgets.Control target2 = (Shell) target;
+					if (((org.eclipse.swt.widgets.Control) target).isDisposed()) {
 						return;
 					}
 					org.eclipse.swt.graphics.Rectangle r = target2.getBounds();
-					for(int i = 0; i < monitors.length; i++) {
-						if(monitors[i].getBounds().intersects(r)) {
+					for (int i = 0; i < monitors.length; i++) {
+						if (monitors[i].getBounds().intersects(r)) {
 							activeMonitor = monitors[i];
 						}
 					}
@@ -82,7 +82,7 @@ public class GUI {
 			});
 		}
 		org.eclipse.swt.graphics.Rectangle window = win.getBounds();
-		if(window.width == 0)
+		if (window.width == 0)
 			return;
 		int left = bounds.x + Math.max(0, (bounds.width - window.width) / 2);
 		int top = bounds.y + Math.max(0, (bounds.height - window.height) / 4);
@@ -95,11 +95,11 @@ public class GUI {
 	 */
 	public static void center(Window win, Object target) {
 
-		if(win == null)
+		if (win == null)
 			return;
-		if(target instanceof Component) {
-			bounds = getMaxWindowBounds((Component)target);
-		} else if(target instanceof Shell) {
+		if (target instanceof Component) {
+			bounds = getMaxWindowBounds((Component) target);
+		} else if (target instanceof Shell) {
 			Display dis = Display.getDefault();
 			dis.syncExec(new Runnable() {
 
@@ -107,13 +107,13 @@ public class GUI {
 
 					Monitor[] monitors = Display.getDefault().getMonitors();
 					Monitor activeMonitor = null;
-					Shell target2 = (Shell)target;
-					if(((Shell)target).isDisposed()) {
+					Shell target2 = (Shell) target;
+					if (((Shell) target).isDisposed()) {
 						return;
 					}
 					org.eclipse.swt.graphics.Rectangle r = target2.getBounds();
-					for(int i = 0; i < monitors.length; i++) {
-						if(monitors[i].getBounds().intersects(r)) {
+					for (int i = 0; i < monitors.length; i++) {
+						if (monitors[i].getBounds().intersects(r)) {
 							activeMonitor = monitors[i];
 						}
 					}
@@ -123,7 +123,7 @@ public class GUI {
 			});
 		}
 		Dimension window = win.getSize();
-		if(window.width == 0)
+		if (window.width == 0)
 			return;
 		int left = bounds.x + Math.max(0, (bounds.width - window.width) / 2);
 		int top = bounds.y + Math.max(0, (bounds.height - window.height) / 4);
@@ -157,7 +157,7 @@ public class GUI {
 	private static java.util.List<GraphicsConfiguration> getScreenConfigs() {
 
 		java.util.ArrayList<GraphicsConfiguration> configs = new java.util.ArrayList<GraphicsConfiguration>();
-		for(GraphicsDevice device : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+		for (GraphicsDevice device : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
 			configs.add(device.getDefaultConfiguration());
 		}
 		return configs;
@@ -166,21 +166,19 @@ public class GUI {
 	/**
 	 * Get maximum bounds for the screen that contains a given point.
 	 * 
-	 * @param point
-	 *            Coordinates of point.
-	 * @param accountForInsets
-	 *            Deduct the space taken up by menu and status bars,
-	 *            etc. (after point is found to be inside bonds)
+	 * @param point            Coordinates of point.
+	 * @param accountForInsets Deduct the space taken up by menu and status bars,
+	 *                         etc. (after point is found to be inside bonds)
 	 * @return Rectangle of bounds or <code>null</code> if point not inside of any
 	 *         screen.
 	 */
 	public static Rectangle getScreenBounds(Point point, boolean accountForInsets) {
 
-		if(GraphicsEnvironment.isHeadless())
+		if (GraphicsEnvironment.isHeadless())
 			return new Rectangle(0, 0, 0, 0);
-		for(GraphicsConfiguration config : getScreenConfigs()) {
+		for (GraphicsConfiguration config : getScreenConfigs()) {
 			Rectangle bounds = config.getBounds();
-			if(bounds != null && bounds.contains(point)) {
+			if (bounds != null && bounds.contains(point)) {
 				Insets insets = accountForInsets ? Toolkit.getDefaultToolkit().getScreenInsets(config) : null;
 				return shrinkByInsets(bounds, insets);
 			}
@@ -191,41 +189,38 @@ public class GUI {
 	/**
 	 * Get maximum bounds for the screen that contains a given component.
 	 * 
-	 * @param component
-	 *            An AWT component located on the desired screen. If
-	 *            <code>null</code> is provided, the default screen is
-	 *            used.
-	 * @param accountForInsets
-	 *            Deduct the space taken up by menu and status bars,
-	 *            etc.
+	 * @param component        An AWT component located on the desired screen. If
+	 *                         <code>null</code> is provided, the default screen is
+	 *                         used.
+	 * @param accountForInsets Deduct the space taken up by menu and status bars,
+	 *                         etc.
 	 * @return Rectangle of bounds.
 	 */
 	public static Rectangle getScreenBounds(Object component, boolean accountForInsets) {
 
 		java.awt.Rectangle rec[] = new java.awt.Rectangle[1];
-		if(component instanceof Component || component == null) {
-			if(GraphicsEnvironment.isHeadless())
+		if (component instanceof Component || component == null) {
+			if (GraphicsEnvironment.isHeadless())
 				return new Rectangle(0, 0, 0, 0);
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			GraphicsConfiguration gc = component == null ? ge.getDefaultScreenDevice().getDefaultConfiguration() : ((Component)component).getGraphicsConfiguration();
+			GraphicsConfiguration gc = component == null ? ge.getDefaultScreenDevice().getDefaultConfiguration()
+					: ((Component) component).getGraphicsConfiguration();
 			Insets insets = accountForInsets ? Toolkit.getDefaultToolkit().getScreenInsets(gc) : null;
 			rec[0] = shrinkByInsets(gc.getBounds(), insets);
-		} else if(component instanceof org.eclipse.swt.widgets.Control) {
-			Display.getDefault().syncExec(new Runnable() {
+		} else if (component instanceof org.eclipse.swt.widgets.Control) {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
-
-					Monitor[] monitors = ((Shell)component).getDisplay().getMonitors();
-					Monitor activeMonitor = null;
-					org.eclipse.swt.graphics.Rectangle r = ((Shell)component).getBounds();
-					for(int i = 0; i < monitors.length; i++) {
-						if(monitors[i].getBounds().intersects(r)) {
-							activeMonitor = monitors[i];
-						}
+				Monitor[] monitors = ((Shell) component).getDisplay().getMonitors();
+				Monitor activeMonitor = null;
+				org.eclipse.swt.graphics.Rectangle r = ((Shell) component).getBounds();
+				for (int i = 0; i < monitors.length; i++) {
+					if (monitors[i].getBounds().intersects(r)) {
+						activeMonitor = monitors[i];
 					}
-					org.eclipse.swt.graphics.Rectangle boundsSwt = activeMonitor.getBounds();
-					rec[0] = new java.awt.Rectangle(boundsSwt.width, boundsSwt.height);
 				}
+				org.eclipse.swt.graphics.Rectangle boundsSwt = activeMonitor.getBounds();
+				rec[0] = new java.awt.Rectangle(boundsSwt.width, boundsSwt.height);
+
 			});
 		}
 		return rec[0];
@@ -243,7 +238,7 @@ public class GUI {
 
 	public static Rectangle getScreenBounds() {
 
-		return getScreenBounds((Object)null);
+		return getScreenBounds((Object) null);
 	}
 
 	public static Rectangle getMaxWindowBounds(Point point) {
@@ -258,13 +253,13 @@ public class GUI {
 
 	public static Rectangle getMaxWindowBounds() {
 
-		return getMaxWindowBounds((Component)null);
+		return getMaxWindowBounds((Component) null);
 	}
 
 	private static Rectangle shrinkByInsets(Rectangle bounds, Insets insets) {
 
 		Rectangle shrunk = new Rectangle(bounds);
-		if(insets == null)
+		if (insets == null)
 			return shrunk;
 		shrunk.x += insets.left;
 		shrunk.y += insets.top;
@@ -275,9 +270,9 @@ public class GUI {
 
 	public static Rectangle getZeroBasedMaxBounds() {
 
-		for(GraphicsConfiguration config : getScreenConfigs()) {
+		for (GraphicsConfiguration config : getScreenConfigs()) {
 			Rectangle bounds = config.getBounds();
-			if(bounds != null && bounds.x == 0 && bounds.y == 0)
+			if (bounds != null && bounds.x == 0 && bounds.y == 0)
 				return bounds;
 		}
 		return null;
@@ -286,7 +281,7 @@ public class GUI {
 	public static Rectangle getUnionOfBounds() {
 
 		Rectangle unionOfBounds = new Rectangle();
-		for(GraphicsConfiguration config : getScreenConfigs()) {
+		for (GraphicsConfiguration config : getScreenConfigs()) {
 			unionOfBounds = unionOfBounds.union(config.getBounds());
 		}
 		return unionOfBounds;
@@ -297,9 +292,9 @@ public class GUI {
 	/** Obsolete */
 	public static Image createBlankImage(int width, int height) {
 
-		if(width == 0 || height == 0)
+		if (width == 0 || height == 0)
 			throw new IllegalArgumentException("");
-		if(frame == null) {
+		if (frame == null) {
 			frame = new Frame();
 			frame.pack();
 			frame.setBackground(Color.white);
@@ -315,7 +310,7 @@ public class GUI {
 
 	public static boolean showCompositeAdvisory(ImagePlus imp, String title) {
 
-		if(imp == null || imp.getCompositeMode() != IJ.COMPOSITE || imp.getNChannels() == 1 || IJ.macroRunning())
+		if (imp == null || imp.getCompositeMode() != IJ.COMPOSITE || imp.getNChannels() == 1 || IJ.macroRunning())
 			return true;
 		String msg = "Channel " + imp.getC() + " of this color composite image will be processed.";
 		GenericDialog gd = new GenericDialog(title);
@@ -327,26 +322,25 @@ public class GUI {
 	/**
 	 * Scales an AWT component according to {@link Prefs#getGuiScale()}.
 	 * 
-	 * @param component
-	 *            the AWT component to be scaled. If a container, scaling is
-	 *            applied to all its child components
+	 * @param component the AWT component to be scaled. If a container, scaling is
+	 *                  applied to all its child components
 	 */
 	public static void scale(final Component component) {
 
-		final float scale = (float)Prefs.getGuiScale();
-		if(scale == 1f)
+		final float scale = (float) Prefs.getGuiScale();
+		if (scale == 1f)
 			return;
-		if(component instanceof Container)
-			scaleComponents((Container)component, scale);
+		if (component instanceof Container)
+			scaleComponents((Container) component, scale);
 		else
 			scaleComponent(component, scale);
 	}
 
 	private static void scaleComponents(final Container container, final float scale) {
 
-		for(final Component child : container.getComponents()) {
-			if(child instanceof Container)
-				scaleComponents((Container)child, scale);
+		for (final Component child : container.getComponents()) {
+			if (child instanceof Container)
+				scaleComponents((Container) child, scale);
 			else
 				scaleComponent(child, scale);
 		}
@@ -355,7 +349,7 @@ public class GUI {
 	private static void scaleComponent(final Component component, final float scale) {
 
 		Font font = component.getFont();
-		if(font == null)
+		if (font == null)
 			font = DEFAULT_FONT;
 		font = font.deriveFont(scale * font.getSize());
 		component.setFont(font);
@@ -366,20 +360,12 @@ public class GUI {
 
 		// System.out.println("scalePopupMenu1: "+popup);
 		/*
-		 * if (Menus.getFontSize()!=0) {
-		 * popup.setFont(Menus.getFont(false));
-		 * //System.out.println("scalePopupMenu2: "+popup.getFont());
-		 * return;
-		 * }
-		 * final float scale = (float) Prefs.getGuiScale();
-		 * if (scale == 1f)
-		 * return;
-		 * Font font=popup.getFont();
-		 * if (font==null)
-		 * font = new Font("SansSerif", Font.PLAIN, (int)(scale*13));
-		 * else
-		 * font = font.deriveFont(scale*font.getSize());
-		 * popup.setFont(font);
+		 * if (Menus.getFontSize()!=0) { popup.setFont(Menus.getFont(false));
+		 * //System.out.println("scalePopupMenu2: "+popup.getFont()); return; } final
+		 * float scale = (float) Prefs.getGuiScale(); if (scale == 1f) return; Font
+		 * font=popup.getFont(); if (font==null) font = new Font("SansSerif",
+		 * Font.PLAIN, (int)(scale*13)); else font =
+		 * font.deriveFont(scale*font.getSize()); popup.setFont(font);
 		 */
 	}
 
@@ -399,29 +385,29 @@ public class GUI {
 	 * {@link #getGuiScale()} to the component's font if not.
 	 * </p>
 	 *
-	 * @param component
-	 *            the component to be scaled
+	 * @param component the component to be scaled
 	 * @return true, if component's font was resized
 	 */
 	public static boolean scale(final JComponent component) {
 
 		final double guiScale = Prefs.getGuiScale();
-		if(guiScale == 1d)
+		if (guiScale == 1d)
 			return false;
 		Font font = component.getFont();
-		if(font == null && component instanceof JList)
+		if (font == null && component instanceof JList)
 			font = UIManager.getFont("List.font");
-		else if(font == null && component instanceof JTable)
+		else if (font == null && component instanceof JTable)
 			font = UIManager.getFont("Table.font");
-		else if(font == null)
+		else if (font == null)
 			font = UIManager.getFont("Label.font");
-		if(font.getSize() > DEFAULT_FONT.getSize())
+		if (font.getSize() > DEFAULT_FONT.getSize())
 			return false;
-		if(component instanceof JTable)
-			((JTable)component).setRowHeight((int)(((JTable)component).getRowHeight() * guiScale * 0.9));
-		else if(component instanceof JList)
-			((JList<?>)component).setFixedCellHeight((int)(((JList<?>)component).getFixedCellHeight() * guiScale * 0.9));
-		component.setFont(font.deriveFont((float)guiScale * font.getSize()));
+		if (component instanceof JTable)
+			((JTable) component).setRowHeight((int) (((JTable) component).getRowHeight() * guiScale * 0.9));
+		else if (component instanceof JList)
+			((JList<?>) component)
+					.setFixedCellHeight((int) (((JList<?>) component).getFixedCellHeight() * guiScale * 0.9));
+		component.setFont(font.deriveFont((float) guiScale * font.getSize()));
 		return true;
 	}
 
@@ -431,7 +417,7 @@ public class GUI {
 	 */
 	public static final void fixScrollbar(Scrollbar sb) {
 
-		if(IJ.isWindows())
+		if (IJ.isWindows())
 			sb.setBackground(scrollbarBackground);
 	}
 
@@ -441,7 +427,7 @@ public class GUI {
 	 */
 	public static GenericDialog newNonBlockingDialog(String title) {
 
-		if(GraphicsEnvironment.isHeadless())
+		if (GraphicsEnvironment.isHeadless())
 			return new GenericDialog(title);
 		else
 			return new NonBlockingGenericDialog(title);
@@ -452,14 +438,12 @@ public class GUI {
 	 * Prefs.nonBlockingFilterDialogs is 'true' and 'imp' is displayed, otherwise
 	 * returns a GenericDialog.
 	 * 
-	 * @param title
-	 *            Dialog title
-	 * @param imp
-	 *            The image associated with this dialog
+	 * @param title Dialog title
+	 * @param imp   The image associated with this dialog
 	 */
 	public static GenericDialog newNonBlockingDialog(String title, ImagePlus imp) {
 
-		if(Prefs.nonBlockingFilterDialogs && imp != null && imp.getWindow() != null) {
+		if (Prefs.nonBlockingFilterDialogs && imp != null && imp.getWindow() != null) {
 			NonBlockingGenericDialog gd = new NonBlockingGenericDialog(title);
 			gd.imp = imp;
 			return gd;
