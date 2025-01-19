@@ -81,14 +81,13 @@ public class Executer implements Runnable {
 				Recorder.setCommand(command);
 				runCommand(command);
 
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						Recorder.saveCommand();
-					}
+				Display.getDefault().syncExec(() -> {
+					Recorder.saveCommand();
+
 				});
 
 			} else {
-				
+
 				runCommand(command);
 			}
 			int len = command.length();
@@ -143,10 +142,9 @@ public class Executer implements Runnable {
 					final String se = s;
 					final int he = h;
 					final int wi = w;
-					Display.getDefault().syncExec(new Runnable() {
-						public void run() {
-							new TextWindow("Exception", se, wi, he);
-						}
+					Display.getDefault().syncExec(() -> {
+						new TextWindow("Exception", se, wi, he);
+
 					});
 				} else
 					IJ.log(s);
@@ -197,10 +195,9 @@ public class Executer implements Runnable {
 			if (loadLut(cmd))
 				return;
 			// is it in the File>Open Recent menu?
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					openRecent = openRecent(cmd);
-				}
+			Display.getDefault().syncExec(() -> {
+				openRecent = openRecent(cmd);
+
 			});
 			if (openRecent)
 				return;
@@ -257,7 +254,7 @@ public class Executer implements Runnable {
 	 * successful.
 	 */
 	public static boolean loadLut(String name) {
-		if(name.isEmpty()) {
+		if (name.isEmpty()) {
 			return true;
 		}
 		String path = IJ.getDirectory("luts") + name.replace(" ", "_") + ".lut";

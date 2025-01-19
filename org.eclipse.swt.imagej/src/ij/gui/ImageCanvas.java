@@ -333,8 +333,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		AtomicReference<Point> size = new AtomicReference<Point>();
 		Display.getDefault().syncExec(() -> {
 
-				size.set(ImageCanvas.this.getSize());
-			
+			size.set(ImageCanvas.this.getSize());
+
 		});
 		return size.get();
 	}
@@ -343,10 +343,10 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 		Display.getDefault().syncExec(() -> {
 
-				ImageCanvas.super.setSize(width, height);
-				dstWidth = width;
-				dstHeight = height;
-			
+			ImageCanvas.super.setSize(width, height);
+			dstWidth = width;
+			dstHeight = height;
+
 		});
 	}
 
@@ -390,9 +390,9 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 		Display.getDefault().syncExec(() -> {
 
-				if (ImageCanvas.this.isDisposed() == false)
-					redraw();
-			
+			if (ImageCanvas.this.isDisposed() == false)
+				redraw();
+
 		});
 	}
 
@@ -1185,8 +1185,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		AtomicReference<Rectangle> clientArea = new AtomicReference<Rectangle>();
 		Display.getDefault().syncExec(() -> {
 
-				clientArea.set(window.parentComposite.getClientArea());
-			
+			clientArea.set(window.parentComposite.getClientArea());
+
 		});
 		double w = clientArea.get().width;
 		double h = clientArea.get().height;
@@ -1204,8 +1204,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		window.scResizeEvent(width, height);
 		Display.getDefault().syncExec(() -> {
 
-				layout();
-			
+			layout();
+
 		});
 	}
 
@@ -1339,9 +1339,9 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		Rectangle[] clientArea = new Rectangle[1];
 		Display.getDefault().syncExec(() -> {
 
-				ImageWindow window = imp.getWindow();
-				clientArea[0] = window.parentComposite.getClientArea();
-			
+			ImageWindow window = imp.getWindow();
+			clientArea[0] = window.parentComposite.getClientArea();
+
 		});
 		// Rectangle clientArea = imp.getWindow().parentComposite.getClientArea();
 		if (newSize != null) {
@@ -1373,8 +1373,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			}
 			Display.getDefault().syncExec(() -> {
 
-					imp.getWindow().parentComposite.layout();
-				
+				imp.getWindow().parentComposite.layout();
+
 			});
 		} else { // can't enlarge window. Maximize it!
 			newSize = new Dimension(clientArea[0].width, clientArea[0].height);
@@ -1436,9 +1436,9 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		Rectangle[] max = new Rectangle[1];
 		Display.getDefault().syncExec(() -> {
 
-				ImageWindow window = imp.getWindow();
-				max[0] = window.parentComposite.getClientArea();
-			
+			ImageWindow window = imp.getWindow();
+			max[0] = window.parentComposite.getClientArea();
+
 		});
 		// Rectangle max = Display.getDefault().getPrimaryMonitor().getBounds();
 		// Rectangle max =SWTUtils.toSwtRectangle( GUI.getMaxWindowBounds(new
@@ -1530,8 +1530,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			// redraw();
 			Display.getDefault().syncExec(() -> {
 
-					imp.getWindow().parentComposite.layout();
-				
+				imp.getWindow().parentComposite.layout();
+
 			});
 			return;
 		}
@@ -1578,20 +1578,20 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 		Display.getDefault().syncExec(() -> {
 
-				double imag = imp.getWindow().getInitialMagnification();
-				if (magnification == imag)
-					return;
-				srcRect = new Rectangle(0, 0, imageWidth, imageHeight);
-				ImageWindow win = imp.getWindow();
-				setSize((int) (imageWidth * imag), (int) (imageHeight * imag));
-				setMagnification(imag);
-				setMaxBounds();
-				// win.pack();
-				setMaxBounds();
-				// repaint();
-				/* SWT redraw! */
-				redraw();
-			
+			double imag = imp.getWindow().getInitialMagnification();
+			if (magnification == imag)
+				return;
+			srcRect = new Rectangle(0, 0, imageWidth, imageHeight);
+			ImageWindow win = imp.getWindow();
+			setSize((int) (imageWidth * imag), (int) (imageHeight * imag));
+			setMagnification(imag);
+			setMaxBounds();
+			// win.pack();
+			setMaxBounds();
+			// repaint();
+			/* SWT redraw! */
+			redraw();
+
 		});
 	}
 
@@ -2692,8 +2692,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		if (ImageCanvas.this.isDisposed() == false)
 			Display.getDefault().syncExec(() -> {
 
-					redraw();
-				
+				redraw();
+
 			});
 	}
 
@@ -2776,21 +2776,21 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 		Display.getDefault().syncExec(() -> {
 
-				if (fitToParent) {
-					float ix = getBounds().width;
-					float iy = getBounds().height;
-					float px = 0;
-					float py = 0;
-					px = srcRect.width;
-					py = srcRect.height;
-					/* Store the display aspect ratio for Mouse events! */
-					aspectRatioX = (float) ((ix / px) / magnification);
-					aspectRatioY = (float) ((iy / py) / magnification);
-				} else {
-					aspectRatioX = 1.0f;
-					aspectRatioY = 1.0f;
-				}
-			
+			if (fitToParent) {
+				float ix = getBounds().width;
+				float iy = getBounds().height;
+				float px = 0;
+				float py = 0;
+				px = srcRect.width;
+				py = srcRect.height;
+				/* Store the display aspect ratio for Mouse events! */
+				aspectRatioX = (float) ((ix / px) / magnification);
+				aspectRatioY = (float) ((iy / py) / magnification);
+			} else {
+				aspectRatioX = 1.0f;
+				aspectRatioY = 1.0f;
+			}
+
 		});
 	}
 	// @Override

@@ -2047,23 +2047,19 @@ public class IJ {
 
 		Color c = Colors.toColor(red, green, blue);
 		if (foreground) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				Toolbar.setForegroundColor(c);
 
-					Toolbar.setForegroundColor(c);
-				}
 			});
 			ImagePlus img = WindowManager.getCurrentImage();
 			if (img != null)
 				img.getProcessor().setColor(c);
 		} else {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				Toolbar.setBackgroundColor(c);
 
-					Toolbar.setBackgroundColor(c);
-				}
 			});
 		}
 	}
@@ -2974,20 +2970,18 @@ public class IJ {
 		org.eclipse.swt.widgets.Menu lutsMenu = Menus.getImageJMenu("Image>Lookup Tables");
 		if (commands == null || lutsMenu == null)
 			return new String[0];
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				for (int i = 0; i < lutsMenu.getItemCount(); i++) {
-					org.eclipse.swt.widgets.MenuItem menuItem = lutsMenu.getItem(i);
-					String label = menuItem.getText();
-					if (label.equals("-") || label.equals("Invert LUT") || label.equals("Apply LUT"))
-						continue;
-					String command = (String) commands.get(label);
-					if (command == null || command.startsWith("ij.plugin.LutLoader"))
-						list.add(label);
-				}
+			for (int i = 0; i < lutsMenu.getItemCount(); i++) {
+				org.eclipse.swt.widgets.MenuItem menuItem = lutsMenu.getItem(i);
+				String label = menuItem.getText();
+				if (label.equals("-") || label.equals("Invert LUT") || label.equals("Apply LUT"))
+					continue;
+				String command = (String) commands.get(label);
+				if (command == null || command.startsWith("ij.plugin.LutLoader"))
+					list.add(label);
 			}
+
 		});
 		return (String[]) list.toArray(new String[list.size()]);
 	}

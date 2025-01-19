@@ -1745,12 +1745,10 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			setPositionWithoutUpdate(getChannel(), getSlice(), getFrame());
 			if (isComposite())
 				((CompositeImage) this).reset();
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				new StackWindow(ImagePlus.this);
 
-					new StackWindow(ImagePlus.this);
-				}
 			});
 		}
 		dimensionsSet = true;
@@ -4329,12 +4327,10 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		setHideOverlay(false);
 		ImageCanvas ic = getCanvas();
 		if (ic != null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				ic.repaintOverlay();
 
-					ic.repaintOverlay();
-				}
 			});
 		}
 	}

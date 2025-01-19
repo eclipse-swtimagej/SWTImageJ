@@ -1496,77 +1496,75 @@ public class Menus {
 	/** Updates the Image/Type and Window menus. */
 	public static void updateMenus() {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				if (ij == null)
-					return;
-				gray8Item.setSelection(false);
-				gray16Item.setSelection(false);
-				gray32Item.setSelection(false);
-				color256Item.setSelection(false);
-				colorRGBItem.setSelection(false);
-				RGBStackItem.setSelection(false);
-				HSBStackItem.setSelection(false);
-				LabStackItem.setSelection(false);
-				HSB32Item.setSelection(false);
-				ImagePlus imp = WindowManager.getCurrentImage();
-				if (imp == null)
-					return;
-				int type = imp.getType();
-				if (imp.getStackSize() > 1) {
-					ImageStack stack = imp.getStack();
-					if (stack.isRGB())
-						type = RGB_STACK;
-					else if (stack.isHSB())
-						type = HSB_STACK;
-					else if (stack.isLab())
-						type = LAB_STACK;
-					else if (stack.isHSB32())
-						type = HSB32_STACK;
-				}
-				switch (type) {
-				case ImagePlus.GRAY8:
-					gray8Item.setSelection(true);
-					break;
-				case ImagePlus.GRAY16:
-					gray16Item.setSelection(true);
-					break;
-				case ImagePlus.GRAY32:
-					gray32Item.setSelection(true);
-					break;
-				case ImagePlus.COLOR_256:
-					color256Item.setSelection(true);
-					break;
-				case ImagePlus.COLOR_RGB:
-					colorRGBItem.setSelection(true);
-					break;
-				case RGB_STACK:
-					RGBStackItem.setSelection(true);
-					break;
-				case HSB_STACK:
-					HSBStackItem.setSelection(true);
-					break;
-				case LAB_STACK:
-					LabStackItem.setSelection(true);
-					break;
-				case HSB32_STACK:
-					HSB32Item.setSelection(true);
-					break;
-				}
-				// update Window menu
-				int nItems = window.getItemCount();
-				int start = WINDOW_MENU_ITEMS + windowMenuItems2;
-				int index = start + WindowManager.getCurrentIndex();
-				try { // workaround for Linux/Java 5.0/bug
-					for (int i = start; i < nItems; i++) {
-						org.eclipse.swt.widgets.MenuItem item = (org.eclipse.swt.widgets.MenuItem) window.getItem(i);
-						item.setSelection(i == index);
-					}
-				} catch (Exception e) {
-				}
+			if (ij == null)
+				return;
+			gray8Item.setSelection(false);
+			gray16Item.setSelection(false);
+			gray32Item.setSelection(false);
+			color256Item.setSelection(false);
+			colorRGBItem.setSelection(false);
+			RGBStackItem.setSelection(false);
+			HSBStackItem.setSelection(false);
+			LabStackItem.setSelection(false);
+			HSB32Item.setSelection(false);
+			ImagePlus imp = WindowManager.getCurrentImage();
+			if (imp == null)
+				return;
+			int type = imp.getType();
+			if (imp.getStackSize() > 1) {
+				ImageStack stack = imp.getStack();
+				if (stack.isRGB())
+					type = RGB_STACK;
+				else if (stack.isHSB())
+					type = HSB_STACK;
+				else if (stack.isLab())
+					type = LAB_STACK;
+				else if (stack.isHSB32())
+					type = HSB32_STACK;
 			}
+			switch (type) {
+			case ImagePlus.GRAY8:
+				gray8Item.setSelection(true);
+				break;
+			case ImagePlus.GRAY16:
+				gray16Item.setSelection(true);
+				break;
+			case ImagePlus.GRAY32:
+				gray32Item.setSelection(true);
+				break;
+			case ImagePlus.COLOR_256:
+				color256Item.setSelection(true);
+				break;
+			case ImagePlus.COLOR_RGB:
+				colorRGBItem.setSelection(true);
+				break;
+			case RGB_STACK:
+				RGBStackItem.setSelection(true);
+				break;
+			case HSB_STACK:
+				HSBStackItem.setSelection(true);
+				break;
+			case LAB_STACK:
+				LabStackItem.setSelection(true);
+				break;
+			case HSB32_STACK:
+				HSB32Item.setSelection(true);
+				break;
+			}
+			// update Window menu
+			int nItems = window.getItemCount();
+			int start = WINDOW_MENU_ITEMS + windowMenuItems2;
+			int index = start + WindowManager.getCurrentIndex();
+			try { // workaround for Linux/Java 5.0/bug
+				for (int i = start; i < nItems; i++) {
+					org.eclipse.swt.widgets.MenuItem item = (org.eclipse.swt.widgets.MenuItem) window.getItem(i);
+					item.setSelection(i == index);
+				}
+			} catch (Exception e) {
+			}
+
 		});
 	}
 
@@ -1783,65 +1781,60 @@ public class Menus {
 	/** Changes the name of an item in the Window menu. */
 	public static synchronized void updateWindowMenuItem(ImagePlus imp, String oldLabel, String newLabel) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				if (oldLabel == null || newLabel == null)
-					return;
-				int first = WINDOW_MENU_ITEMS;
-				int count = window.getItemCount();
-				try { // workaround for Linux/Java 5.0/bug
-					for (int i = first; i < count; i++) {
-						org.eclipse.swt.widgets.MenuItem item = window.getItem(i);
-						String label = item.getText();
-						String cmd = (String) item.getData("ActionCommand");
-						if (imp != null) { // remove size (e.g. " 24MB")
-							int index = label.lastIndexOf(" ");
-							if (index > -1)
-								label = label.substring(0, index);
-						}
-						if (item != null && label.equals(oldLabel) && (imp == null || ("" + imp.getID()).equals(cmd))) {
-							String size = "";
-							if (imp != null)
-								size = " " + ImageWindow.getImageSize(imp);
-							item.setText(newLabel + size);
-							return;
-						}
+			if (oldLabel == null || newLabel == null)
+				return;
+			int first = WINDOW_MENU_ITEMS;
+			int count = window.getItemCount();
+			try { // workaround for Linux/Java 5.0/bug
+				for (int i = first; i < count; i++) {
+					org.eclipse.swt.widgets.MenuItem item = window.getItem(i);
+					String label = item.getText();
+					String cmd = (String) item.getData("ActionCommand");
+					if (imp != null) { // remove size (e.g. " 24MB")
+						int index = label.lastIndexOf(" ");
+						if (index > -1)
+							label = label.substring(0, index);
 					}
-				} catch (Exception e) {
+					if (item != null && label.equals(oldLabel) && (imp == null || ("" + imp.getID()).equals(cmd))) {
+						String size = "";
+						if (imp != null)
+							size = " " + ImageWindow.getImageSize(imp);
+						item.setText(newLabel + size);
+						return;
+					}
 				}
+			} catch (Exception e) {
 			}
+
 		});
 	}
 
 	/** Adds a file path to the beginning of the File/Open Recent submenu. */
 	public static synchronized void addOpenRecentItem(String path) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				if (ij == null)
-					return;
-				int count = openRecentMenu.getItemCount();
-				for (int i = 0; i < count;) {
-					if (openRecentMenu.getItem(i).getText().equals(path)) {
-						// openRecentMenu.remove(i);
-						openRecentMenu.getItem(i).dispose();
-						count--;
-					} else
-						i++;
-				}
-				if (count == MAX_OPEN_RECENT_ITEMS)
-					// openRecentMenu.remove(MAX_OPEN_RECENT_ITEMS-1);
-					openRecentMenu.getItem(MAX_OPEN_RECENT_ITEMS - 1).dispose();
-				org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(openRecentMenu, SWT.PUSH,
-						0);
-				item.setText(path);
-				// openRecentMenu.insert(item, 0);
-				item.addSelectionListener(ij);
+			if (ij == null)
+				return;
+			int count = openRecentMenu.getItemCount();
+			for (int i = 0; i < count;) {
+				if (openRecentMenu.getItem(i).getText().equals(path)) {
+					// openRecentMenu.remove(i);
+					openRecentMenu.getItem(i).dispose();
+					count--;
+				} else
+					i++;
 			}
+			if (count == MAX_OPEN_RECENT_ITEMS)
+				// openRecentMenu.remove(MAX_OPEN_RECENT_ITEMS-1);
+				openRecentMenu.getItem(MAX_OPEN_RECENT_ITEMS - 1).dispose();
+			org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(openRecentMenu, SWT.PUSH, 0);
+			item.setText(path);
+			// openRecentMenu.insert(item, 0);
+			item.addSelectionListener(ij);
+
 		});
 	}
 
@@ -2128,54 +2121,52 @@ public class Menus {
 
 	public static void updateImageJMenus() {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				ArrayList<MenuItemTempStorage> menuTempStack = new ArrayList<MenuItemTempStorage>();
-				Menu menu = getImageJMenu("Window");
-				/*
-				 * Workaround to restore disposed Window menu items (images, registered Shells)!
-				 */
-				int countItem = menu.getItemCount();
-				for (int i = 0; i < countItem; i++) {
-					if (i > WINDOW_MENU_ITEMS - 1) {
-						org.eclipse.swt.widgets.MenuItem it = menu.getItem(i);
-						MenuItemTempStorage st = new MenuItemTempStorage();
-						st.name = it.getText();
-						st.id = it.getID();
-						st.selected = it.getSelection();
-						// item.setData("ActionCommand", "" + imp.getID());
-						st.data = it.getData("ActionCommand");
-						st.style = it.getStyle();
-						menuTempStack.add(st);
-					}
+			ArrayList<MenuItemTempStorage> menuTempStack = new ArrayList<MenuItemTempStorage>();
+			Menu menu = getImageJMenu("Window");
+			/*
+			 * Workaround to restore disposed Window menu items (images, registered Shells)!
+			 */
+			int countItem = menu.getItemCount();
+			for (int i = 0; i < countItem; i++) {
+				if (i > WINDOW_MENU_ITEMS - 1) {
+					org.eclipse.swt.widgets.MenuItem it = menu.getItem(i);
+					MenuItemTempStorage st = new MenuItemTempStorage();
+					st.name = it.getText();
+					st.id = it.getID();
+					st.selected = it.getSelection();
+					// item.setData("ActionCommand", "" + imp.getID());
+					st.data = it.getData("ActionCommand");
+					st.style = it.getStyle();
+					menuTempStack.add(st);
 				}
-				jarFiles = macroFiles = null;
-				Menus m = new Menus(IJ.getInstance(), IJ.getApplet());
-				String err = m.addMenuBar();
-				/* Extra call for SWT! */
-				updateMenus();
-				if (err != null)
-					IJ.error(err);
-				m.installStartupMacroSet();
-				IJ.resetClassLoader();
-				Menu menuRecreated = getImageJMenu("Window");
-				/* Add the Shell or WindowSwt items with image selections again! */
-				for (int i = 0; i < menuTempStack.size(); i++) {
-					MenuItemTempStorage itStorage = menuTempStack.get(i);
-					org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(menuRecreated,
-							itStorage.style);
-					item.setText(itStorage.name);
-					item.setID(itStorage.id);
-					item.setSelection(itStorage.selected);
-					item.setData("ActionCommand", itStorage.data);
-					item.addSelectionListener(ij);
-				}
-				// IJ.runPlugIn("ij.plugin.ClassChecker", "");
-				IJ.showStatus("Menus updated: " + m.nPlugins + " commands, " + m.nMacros + " macros");
-				menuTempStack.clear();
 			}
+			jarFiles = macroFiles = null;
+			Menus m = new Menus(IJ.getInstance(), IJ.getApplet());
+			String err = m.addMenuBar();
+			/* Extra call for SWT! */
+			updateMenus();
+			if (err != null)
+				IJ.error(err);
+			m.installStartupMacroSet();
+			IJ.resetClassLoader();
+			Menu menuRecreated = getImageJMenu("Window");
+			/* Add the Shell or WindowSwt items with image selections again! */
+			for (int i = 0; i < menuTempStack.size(); i++) {
+				MenuItemTempStorage itStorage = menuTempStack.get(i);
+				org.eclipse.swt.widgets.MenuItem item = new org.eclipse.swt.widgets.MenuItem(menuRecreated,
+						itStorage.style);
+				item.setText(itStorage.name);
+				item.setID(itStorage.id);
+				item.setSelection(itStorage.selected);
+				item.setData("ActionCommand", itStorage.data);
+				item.addSelectionListener(ij);
+			}
+			// IJ.runPlugIn("ij.plugin.ClassChecker", "");
+			IJ.showStatus("Menus updated: " + m.nPlugins + " commands, " + m.nMacros + " macros");
+			menuTempStack.clear();
+
 		});
 	}
 

@@ -227,12 +227,10 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 	public Rectangle getBounds() {
 
 		AtomicReference<Rectangle> rec = new AtomicReference<Rectangle>();
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			rec.set(getShell().getBounds());
 
-				rec.set(getShell().getBounds());
-			}
 		});
 		return rec.get();
 	}
@@ -1212,69 +1210,67 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 	/** Quit using a separate thread, hopefully avoiding thread deadlocks. */
 	public void run() {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				quitting = true;
-				boolean changes = false;
-				int[] wList = WindowManager.getIDList();
-				if (wList != null) {
-					for (int i = 0; i < wList.length; i++) {
-						ImagePlus imp = WindowManager.getImage(wList[i]);
-						if (imp != null && imp.changes == true) {
+			quitting = true;
+			boolean changes = false;
+			int[] wList = WindowManager.getIDList();
+			if (wList != null) {
+				for (int i = 0; i < wList.length; i++) {
+					ImagePlus imp = WindowManager.getImage(wList[i]);
+					if (imp != null && imp.changes == true) {
+						changes = true;
+						break;
+					}
+				}
+			}
+			Object[] frames = WindowManager.getNonImageWindows();
+			if (frames != null) {
+				for (int i = 0; i < frames.length; i++) {
+					if (frames[i] != null && (frames[i] instanceof Editor)) {
+						if (((Editor) frames[i]).fileChanged()) {
 							changes = true;
 							break;
 						}
 					}
 				}
-				Object[] frames = WindowManager.getNonImageWindows();
-				if (frames != null) {
-					for (int i = 0; i < frames.length; i++) {
-						if (frames[i] != null && (frames[i] instanceof Editor)) {
-							if (((Editor) frames[i]).fileChanged()) {
-								changes = true;
-								break;
-							}
-						}
-					}
-				}
-				/* If we use the ImageJ shell embedded we avoid closing here! */
-				if (SWT_MODE == EMBEDDED) {
-					closeFinally = false;
-					return;
-				}
-				if (windowClosed && !changes && Menus.window.getItemCount() > Menus.WINDOW_MENU_ITEMS
-						&& !(IJ.macroRunning() && WindowManager.getImageCount() == 0)) {
-					/* Changed for SWT! */
-					// GenericDialog gd = new GenericDialog("ImageJ", this);
-					GenericDialog gd = new GenericDialog("ImageJ");
-					gd.addMessage("Are you sure you want to quit ImageJ?");
-					gd.showDialog();
-					quitting = !gd.wasCanceled();
-					windowClosed = false;
-				}
-				if (!quitting) {
-					closeFinally = false;
-					return;
-				}
-				if (!WindowManager.closeAllWindows()) {
-					closeFinally = false;
-					quitting = false;
-					return;
-				}
-				if (applet == null) {
-					saveWindowLocations();
-					Prefs.set(ImageWindow.LOC_KEY, null); // don't save image window location
-					Prefs.savePreferences();
-				}
-				IJ.cleanup();
-				/* Will set e.doit to true! */
-				closeFinally = true;
-				shell.close();
-				if (exitWhenQuitting)
-					System.exit(0);
 			}
+			/* If we use the ImageJ shell embedded we avoid closing here! */
+			if (SWT_MODE == EMBEDDED) {
+				closeFinally = false;
+				return;
+			}
+			if (windowClosed && !changes && Menus.window.getItemCount() > Menus.WINDOW_MENU_ITEMS
+					&& !(IJ.macroRunning() && WindowManager.getImageCount() == 0)) {
+				/* Changed for SWT! */
+				// GenericDialog gd = new GenericDialog("ImageJ", this);
+				GenericDialog gd = new GenericDialog("ImageJ");
+				gd.addMessage("Are you sure you want to quit ImageJ?");
+				gd.showDialog();
+				quitting = !gd.wasCanceled();
+				windowClosed = false;
+			}
+			if (!quitting) {
+				closeFinally = false;
+				return;
+			}
+			if (!WindowManager.closeAllWindows()) {
+				closeFinally = false;
+				quitting = false;
+				return;
+			}
+			if (applet == null) {
+				saveWindowLocations();
+				Prefs.set(ImageWindow.LOC_KEY, null); // don't save image window location
+				Prefs.savePreferences();
+			}
+			IJ.cleanup();
+			/* Will set e.doit to true! */
+			closeFinally = true;
+			shell.close();
+			if (exitWhenQuitting)
+				System.exit(0);
+
 		});
 	}
 
