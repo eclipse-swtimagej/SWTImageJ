@@ -378,20 +378,19 @@ public class AVI_Reader extends VirtualStack implements PlugIn {
 	public static ImagePlus openVirtual(String path) {
 		return open(path, true);
 	}
-	
-	/** Opens an AVI file, where 'options' can contain
-	 * 'virtual' (open as virtual stack),
-	 * 'convert' (convert color images to grayscale) or
-	 * 'flip' (flip vertically).
-	 * The ImagePlus is not displayed.
-	*/
+
+	/**
+	 * Opens an AVI file, where 'options' can contain 'virtual' (open as virtual
+	 * stack), 'convert' (convert color images to grayscale) or 'flip' (flip
+	 * vertically). The ImagePlus is not displayed.
+	 */
 	public static ImagePlus open(String path, String options) {
 		AVI_Reader reader = new AVI_Reader();
 		boolean virtual = options.contains("virtual");
 		boolean convertToGray = options.contains("convert");
 		boolean flipVertical = options.contains("flip");
-		ImageStack stack = reader.makeStack (path, 1, 0, virtual, convertToGray, flipVertical);
-		if (stack!=null)
+		ImageStack stack = reader.makeStack(path, 1, 0, virtual, convertToGray, flipVertical);
+		if (stack != null)
 			return new ImagePlus((new File(path)).getName(), stack);
 		else
 			return null;
@@ -492,12 +491,12 @@ public class AVI_Reader extends VirtualStack implements PlugIn {
 			return null; // failed
 		ImageProcessor ip = null;
 		if (pixels instanceof byte[])
-			ip = new ByteProcessor(dwWidth, biHeight, (byte[])pixels, cm);
+			ip = new ByteProcessor(dwWidth, biHeight, (byte[]) pixels, cm);
 		else if (pixels instanceof short[])
-			ip = new ShortProcessor(dwWidth, biHeight, (short[])pixels, cm);
+			ip = new ShortProcessor(dwWidth, biHeight, (short[]) pixels, cm);
 		else
-			ip = new ColorProcessor(dwWidth, biHeight, (int[])pixels);
-		if (ip!=null)
+			ip = new ColorProcessor(dwWidth, biHeight, (int[]) pixels);
+		if (ip != null)
 			ip.setSliceNumber(n);
 		return ip;
 	}
@@ -570,12 +569,11 @@ public class AVI_Reader extends VirtualStack implements PlugIn {
 		gd.addNumericField("First:", firstFrame, 0);
 		gd.addNumericField("Last:", lastFrame, lastFrame, 6, "*");
 		AtomicReference<org.eclipse.swt.widgets.Text> lastField = new AtomicReference<org.eclipse.swt.widgets.Text>();
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				lastField.set((org.eclipse.swt.widgets.Text) (gd.getNumericFields().lastElement()));
-				if (lastFrame == 0)
-					lastField.get().setText("");
-			}
+		Display.getDefault().syncExec(() -> {
+			lastField.set((org.eclipse.swt.widgets.Text) (gd.getNumericFields().lastElement()));
+			if (lastFrame == 0)
+				lastField.get().setText("");
+
 		});
 		gd.setInsets(0, 40, 5);
 		gd.addMessage(
@@ -596,11 +594,10 @@ public class AVI_Reader extends VirtualStack implements PlugIn {
 		double first = gd.getNextNumber();
 		if (!Double.isNaN(first))
 			firstFrame = (int) first;
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				if (lastField.get().getText().length() == 0)
-					lastField.get().setText("0");
-			}
+		Display.getDefault().syncExec(() -> {
+			if (lastField.get().getText().length() == 0)
+				lastField.get().setText("0");
+
 		});
 		double last = gd.getNextNumber();
 		if (!Double.isNaN(last))

@@ -16,6 +16,7 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 	GC gImage;
 	org.eclipse.swt.graphics.Image iImage;
 	boolean antialiased;
+
 	TextCanvas(TextPanel tp) {
 		super(tp.getShell(), SWT.DOUBLE_BUFFERED);
 		this.tp = tp;
@@ -34,22 +35,22 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 		iImage = null;
 	}
 
-	/*public void update(Graphics g) {
-		paint(g);
-	}*/
+	/*
+	 * public void update(Graphics g) { paint(g); }
+	 */
 
 	@Override
 	public void paintControl(PaintEvent evt) {
 		GC gc = evt.gc;
 		paint(gc);
-		//gc.dispose();
+		// gc.dispose();
 	}
-    /*Only for compatibility!*/
+
+	/* Only for compatibility! */
 	public void repaint() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				redraw();
-			}
+		Display.getDefault().syncExec(() -> {
+			redraw();
+
 		});
 	}
 
@@ -72,7 +73,7 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 			tp.adjustHScroll();
 			tp.adjustVScroll();
 		}
-		if(Display.isSystemDarkTheme()) {
+		if (Display.isSystemDarkTheme()) {
 			gImage.setBackground(ij.swt.Color.backGround);
 		}
 		gImage.setBackground(ij.swt.Color.backGround);
@@ -90,7 +91,8 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 		for (; y < iHeight && j < tp.iRowCount; j++, y += tp.iRowHeight) {
 			int x = -tp.iX;
 			for (int i = 0; i < tp.iColCount; i++) {
-				if (i>=tp.iColWidth.length) break;
+				if (i >= tp.iColWidth.length)
+					break;
 				int w = tp.iColWidth[i];
 				org.eclipse.swt.graphics.Color b = ij.swt.Color.white, t = ij.swt.Color.black;
 				if (j >= tp.selStart && j <= tp.selEnd) {
@@ -104,7 +106,7 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 				}
 				gImage.setBackground(ij.swt.Color.backGround);
 				gImage.setForeground(ij.swt.Color.foreGround);
-				char[] chars = tp.getChars(i,j);
+				char[] chars = tp.getChars(i, j);
 				if (chars != null)
 					gImage.drawString(String.valueOf(chars), x + 2, y + tp.iRowHeight - fMetrics.getHeight());
 				x += w;
@@ -114,11 +116,11 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 			gc.drawImage(iImage, 0, 0);
 		gImage.dispose();
 		iImage.dispose();
-		//gc.dispose();
+		// gc.dispose();
 	}
 
 	void makeImage(int iWidth, int iHeight) {
-		/*Changed for SWT. We have no awt canvas here. So we create a dummy image!*/
+		/* Changed for SWT. We have no awt canvas here. So we create a dummy image! */
 		iImage = new org.eclipse.swt.graphics.Image(Display.getDefault(), iWidth, iHeight);
 		// iImage=new BufferedImage(iWidth, iHeight,BufferedImage.TYPE_INT_RGB);
 		// iImage=new java.awt.Canvas().createImage(iWidth, iHeight);
@@ -134,8 +136,8 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 			gImage.setAntialias(SWT.DEFAULT);
 		}
 
-		if (fMetrics==null)
-			fMetrics = gImage.getFontMetrics(); 
+		if (fMetrics == null)
+			fMetrics = gImage.getFontMetrics();
 	}
 
 	void drawColumnLabels(int iWidth) {
@@ -147,7 +149,7 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 			gImage.setBackground(ij.swt.Color.darkGray);
 			gImage.fillRectangle(x + 1, 0, w, tp.iRowHeight);
 			gImage.setForeground(ij.swt.Color.foreGround);
-			if (i<tp.sColHead.length && tp.sColHead[i]!=null)
+			if (i < tp.sColHead.length && tp.sColHead[i] != null)
 				gImage.drawString(tp.sColHead[i], x + 2, tp.iRowHeight - fMetrics.getHeight());
 			if (tp.iColCount > 0) {
 				gImage.setForeground(ij.swt.Color.lightGray);
@@ -180,12 +182,12 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 		}
 		int rowCount = Math.min(tp.iRowCount, maxRows);
 		for (int row = 0; row < rowCount; row++) {
-			char[] chars = tp.getChars(column,row);
+			char[] chars = tp.getChars(column, row);
 			if (chars != null)
 				w = (int) Math.max(w, fMetrics.getAverageCharacterWidth() * chars.length);
 		}
 		// System.out.println("calcAutoWidth: "+column+" "+tp.iRowCount);
-		char[] chars = tp.iRowCount>0?tp.getChars(column, tp.iRowCount-1):null;
+		char[] chars = tp.iRowCount > 0 ? tp.getChars(column, tp.iRowCount - 1) : null;
 		if (chars != null)
 			w = (int) Math.max(w, fMetrics.getAverageCharacterWidth() * chars.length);
 		if (column < tp.iColWidth.length)
