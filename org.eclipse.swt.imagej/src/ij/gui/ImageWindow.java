@@ -118,13 +118,11 @@ public class ImageWindow implements MouseWheelListener {
 
 	public void setTitle(String string) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			if (shell != null && !shell.isDisposed())
+				shell.setText(string);
 
-				if (shell != null && !shell.isDisposed())
-					shell.setText(string);
-			}
 		});
 	}
 
@@ -138,37 +136,30 @@ public class ImageWindow implements MouseWheelListener {
 	public boolean isVisible() {
 
 		AtomicReference<Boolean> visible = new AtomicReference<Boolean>();
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			visible.set(shell.isVisible());
 
-				visible.set(shell.isVisible());
-			}
 		});
 		return visible.get();
 	}
 
 	public void setVisible(boolean visible) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			Shell shell = getShell();
+			shell.setVisible(true);
 
-				Shell shell = getShell();
-				shell.setVisible(true);
-			}
 		});
 	}
 
 	/* Compatibility methods since we have no Frame here! */
 	public void show() {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			shell.setVisible(true);
 
-			public void run() {
-
-				shell.setVisible(true);
-			}
 		});
 	}
 
@@ -177,21 +168,17 @@ public class ImageWindow implements MouseWheelListener {
 
 		AtomicReference<Point> p = new AtomicReference<Point>();
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				p.set(shell.getLocation());
 
-					p.set(shell.getLocation());
-				}
 			});
 		} else {
 			if (embeddedParent.isDisposed() == false) {
-				Display.getDefault().syncExec(new Runnable() {
+				Display.getDefault().syncExec(() -> {
 
-					public void run() {
+					p.set(embeddedParent.toDisplay(embeddedParent.getLocation()));
 
-						p.set(embeddedParent.toDisplay(embeddedParent.getLocation()));
-					}
 				});
 			}
 		}
@@ -206,12 +193,10 @@ public class ImageWindow implements MouseWheelListener {
 	public void setLocation(Point p) {
 
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				shell.setLocation(p);
 
-					shell.setLocation(p);
-				}
 			});
 		}
 	}
@@ -268,12 +253,10 @@ public class ImageWindow implements MouseWheelListener {
 	public Rectangle getBounds() {
 
 		AtomicReference<Rectangle> rec = new AtomicReference<Rectangle>();
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			rec.set(parentComposite.getBounds());
 
-				rec.set(parentComposite.getBounds());
-			}
 		});
 		return rec.get();
 	}
@@ -287,12 +270,10 @@ public class ImageWindow implements MouseWheelListener {
 	public void setShellSize(Point p) {
 
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				shell.setSize(p);
 
-					shell.setSize(p);
-				}
 			});
 		}
 	}
@@ -301,12 +282,10 @@ public class ImageWindow implements MouseWheelListener {
 	public void toFront() {
 
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				shell.forceActive();
 
-					shell.forceActive();
-				}
 			});
 		}
 	}
@@ -315,12 +294,10 @@ public class ImageWindow implements MouseWheelListener {
 	public void setSize(int x, int y) {
 
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				shell.setSize(x, y);
 
-					shell.setSize(x, y);
-				}
 			});
 		}
 	}
@@ -329,12 +306,10 @@ public class ImageWindow implements MouseWheelListener {
 	public void validate() {
 
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				shell.layout(true);
 
-					shell.layout(true);
-				}
 			});
 		}
 	}
@@ -343,12 +318,10 @@ public class ImageWindow implements MouseWheelListener {
 	public void pack() {
 
 		if (embeddedParent == null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				shell.pack(true);
 
-					shell.pack(true);
-				}
 			});
 		}
 	}
@@ -553,54 +526,52 @@ public class ImageWindow implements MouseWheelListener {
 		/* SWT Shell init! */
 		// display = new Display();
 		/* A subshell from a default display in the ImageJ class! */
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			shell = new Shell(Display.getDefault());
+			shell.addListener(SWT.Close, new Listener() {
 
-				shell = new Shell(Display.getDefault());
-				shell.addListener(SWT.Close, new Listener() {
+				public void handleEvent(Event event) {
 
-					public void handleEvent(Event event) {
-
-						event.doit = false;
-						boolean closeIt = ImageWindow.this.close();
-						if (closeIt == false) {
-							return;
-						}
-						/* Save the ImageJ preferences when the view is closed! */
-						try {
-							Prefs.savePreferences();
-						} catch (RuntimeException ex) {
-							ex.printStackTrace();
-						}
-						event.doit = true;
-						// dispose not necessary here - see window close above!
-						// shell.dispose();
-						// IJ.getInstance().quit();
+					event.doit = false;
+					boolean closeIt = ImageWindow.this.close();
+					if (closeIt == false) {
+						return;
 					}
-				});
-				shell.addListener(SWT.Activate, new Listener() {
-
-					public void handleEvent(Event event) {
-
-						windowActivated(null);
+					/* Save the ImageJ preferences when the view is closed! */
+					try {
+						Prefs.savePreferences();
+					} catch (RuntimeException ex) {
+						ex.printStackTrace();
 					}
-				});
-				shell.addListener(SWT.FocusIn, new Listener() {
+					event.doit = true;
+					// dispose not necessary here - see window close above!
+					// shell.dispose();
+					// IJ.getInstance().quit();
+				}
+			});
+			shell.addListener(SWT.Activate, new Listener() {
 
-					public void handleEvent(Event event) {
+				public void handleEvent(Event event) {
 
-						windowActivated(null);
-					}
-				});
-				GridLayout layout = new GridLayout(1, true);
-				/* No margin for the shell! */
-				layout.marginHeight = 0;
-				layout.marginWidth = 0;
-				shell.setLayout(layout);
-				layout.verticalSpacing = 0;
-				shell.setText("Image Viewer");
-			}
+					windowActivated(null);
+				}
+			});
+			shell.addListener(SWT.FocusIn, new Listener() {
+
+				public void handleEvent(Event event) {
+
+					windowActivated(null);
+				}
+			});
+			GridLayout layout = new GridLayout(1, true);
+			/* No margin for the shell! */
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			shell.setLayout(layout);
+			layout.verticalSpacing = 0;
+			shell.setText("Image Viewer");
+
 		});
 	}
 
@@ -1441,28 +1412,24 @@ public class ImageWindow implements MouseWheelListener {
 	 */
 	public void setLocationAndSize(int x, int y, int width, int height) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				if (shell != null && shell.isDisposed() == false) {
-					shell.setLocation(x, y);
-					shell.setSize(width, height);
-					getCanvas().fitToWindow();
-				}
+			if (shell != null && shell.isDisposed() == false) {
+				shell.setLocation(x, y);
+				shell.setSize(width, height);
+				getCanvas().fitToWindow();
 			}
+
 		});
 	}
 
 	public void setLocation(int x, int y) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			if (shell != null && shell.isDisposed() == false)
+				shell.setLocation(x, y);
 
-				if (shell != null && shell.isDisposed() == false)
-					shell.setLocation(x, y);
-			}
 		});
 		/*
 		 * super.setLocation(x, y); initialLoc = null;
@@ -1507,14 +1474,12 @@ public class ImageWindow implements MouseWheelListener {
 	/* For SWT compatibility! */
 	public void repaint() {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				if (infoLabel != null && !infoLabel.isDisposed()) {
-					infoLabel.redraw();
-				}
+			if (infoLabel != null && !infoLabel.isDisposed()) {
+				infoLabel.redraw();
 			}
+
 		});
 		getCanvas().setImageUpdated();
 	}
