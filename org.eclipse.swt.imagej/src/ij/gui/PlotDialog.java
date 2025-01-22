@@ -95,9 +95,9 @@ public class PlotDialog implements DialogListener {
 		gd.addDialogListener(this);
 		dialogItemChanged(gd, null); // preview immediately
 		dialogShowing = true;
-		
+
 		gd.showDialog();
-		
+
 		if (gd.wasCanceled()) {
 			plot.restorePlotProperties();
 			if (dialogType == TEMPLATE)
@@ -589,10 +589,9 @@ public class PlotDialog implements DialogListener {
 		 * WindowManager will see the original plot as active, but the user interface
 		 * will show the high-res plot as foreground window
 		 */
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				IJ.selectWindow(hiresImp.getID());
-			}
+		Display.getDefault().syncExec(() -> {
+			IJ.selectWindow(hiresImp.getID());
+
 		});
 
 		if (IJ.recording()) {

@@ -304,8 +304,10 @@ public class Plot implements Cloneable {
 	double[] steps; // x & y interval between numbers, major ticks & grid lines, remembered for
 					// redrawing the grid
 	private int objectToReplace = -1; // index in allPlotObjects, for replace
-	//private Point2D.Double textLoc;                 // remembers position of previous addLabel call (replaces text if at the same position)
-	//private int textIndex;                          // remembers index of previous addLabel call (for replacing if at the same position)
+	// private Point2D.Double textLoc; // remembers position of previous addLabel
+	// call (replaces text if at the same position)
+	// private int textIndex; // remembers index of previous addLabel call (for
+	// replacing if at the same position)
 	protected PlotWindow pw;
 
 	/**
@@ -921,10 +923,10 @@ public class Plot implements Cloneable {
 	}
 
 	/**
-	 * Replaces the specified plot object (curve or set of points).  
-	 * Equivalent to add() if there are no plot objects. 
+	 * Replaces the specified plot object (curve or set of points). Equivalent to
+	 * add() if there are no plot objects.
 	 */
-	 
+
 	public void replace(int index, String type, double[] xvalues, double[] yvalues) {
 		if (index >= 0 && index < allPlotObjects.size()) {
 			objectToReplace = allPlotObjects.size() > 0 ? index : -1;
@@ -958,9 +960,11 @@ public class Plot implements Cloneable {
 	 * @param yErrorBars error bars in y, may be null
 	 * @param shape      CIRCLE, X, BOX, TRIANGLE, CROSS, DIAMOND, DOT, LINE,
 	 *                   CONNECTED_CIRCLES
-	 * @param label		Label for this curve or set of points, used for a legend and for listing the plots.
-	 *  For shape type CUSTOM, the 'label' String should contain the macro code as in "Custom Plot Symbols"
-	 *  example macro and in add(String, double[], double[]) (without the 'code:')
+	 * @param label      Label for this curve or set of points, used for a legend
+	 *                   and for listing the plots. For shape type CUSTOM, the
+	 *                   'label' String should contain the macro code as in "Custom
+	 *                   Plot Symbols" example macro and in add(String, double[],
+	 *                   double[]) (without the 'code:')
 	 */
 	public void addPoints(float[] xValues, float[] yValues, float[] yErrorBars, int shape, String label) {
 		if (xValues == null || xValues.length == 0) {
@@ -1157,18 +1161,19 @@ public class Plot implements Cloneable {
 	 * replaced
 	 */
 	public void addLabel(double x, double y, String label) {
-		for (int i=allPlotObjects.size()-1; i>=0; i--) {
+		for (int i = allPlotObjects.size() - 1; i >= 0; i--) {
 			PlotObject plotObject = allPlotObjects.get(i);
-			if (plotObject.type == PlotObject.NORMALIZED_LABEL) {		//result of previous addLabel
+			if (plotObject.type == PlotObject.NORMALIZED_LABEL) { // result of previous addLabel
 				if (plotObject.x == x && plotObject.y == y) {
-					allPlotObjects.set(i, new PlotObject(label, x, y, currentJustification,
-							currentFont, currentColor, PlotObject.NORMALIZED_LABEL));
+					allPlotObjects.set(i, new PlotObject(label, x, y, currentJustification, currentFont, currentColor,
+							PlotObject.NORMALIZED_LABEL));
 					return;
 				}
 				break;
 			}
 		}
-		allPlotObjects.add(new PlotObject(label, x, y, currentJustification, currentFont, currentColor, PlotObject.NORMALIZED_LABEL));
+		allPlotObjects.add(new PlotObject(label, x, y, currentJustification, currentFont, currentColor,
+				PlotObject.NORMALIZED_LABEL));
 	}
 
 	/*
@@ -1636,8 +1641,10 @@ public class Plot implements Cloneable {
 
 	/**
 	 * Gets an array with human-readable designations of the PlotObjects with types
-	 * fitting the mask *  (i.e., 'mask' should be a bitwise or of the types desired: XY_DATA = 1, ARROWS = 2, LINE = 4,
-	 *   NORMALIZED_LINE = 8, DOTTED_LINE = 16, LABEL = 32, NORMALIZED_LABEL = 64, LEGEND = 128) */
+	 * fitting the mask * (i.e., 'mask' should be a bitwise or of the types desired:
+	 * XY_DATA = 1, ARROWS = 2, LINE = 4, NORMALIZED_LINE = 8, DOTTED_LINE = 16,
+	 * LABEL = 32, NORMALIZED_LABEL = 64, LEGEND = 128)
+	 */
 	String[] getPlotObjectDesignations(int mask, boolean includeHidden) {
 		int nObjects = getNumPlotObjects(mask, includeHidden);
 		String[] names = new String[nObjects];
@@ -2051,9 +2058,9 @@ public class Plot implements Cloneable {
 				setImagePlus(null);
 		}
 		Display.getDefault().syncExec(() -> {
-				pw = new PlotWindow(Plot.this); // note: this may set imp to null if pw has listValues and autoClose are
-				pw.getCanvas().getShell().pack(true); // set
-			
+			pw = new PlotWindow(Plot.this); // note: this may set imp to null if pw has listValues and autoClose are
+			pw.getCanvas().getShell().pack(true); // set
+
 		});
 		if (IJ.isMacro() && imp != null) // wait for plot to be displayed
 			IJ.selectWindow(imp.getID());
@@ -2148,10 +2155,9 @@ public class Plot implements Cloneable {
 		if (imp == null || stack != null)
 			return;
 		adjustCalibration(imp.getCalibration());
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				imp.updateAndDraw();
-			}
+		Display.getDefault().syncExec(() -> {
+			imp.updateAndDraw();
+
 		});
 
 		if (ip != imp.getProcessor())
@@ -2289,19 +2295,20 @@ public class Plot implements Cloneable {
 		return pxlToInt(yPxl);
 	}
 
-	/** Converts a double-precision pixel coordinate value 'v' to integer,
-	 *  with overflow handling: Limits are +/-Integer.MAX_VALUE/2.
-	 *  This ensures that the difference between two points is in the range
-	 *  that can be handled by ImageProcessor.moveTo.
-	 *  NaN values are converted to -Integer.MAX_VALUE (negative).
+	/**
+	 * Converts a double-precision pixel coordinate value 'v' to integer, with
+	 * overflow handling: Limits are +/-Integer.MAX_VALUE/2. This ensures that the
+	 * difference between two points is in the range that can be handled by
+	 * ImageProcessor.moveTo. NaN values are converted to -Integer.MAX_VALUE
+	 * (negative).
 	 **/
 	private int pxlToInt(double v) {
 		if (Double.isNaN(v))
 			return -Integer.MAX_VALUE;
-		else if (v > -Integer.MAX_VALUE/2 && v < Integer.MAX_VALUE/2)
-			return (int)Math.round(v);
+		else if (v > -Integer.MAX_VALUE / 2 && v < Integer.MAX_VALUE / 2)
+			return (int) Math.round(v);
 		else
-			return v > 0 ? Integer.MAX_VALUE/2 : -Integer.MAX_VALUE/2;
+			return v > 0 ? Integer.MAX_VALUE / 2 : -Integer.MAX_VALUE / 2;
 	}
 
 	/**
@@ -2523,7 +2530,7 @@ public class Plot implements Cloneable {
 
 		for (int i = 0; i < currentMinMax.length; i += 2) { // for x and y direction
 			boolean logAxis = hasFlag(i == 0 ? X_LOG_NUMBERS : Y_LOG_NUMBERS);
-			//don't zoom in too much (otherwise finite float precision becomes an issue)
+			// don't zoom in too much (otherwise finite float precision becomes an issue)
 			double range = currentMinMax[i + 1] - currentMinMax[i];
 			double mid = 0.5 * (currentMinMax[i + 1] + currentMinMax[i]);
 			double relativeRange = Math.abs(range / mid);

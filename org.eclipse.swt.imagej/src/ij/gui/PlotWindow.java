@@ -151,7 +151,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		plotWidth = Prefs.getInt(PREFS_WIDTH, WIDTH);
 		plotHeight = Prefs.getInt(PREFS_HEIGHT, HEIGHT);
 		Dimension screen = IJ.getScreenSize();
-		if(plotWidth > screen.width && plotHeight > screen.height) {
+		if (plotWidth > screen.width && plotHeight > screen.height) {
 			plotWidth = WIDTH;
 			plotHeight = HEIGHT;
 		}
@@ -164,7 +164,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 
 		super(createImage(title, xLabel, yLabel, xValues, yValues));
 		plot = staticPlot;
-		((PlotCanvas)getCanvas()).setPlot(plot);
+		((PlotCanvas) getCanvas()).setPlot(plot);
 	}
 
 	/**
@@ -182,7 +182,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public PlotWindow(ImagePlus imp, Plot plot) {
 
 		super(imp);
-		((PlotCanvas)getCanvas()).setPlot(plot);
+		((PlotCanvas) getCanvas()).setPlot(plot);
 		this.plot = plot;
 		draw();
 	}
@@ -191,7 +191,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	PlotWindow(Plot plot) {
 
 		super(plot.getImagePlus());
-		PlotCanvas plo = (PlotCanvas)getCanvas();
+		PlotCanvas plo = (PlotCanvas) getCanvas();
 		plo.setPlot(plot);
 		this.plot = plot;
 		draw();
@@ -222,12 +222,9 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 * Note that there are more options available by using the methods of the Plot
 	 * class instead.
 	 * 
-	 * @param x
-	 *            the x-coodinates
-	 * @param y
-	 *            the y-coodinates
-	 * @param shape
-	 *            Plot.CIRCLE, X, BOX, TRIANGLE, CROSS, LINE etc.
+	 * @param x     the x-coodinates
+	 * @param y     the y-coodinates
+	 * @param shape Plot.CIRCLE, X, BOX, TRIANGLE, CROSS, LINE etc.
 	 * @deprecated use the corresponding method of the Plot class
 	 */
 	public void addPoints(float[] x, float[] y, int shape) {
@@ -350,7 +347,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		more.setText(moreButtonLabel);
 		// more.addActionListener(this);
 		// bottomPanel.add(more);
-		if(plot != null && plot.getPlotMaker() != null) {
+		if (plot != null && plot.getPlotMaker() != null) {
 			live = new org.eclipse.swt.widgets.Button(bottomPanel, SWT.NONE);
 			live.setText("Live");
 			live.addSelectionListener(new SelectionAdapter() {
@@ -386,17 +383,17 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		ImageProcessor ip = plot.getProcessor();
 		boolean ipIsColor = ip instanceof ColorProcessor;
 		boolean impIsColor = imp.getProcessor() instanceof ColorProcessor;
-		if(ipIsColor != impIsColor)
+		if (ipIsColor != impIsColor)
 			imp.setProcessor(null, ip);
 		else
 			imp.updateAndDraw();
-		if(listValues)
+		if (listValues)
 			showList(/* useLabels= */false);
 		else
 			ic.requestFocus(); // have focus on the canvas, not the button, so that pressing the space bar
 								// allows panning
 		super.parentComposite.layout();
-		if(Prefs.autoLivePlots && bgThread == null)
+		if (Prefs.autoLivePlots && bgThread == null)
 			enableLivePlot();
 	}
 
@@ -406,13 +403,13 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public void setPlot(Plot plot) {
 
 		this.plot = plot;
-		((PlotCanvas)getCanvas()).setPlot(plot);
+		((PlotCanvas) getCanvas()).setPlot(plot);
 	}
 
 	/** Releases the resources used by this PlotWindow */
 	public void dispose() {
 
-		if(plot != null)
+		if (plot != null)
 			plot.dispose();
 		disableLivePlot();
 		plot = null;
@@ -431,7 +428,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public void windowActivated(WindowEvent e) {
 
 		super.windowActivated(e);
-		if(!wasActivated) {
+		if (!wasActivated) {
 			new Thread(new Runnable() {
 
 				public void run() {
@@ -446,7 +443,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	/** Called when the canvas is resized */
 	void canvasResized() {
 
-		if(plot == null)
+		if (plot == null)
 			return;
 		/*
 		 * Dimension d1 = getExtraSize(); Dimension d2 = plot.getMinimumSize();
@@ -479,7 +476,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public void showStatus(String text) {
 
 		userStatusText = text;
-		if(statusLabel != null)
+		if (statusLabel != null)
 			statusLabel.setText(text == null ? "" : text);
 	}
 
@@ -487,14 +484,14 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 * Names for popupMenu items. Update NUM_MENU_ITEMS at the top when adding new
 	 * ones!
 	 */
-	private static int SAVE = 0, COPY = 1, COPY_ALL = 2, LIST_SIMPLE = 3,
-			ADD_FROM_TABLE = 4, ADD_FROM_PLOT = 5, ADD_FIT = 6, // data menu
+	private static int SAVE = 0, COPY = 1, COPY_ALL = 2, LIST_SIMPLE = 3, ADD_FROM_TABLE = 4, ADD_FROM_PLOT = 5,
+			ADD_FIT = 6, // data menu
 			SET_RANGE = 7, PREV_RANGE = 8, RESET_RANGE = 9, FIT_RANGE = 10, // the rest is in the more menu
-			ZOOM_SELECTION = 11, AXIS_OPTIONS = 12, LEGEND = 13, STYLE = 14,
-			TEMPLATE = 15, RESET_PLOT = 16, FREEZE = 17, HI_RESOLUTION = 18,
-			PROFILE_PLOT_OPTIONS = 19;
+			ZOOM_SELECTION = 11, AXIS_OPTIONS = 12, LEGEND = 13, STYLE = 14, TEMPLATE = 15, RESET_PLOT = 16,
+			FREEZE = 17, HI_RESOLUTION = 18, PROFILE_PLOT_OPTIONS = 19;
 	// the following commands are disabled when the plot is frozen
-	private static int[] DISABLED_WHEN_FROZEN = new int[]{ADD_FROM_TABLE, ADD_FROM_PLOT, ADD_FIT, SET_RANGE, PREV_RANGE, RESET_RANGE, FIT_RANGE, ZOOM_SELECTION, AXIS_OPTIONS, LEGEND, STYLE, RESET_PLOT};
+	private static int[] DISABLED_WHEN_FROZEN = new int[] { ADD_FROM_TABLE, ADD_FROM_PLOT, ADD_FIT, SET_RANGE,
+			PREV_RANGE, RESET_RANGE, FIT_RANGE, ZOOM_SELECTION, AXIS_OPTIONS, LEGEND, STYLE, RESET_PLOT };
 
 	/**
 	 * Prepares and returns the popupMenu of the Data>> button
@@ -564,9 +561,10 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		return addSwtPopupItem(popupMenu, s, false);
 	}
 
-	org.eclipse.swt.widgets.MenuItem addSwtPopupItem(org.eclipse.swt.widgets.Menu popupMenu, String s, boolean isCheckboxItem) {
+	org.eclipse.swt.widgets.MenuItem addSwtPopupItem(org.eclipse.swt.widgets.Menu popupMenu, String s,
+			boolean isCheckboxItem) {
 
-		if(isCheckboxItem) {
+		if (isCheckboxItem) {
 			item = new org.eclipse.swt.widgets.MenuItem(popupMenu, SWT.CHECK);
 			item.setText(s);
 			item.addSelectionListener(new SelectionListener() {
@@ -601,10 +599,10 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	}
 	/*
 	 * MenuItem addPopupItem(PopupMenu popupMenu, String s) { return
-	 * addPopupItem(popupMenu, s, false); }
-	 * MenuItem addPopupItem(PopupMenu popupMenu, String s, boolean isCheckboxItem)
-	 * { MenuItem mi = null; if (isCheckboxItem) { mi = new CheckboxMenuItem(s);
-	 * ((CheckboxMenuItem) mi).addItemListener(this); } else { mi = new MenuItem(s);
+	 * addPopupItem(popupMenu, s, false); } MenuItem addPopupItem(PopupMenu
+	 * popupMenu, String s, boolean isCheckboxItem) { MenuItem mi = null; if
+	 * (isCheckboxItem) { mi = new CheckboxMenuItem(s); ((CheckboxMenuItem)
+	 * mi).addItemListener(this); } else { mi = new MenuItem(s);
 	 * mi.addActionListener(this); } popupMenu.add(mi); return mi; }
 	 */
 
@@ -613,62 +611,62 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 
 		try {
 			Object b = e.getSource();
-			if(b == live)
+			if (b == live)
 				toggleLivePlot();
-			else if(b == list)
+			else if (b == list)
 				showList(/* useLabels= */true);
-			else if(b == data) {
+			else if (b == data) {
 				enableDisableMenuItems();
 				// dataPopupMenu.show((Component) b, 1, 1);
-			} else if(b == more) {
+			} else if (b == more) {
 				enableDisableMenuItems();
 				// morePopupMenu.show((Component) b, 1, 1);
-			} else if(b == menuItems[SAVE])
+			} else if (b == menuItems[SAVE])
 				saveAsText();
-			else if(b == menuItems[COPY])
+			else if (b == menuItems[COPY])
 				copyToClipboard(false);
-			else if(b == menuItems[COPY_ALL])
+			else if (b == menuItems[COPY_ALL])
 				copyToClipboard(true);
-			else if(b == menuItems[LIST_SIMPLE])
+			else if (b == menuItems[LIST_SIMPLE])
 				showList(/* useLabels= */false);
-			else if(b == menuItems[ADD_FROM_TABLE])
+			else if (b == menuItems[ADD_FROM_TABLE])
 				new PlotContentsDialog(plot, PlotContentsDialog.ADD_FROM_TABLE).showDialog(this.shell);
-			else if(b == menuItems[ADD_FROM_PLOT])
+			else if (b == menuItems[ADD_FROM_PLOT])
 				new PlotContentsDialog(plot, PlotContentsDialog.ADD_FROM_PLOT).showDialog(this.shell);
-			else if(b == menuItems[ADD_FIT])
+			else if (b == menuItems[ADD_FIT])
 				new PlotContentsDialog(plot, PlotContentsDialog.ADD_FIT).showDialog(this.shell);
-			else if(b == menuItems[ZOOM_SELECTION]) {
-				if(imp != null && imp.getRoi() != null && imp.getRoi().isArea())
+			else if (b == menuItems[ZOOM_SELECTION]) {
+				if (imp != null && imp.getRoi() != null && imp.getRoi().isArea())
 					plot.zoomToRect(imp.getRoi().getBounds());
-			} else if(b == menuItems[SET_RANGE])
+			} else if (b == menuItems[SET_RANGE])
 				new PlotDialog(plot, PlotDialog.SET_RANGE).showDialog(this.shell);
-			else if(b == menuItems[PREV_RANGE])
+			else if (b == menuItems[PREV_RANGE])
 				plot.setPreviousMinMax();
-			else if(b == menuItems[RESET_RANGE])
+			else if (b == menuItems[RESET_RANGE])
 				plot.setLimitsToDefaults(true);
-			else if(b == menuItems[FIT_RANGE])
+			else if (b == menuItems[FIT_RANGE])
 				plot.setLimitsToFit(true);
-			else if(b == menuItems[AXIS_OPTIONS])
+			else if (b == menuItems[AXIS_OPTIONS])
 				new PlotDialog(plot, PlotDialog.AXIS_OPTIONS).showDialog(this.shell);
-			else if(b == menuItems[LEGEND])
+			else if (b == menuItems[LEGEND])
 				new PlotDialog(plot, PlotDialog.LEGEND).showDialog(this.shell);
-			else if(b == menuItems[STYLE])
+			else if (b == menuItems[STYLE])
 				new PlotContentsDialog(plot, PlotContentsDialog.STYLE).showDialog(this.shell);
-			else if(b == menuItems[TEMPLATE])
+			else if (b == menuItems[TEMPLATE])
 				new PlotDialog(plot, PlotDialog.TEMPLATE).showDialog(this.shell);
-			else if(b == menuItems[RESET_PLOT]) {
+			else if (b == menuItems[RESET_PLOT]) {
 				plot.setFont(Font.PLAIN, fontSize);
 				plot.setAxisLabelFont(Font.PLAIN, fontSize);
 				plot.setFormatFlags(Plot.getDefaultFlags());
 				plot.setFrameSize(plotWidth, plotHeight); // updates the image only when size changed
 				plot.updateImage();
-			} else if(b == menuItems[HI_RESOLUTION])
+			} else if (b == menuItems[HI_RESOLUTION])
 				new PlotDialog(plot, PlotDialog.HI_RESOLUTION).showDialog(this.shell);
-			else if(b == menuItems[PROFILE_PLOT_OPTIONS])
+			else if (b == menuItems[PROFILE_PLOT_OPTIONS])
 				IJ.doCommand("Plots...");
 			ic.requestFocus(); // have focus on the canvas, not the button, so that pressing the space bar
 								// allows panning
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			IJ.handleException(ex);
 		}
 	}
@@ -676,20 +674,20 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	private void enableDisableMenuItems() {
 
 		boolean frozen = plot.isFrozen(); // prepare menu according to 'frozen' state of plot
-		((org.eclipse.swt.widgets.MenuItem)menuItems[FREEZE]).setSelection(frozen);
-		for(int i : DISABLED_WHEN_FROZEN)
+		((org.eclipse.swt.widgets.MenuItem) menuItems[FREEZE]).setSelection(frozen);
+		for (int i : DISABLED_WHEN_FROZEN)
 			menuItems[i].setEnabled(!frozen);
-		if(!PlotContentsDialog.tableWindowExists())
+		if (!PlotContentsDialog.tableWindowExists())
 			menuItems[ADD_FROM_TABLE].setEnabled(false);
-		if(plot.getDataObjectDesignations().length == 0)
+		if (plot.getDataObjectDesignations().length == 0)
 			menuItems[ADD_FIT].setEnabled(false);
 	}
 
 	/** Called if the user activates/deactivates a CheckboxMenuItem */
 	public void itemStateChanged(SelectionEvent e) {
 
-		if(e.getSource() == menuItems[FREEZE]) {
-			boolean frozen = ((org.eclipse.swt.widgets.MenuItem)menuItems[FREEZE]).getSelection();
+		if (e.getSource() == menuItems[FREEZE]) {
+			boolean frozen = ((org.eclipse.swt.widgets.MenuItem) menuItems[FREEZE]).getSelection();
 			// System.out.println(frozen);
 			plot.setFrozen(frozen);
 		}
@@ -705,54 +703,55 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public void mouseMoved(int x, int y) {
 
 		super.mouseMoved(x, y);
-		if(plot == null)
+		if (plot == null)
 			return;
 		String statusText = null; // coordinate readout, status or tooltip, will be shown in coordinate&status
 									// line
 		// arrows and other symbols for modifying the plot range
-		if(x < plot.leftMargin || y > plot.topMargin + plot.frameHeight) {
-			if(!rangeArrowsVisible && !plot.isFrozen())
+		if (x < plot.leftMargin || y > plot.topMargin + plot.frameHeight) {
+			if (!rangeArrowsVisible && !plot.isFrozen())
 				showRangeArrows();
-			if(activeRangeArrow < 0) // mouse is not on one of the symbols, ignore (nothing to display)
+			if (activeRangeArrow < 0) // mouse is not on one of the symbols, ignore (nothing to display)
 			{
-			} else if(activeRangeArrow < 8) // mouse over an arrow: 0,3,4,7 for increase, 1,2,5,6 for decrease
+			} else if (activeRangeArrow < 8) // mouse over an arrow: 0,3,4,7 for increase, 1,2,5,6 for decrease
 				statusText = ((activeRangeArrow + 1) & 0x02) != 0 ? "Decrease Range" : "Increase Range";
-			else if(activeRangeArrow == 8) // it's the 'R' icon
+			else if (activeRangeArrow == 8) // it's the 'R' icon
 				statusText = "Reset Range";
-			else if(activeRangeArrow == 9) // it's the 'F' icon
+			else if (activeRangeArrow == 9) // it's the 'F' icon
 				statusText = "Full Range (Fit All)";
-			else if(activeRangeArrow >= 10 && activeRangeArrow < 14) // space between arrow-pairs for single number
+			else if (activeRangeArrow >= 10 && activeRangeArrow < 14) // space between arrow-pairs for single number
 				statusText = "Set limit...";
-			else if(activeRangeArrow >= 14)
+			else if (activeRangeArrow >= 14)
 				statusText = "Axis Range & Options...";
 			boolean repaint = false;
-			if(activeRangeArrow >= 0 && !rangeArrowRois[activeRangeArrow].contains(x, y)) {
-				rangeArrowRois[activeRangeArrow].setFillColor(activeRangeArrow < 10 ? inactiveRangeArrowColor : inactiveRangeRectColor);
+			if (activeRangeArrow >= 0 && !rangeArrowRois[activeRangeArrow].contains(x, y)) {
+				rangeArrowRois[activeRangeArrow]
+						.setFillColor(activeRangeArrow < 10 ? inactiveRangeArrowColor : inactiveRangeRectColor);
 				repaint = true; // de-highlight arrow where cursor has moved out
 				activeRangeArrow = -1;
 			}
-			if(activeRangeArrow < 0) { // no currently highlighted arrow, do we have a new one?
+			if (activeRangeArrow < 0) { // no currently highlighted arrow, do we have a new one?
 				int i = getRangeArrowIndex(x, y);
-				if(i >= 0) { // we have an arrow or symbol at cursor position
+				if (i >= 0) { // we have an arrow or symbol at cursor position
 					rangeArrowRois[i].setFillColor(i < 14 ? activeRangeArrowColor : activeRangeRectColor);
 					activeRangeArrow = i;
 					repaint = true;
 				}
 			}
-			if(repaint)
+			if (repaint)
 				ic.repaint();
-		} else if(rangeArrowsVisible)
+		} else if (rangeArrowsVisible)
 			hideRangeArrows();
-		if(statusText == null)
+		if (statusText == null)
 			statusText = userStatusText != null ? userStatusText : plot.getCoordinates(x, y);
-		if(statusLabel != null)
+		if (statusLabel != null)
 			statusLabel.setText(statusText);
 	}
 
 	/** Called by PlotCanvas */
 	void mouseExit(org.eclipse.swt.events.MouseEvent e) {
 
-		if(rangeArrowsVisible)
+		if (rangeArrowsVisible)
 			hideRangeArrows();
 	}
 
@@ -768,28 +767,28 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 */
 	public synchronized void mouseWheelMoved(MouseEvent e) {
 
-		if(plot.isFrozen() || !(ic instanceof PlotCanvas)) { // frozen plots are like normal images
+		if (plot.isFrozen() || !(ic instanceof PlotCanvas)) { // frozen plots are like normal images
 			super.mouseScrolled(e);
 			return;
 		}
 		int rotation = e.count;
 		int amount = e.count;
-		if(e.x < plot.leftMargin || e.x > plot.leftMargin + plot.frameWidth)// n__
+		if (e.x < plot.leftMargin || e.x > plot.leftMargin + plot.frameWidth)// n__
 			return;
-		if(e.y < plot.topMargin || e.y > plot.topMargin + plot.frameHeight)
+		if (e.y < plot.topMargin || e.y > plot.topMargin + plot.frameHeight)
 			return;
 		boolean ctrl = (e.stateMask & SWT.CONTROL) != 0;
-		if(amount < 1)
+		if (amount < 1)
 			amount = 1;
-		if(rotation == 0)
+		if (rotation == 0)
 			return;
-		if(ctrl || IJ.shiftKeyDown()) {
+		if (ctrl || IJ.shiftKeyDown()) {
 			double zoomFactor = rotation < 0 ? Math.pow(2, 0.2) : Math.pow(0.5, 0.2);
 			Point loc = ic.getCursorLoc();
 			int x = ic.screenX(loc.x);
 			int y = ic.screenY(loc.y);
-			((PlotCanvas)ic).zoom(x, y, zoomFactor);
-		} else if(IJ.spaceBarDown())
+			((PlotCanvas) ic).zoom(x, y, zoomFactor);
+		} else if (IJ.spaceBarDown())
 			plot.scroll(rotation * amount * Math.max(ic.imageWidth / 50, 1), 0);
 		else
 			plot.scroll(0, rotation * amount * Math.max(ic.imageHeight / 50, 1));
@@ -801,7 +800,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 */
 	void showRangeArrows() {
 
-		if(imp == null)
+		if (imp == null)
 			return;
 		hideRangeArrows(); // in case we have old arrows from a different plot size or so
 		rangeArrowRois = new Roi[4 * 2 + 2 + 4 + 2]; // 4 arrows per axis, + 'Reset' and 'Fit All' icons, + 4 numerical
@@ -810,18 +809,18 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		int height = imp.getHeight();
 		int arrowH = plot.topMargin < 14 ? 6 : 8; // height of arrows and distance between them; base is twice that
 													// value
-		float[] yP = new float[]{height - arrowH / 2, height - 3 * arrowH / 2, height - 5 * arrowH / 2 - 0.1f};
-		for(float x : new float[]{plot.leftMargin, plot.leftMargin + plot.frameWidth}) { // create arrows for x axis
-			float[] x0 = new float[]{x - arrowH / 2, x - 3 * arrowH / 2 - 0.1f, x - arrowH / 2};
+		float[] yP = new float[] { height - arrowH / 2, height - 3 * arrowH / 2, height - 5 * arrowH / 2 - 0.1f };
+		for (float x : new float[] { plot.leftMargin, plot.leftMargin + plot.frameWidth }) { // create arrows for x axis
+			float[] x0 = new float[] { x - arrowH / 2, x - 3 * arrowH / 2 - 0.1f, x - arrowH / 2 };
 			rangeArrowRois[i++] = new PolygonRoi(x0, yP, 3, Roi.POLYGON);
-			float[] x1 = new float[]{x + arrowH / 2, x + 3 * arrowH / 2 + 0.1f, x + arrowH / 2};
+			float[] x1 = new float[] { x + arrowH / 2, x + 3 * arrowH / 2 + 0.1f, x + arrowH / 2 };
 			rangeArrowRois[i++] = new PolygonRoi(x1, yP, 3, Roi.POLYGON);
 		}
-		float[] xP = new float[]{arrowH / 2 - 0.1f, 3 * arrowH / 2, 5 * arrowH / 2 + 0.1f};
-		for(float y : new float[]{plot.topMargin + plot.frameHeight, plot.topMargin}) { // create arrows for y axis
-			float[] y0 = new float[]{y + arrowH / 2, y + 3 * arrowH / 2 + 0.1f, y + arrowH / 2};
+		float[] xP = new float[] { arrowH / 2 - 0.1f, 3 * arrowH / 2, 5 * arrowH / 2 + 0.1f };
+		for (float y : new float[] { plot.topMargin + plot.frameHeight, plot.topMargin }) { // create arrows for y axis
+			float[] y0 = new float[] { y + arrowH / 2, y + 3 * arrowH / 2 + 0.1f, y + arrowH / 2 };
 			rangeArrowRois[i++] = new PolygonRoi(xP, y0, 3, Roi.POLYGON);
-			float[] y1 = new float[]{y - arrowH / 2, y - 3 * arrowH / 2 - 0.1f, y - arrowH / 2};
+			float[] y1 = new float[] { y - arrowH / 2, y - 3 * arrowH / 2 - 0.1f, y - arrowH / 2 };
 			rangeArrowRois[i++] = new PolygonRoi(xP, y1, 3, Roi.POLYGON);
 		}
 		Font theFont = new Font("SansSerif", Font.BOLD, 13);
@@ -833,8 +832,10 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		rangeArrowRois[10] = new Roi(plot.leftMargin - arrowH / 2 + 1, height - 5 * arrowH / 2, arrowH - 2, arrowH * 2);// numerical
 																														// box
 																														// left
-		rangeArrowRois[11] = new Roi(plot.leftMargin + plot.frameWidth - arrowH / 2 + 1, height - 5 * arrowH / 2, arrowH - 2, arrowH * 2);// numerical box right
-		rangeArrowRois[12] = new Roi(arrowH / 2, plot.topMargin + plot.frameHeight - arrowH / 2 + 1, arrowH * 2, arrowH - 2);// numerical box bottom
+		rangeArrowRois[11] = new Roi(plot.leftMargin + plot.frameWidth - arrowH / 2 + 1, height - 5 * arrowH / 2,
+				arrowH - 2, arrowH * 2);// numerical box right
+		rangeArrowRois[12] = new Roi(arrowH / 2, plot.topMargin + plot.frameHeight - arrowH / 2 + 1, arrowH * 2,
+				arrowH - 2);// numerical box bottom
 		rangeArrowRois[13] = new Roi(arrowH / 2, plot.topMargin - arrowH / 2 + 1, arrowH * 2, arrowH - 2);// numerical
 																											// box top
 		int topMargin = plot.topMargin;
@@ -846,12 +847,12 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		rangeArrowRois[15] = new Roi(leftMargin - 2 * arrowH - 2, topMargin, // area to click for y axis options
 				2 * arrowH, bottomMargin - topMargin + 1);
 		Overlay ovly = imp.getOverlay();
-		if(ovly == null)
+		if (ovly == null)
 			ovly = new Overlay();
-		for(Roi roi : rangeArrowRois) {
-			if(roi instanceof PolygonRoi)
+		for (Roi roi : rangeArrowRois) {
+			if (roi instanceof PolygonRoi)
 				roi.setFillColor(inactiveRangeArrowColor);
-			else if(roi instanceof TextRoi) {
+			else if (roi instanceof TextRoi) {
 				roi.setStrokeColor(Color.WHITE);
 				roi.setFillColor(inactiveRangeArrowColor);
 			} else
@@ -865,12 +866,12 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 
 	public void hideRangeArrows() {
 
-		if(imp == null || rangeArrowRois == null)
+		if (imp == null || rangeArrowRois == null)
 			return;
 		Overlay ovly = imp.getOverlay();
-		if(ovly == null)
+		if (ovly == null)
 			return;
-		for(Roi roi : rangeArrowRois)
+		for (Roi roi : rangeArrowRois)
 			ovly.remove(roi);
 		ic.repaint();
 		rangeArrowsVisible = false;
@@ -887,10 +888,10 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 */
 	int getRangeArrowIndex(int x, int y) {
 
-		if(!rangeArrowsVisible)
+		if (!rangeArrowsVisible)
 			return -1;
-		for(int i = 0; i < rangeArrowRois.length; i++)
-			if(rangeArrowRois[i].getBounds().contains(x, y))
+		for (int i = 0; i < rangeArrowRois.length; i++)
+			if (rangeArrowRois[i].getBounds().contains(x, y))
 				return i;
 		return -1;
 	}
@@ -899,10 +900,10 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	void showList(boolean useLabels) {
 
 		ResultsTable rt = plot.getResultsTable(saveXValues, useLabels);
-		if(rt == null)
+		if (rt == null)
 			return;
 		rt.show("Plot Values");
-		if(autoClose) {
+		if (autoClose) {
 			imp.changes = false;
 			close();
 		}
@@ -923,7 +924,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 
 		ResultsTable rt = getResultsTable();
 		StringBuffer sb = new StringBuffer();
-		for(int i = 0; i < rt.size(); i++) {
+		for (int i = 0; i < rt.size(); i++) {
 			sb.append(rt.getRowAsString(i));
 			sb.append("\n");
 		}
@@ -933,13 +934,13 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	/** Saves the data of the plot in a text file */
 	void saveAsText() {
 
-		if(plot.getXValues() == null) {
+		if (plot.getXValues() == null) {
 			IJ.error("Plot has no data");
 			return;
 		}
 		SaveDialog sd = new SaveDialog("Save as Text", "Values", Prefs.defaultResultsExtension());
 		String name = sd.getFileName();
-		if(name == null)
+		if (name == null)
 			return;
 		String directory = sd.getDirectory();
 		IJ.wait(250); // give system time to redraw ImageJ window
@@ -947,11 +948,11 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		ResultsTable rt = plot.getResultsTable(/* writeFirstXColumn= */saveXValues, /* useLabels= */true);
 		try {
 			rt.saveAs(directory + name);
-		} catch(IOException e) {
+		} catch (IOException e) {
 			IJ.error("" + e);
 			return;
 		}
-		if(autoClose) {
+		if (autoClose) {
 			imp.changes = false;
 			close();
 		}
@@ -962,7 +963,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 
 		float[] xValues = plot.getXValues();
 		float[] yValues = plot.getYValues();
-		if(xValues == null)
+		if (xValues == null)
 			return;
 		org.eclipse.swt.dnd.Clipboard cb = new org.eclipse.swt.dnd.Clipboard(Display.getDefault());
 		/*
@@ -976,21 +977,21 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		IJ.showStatus("Copying plot values...");
 		CharArrayWriter aw = new CharArrayWriter(10 * xValues.length);
 		PrintWriter pw = new PrintWriter(aw); // uses platform's line termination characters
-		if(writeAllColumns) {
+		if (writeAllColumns) {
 			ResultsTable rt = plot.getResultsTableWithLabels();
-			if(!Prefs.dontSaveHeaders) {
+			if (!Prefs.dontSaveHeaders) {
 				String headings = rt.getColumnHeadings();
 				pw.println(headings);
 			}
-			for(int i = 0; i < rt.size(); i++)
+			for (int i = 0; i < rt.size(); i++)
 				pw.println(rt.getRowAsString(i));
 		} else {
 			int xdigits = 0;
-			if(saveXValues)
+			if (saveXValues)
 				xdigits = plot.getPrecision(xValues);
 			int ydigits = plot.getPrecision(yValues);
-			for(int i = 0; i < Math.min(xValues.length, yValues.length); i++) {
-				if(saveXValues)
+			for (int i = 0; i < Math.min(xValues.length, yValues.length); i++) {
+				if (saveXValues)
 					pw.println(IJ.d2s(xValues[i], xdigits) + "\t" + IJ.d2s(yValues[i], ydigits));
 				else
 					pw.println(IJ.d2s(yValues[i], ydigits));
@@ -1000,10 +1001,10 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		pw.close();
 		// StringSelection contents = new StringSelection(text);
 		TextTransfer textTransfer = TextTransfer.getInstance();
-		cb.setContents(new Object[]{text}, new Transfer[]{textTransfer});
+		cb.setContents(new Object[] { text }, new Transfer[] { textTransfer });
 		// systemClipboard.setContents(contents, this);
 		IJ.showStatus(text.length() + " characters copied to Clipboard");
-		if(autoClose) {
+		if (autoClose) {
 			imp.changes = false;
 			close();
 		}
@@ -1027,9 +1028,9 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public void drawPlot(Plot plot) {
 
 		this.plot = plot;
-		if(imp != null) {
-			if(ic instanceof PlotCanvas)
-				((PlotCanvas)ic).setPlot(plot);
+		if (imp != null) {
+			if (ic instanceof PlotCanvas)
+				((PlotCanvas) ic).setPlot(plot);
 			imp.setProcessor(null, plot.getProcessor());
 			plot.setImagePlus(imp); // also adjusts the calibration of imp
 		}
@@ -1044,22 +1045,22 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		prefs.put(PREFS_HEIGHT, Integer.toString(plotHeight));
 		prefs.put(PREFS_FONT_SIZE, Integer.toString(defaultFontSize));
 		int options = 0;
-		if(!interpolate)
+		if (!interpolate)
 			options |= INTERPOLATE; // true=0, false=1
 		prefs.put(OPTIONS, Integer.toString(options));
 	}
 
 	/**
-	 * Enables or disables live plotting.
-	 * Does nothing if the plot has no PlotMaker (then there is no 'live' button).
+	 * Enables or disables live plotting. Does nothing if the plot has no PlotMaker
+	 * (then there is no 'live' button).
 	 */
 	public void enableLivePlot(boolean b) {
 
-		if(plot == null || plot.getPlotMaker() == null || live == null)
+		if (plot == null || plot.getPlotMaker() == null || live == null)
 			return;
-		if(b && bgThread == null)
+		if (b && bgThread == null)
 			enableLivePlot();
-		else if(!b && bgThread != null)
+		else if (!b && bgThread != null)
 			disableLivePlot();
 	}
 
@@ -1070,32 +1071,31 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	}
 
 	/**
-	 * Enables live plotting.
-	 * This requires that the PlotWindow has been initialized with a Plot having a PlotMaker.
-	 * Live plotting runs in a background thread.
+	 * Enables live plotting. This requires that the PlotWindow has been initialized
+	 * with a Plot having a PlotMaker. Live plotting runs in a background thread.
 	 */
 	private void enableLivePlot() {
 
-		if(plotMaker == null)
+		if (plotMaker == null)
 			plotMaker = plot != null ? plot.getPlotMaker() : null;
-		if(plotMaker == null)
+		if (plotMaker == null)
 			return;
 		srcImp = plotMaker.getSourceImage();
-		if(srcImp == null)
+		if (srcImp == null)
 			return;
-		if(bgThread == null) {
+		if (bgThread == null) {
 			bgThread = new Thread(this, "Live Plot");
 			bgThread.setPriority(Math.max(bgThread.getPriority() - 3, Thread.MIN_PRIORITY));
 			doUpdate = true;
 			bgThread.start();
 		}
-		if(IJ.debugMode)
+		if (IJ.debugMode)
 			IJ.log("PlotWindow.createListeners");
 		ImagePlus.addImageListener(this);
 		Roi.addRoiListener(this);
 		org.eclipse.swt.graphics.Font liveFont = live.getFont();
 		FontData[] fontData = liveFont.getFontData();
-		if(font != null && font.isDisposed() == false) {
+		if (font != null && font.isDisposed() == false) {
 			font.dispose();
 		}
 		font = new org.eclipse.swt.graphics.Font(liveFont.getDevice(), fontData);
@@ -1106,18 +1106,18 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	/** Disables live plotting (when currently active) */
 	private void disableLivePlot() {
 
-		if(IJ.debugMode)
+		if (IJ.debugMode)
 			IJ.log("PlotWindow.disableLivePlot: " + srcImp);
-		if(srcImp == null)
+		if (srcImp == null)
 			return;
-		if(bgThread != null)
+		if (bgThread != null)
 			bgThread.interrupt();
 		bgThread = null;
 		ImagePlus.removeImageListener(this);
 		Roi.removeRoiListener(this);
-		if(live != null) {
-			if(live.isDisposed() == false) {
-				if(fontLivePlot != null && fontLivePlot.isDisposed() == false) {
+		if (live != null) {
+			if (live.isDisposed() == false) {
+				if (fontLivePlot != null && fontLivePlot.isDisposed() == false) {
 					fontLivePlot.dispose();
 				}
 				org.eclipse.swt.graphics.Font liveFont = live.getFont();
@@ -1132,9 +1132,9 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	/** For live plots, update the plot if the ROI of the source image changes */
 	public synchronized void roiModified(ImagePlus img, int id) {
 
-		if(IJ.debugMode)
+		if (IJ.debugMode)
 			IJ.log("PlotWindow.roiModified: " + img + "  " + id);
-		if(img == srcImp) {
+		if (img == srcImp) {
 			doUpdate = true;
 			notify();
 		}
@@ -1150,7 +1150,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 */
 	public synchronized void imageUpdated(ImagePlus imp) {
 
-		if(imp == srcImp) {
+		if (imp == srcImp) {
 			doUpdate = true;
 			notify();
 		}
@@ -1162,18 +1162,16 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	 */
 	public void imageClosed(ImagePlus imp) {
 
-		if(imp == srcImp || imp == this.imp) {
-			Display.getDefault().syncExec(new Runnable() {
+		if (imp == srcImp || imp == this.imp) {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				disableLivePlot();
 
-					disableLivePlot();
-				}
 			});
 			srcImp = null;
 			plotMaker = null;
 			font.dispose();
-			if(fontLivePlot != null && fontLivePlot.isDisposed() == false) {
+			if (fontLivePlot != null && fontLivePlot.isDisposed() == false) {
 				fontLivePlot.dispose();
 			}
 		}
@@ -1182,28 +1180,29 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	// the background thread for live plotting.
 	public void run() {
 
-		while(true) {
+		while (true) {
 			IJ.wait(50); // delay to make sure the roi has been updated
 			Plot plot = plotMaker != null ? plotMaker.getPlot() : null;
-			if(doUpdate && plot != null && plot.getNumPlotObjects() > 0) {
-				plot.useTemplate(this.plot, this.plot.templateFlags | Plot.COPY_SIZE | Plot.COPY_LABELS | Plot.COPY_AXIS_STYLE | Plot.COPY_CONTENTS_STYLE | Plot.COPY_LEGEND | Plot.COPY_EXTRA_OBJECTS);
+			if (doUpdate && plot != null && plot.getNumPlotObjects() > 0) {
+				plot.useTemplate(this.plot, this.plot.templateFlags | Plot.COPY_SIZE | Plot.COPY_LABELS
+						| Plot.COPY_AXIS_STYLE | Plot.COPY_CONTENTS_STYLE | Plot.COPY_LEGEND | Plot.COPY_EXTRA_OBJECTS);
 				plot.setPlotMaker(plotMaker);
 				this.plot = plot;
-				((PlotCanvas)ic).setPlot(plot);
+				((PlotCanvas) ic).setPlot(plot);
 				ImageProcessor ip = plot.getProcessor();
-				if(ip != null && imp != null) {
+				if (ip != null && imp != null) {
 					imp.setProcessor(null, ip);
 					plot.setImagePlus(imp);
 				}
 			}
-			synchronized(this) {
-				if(doUpdate) {
+			synchronized (this) {
+				if (doUpdate) {
 					doUpdate = false; // and loop again
 				} else {
 					try {
 						wait();
 					} // notify wakes up the thread
-					catch(InterruptedException e) { // interrupted tells the thread to exit
+					catch (InterruptedException e) { // interrupted tells the thread to exit
 						return;
 					}
 				}
@@ -1225,13 +1224,13 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 
 		/* Changed for SWT! */
 		Object win = WindowManager.getActiveWindow();
-		if(win != null && (win instanceof PlotWindow))
-			((PlotWindow)win).getPlot().setFrozen(true);
+		if (win != null && (win instanceof PlotWindow))
+			((PlotWindow) win).getPlot().setFrozen(true);
 	}
 
 	public static void setDefaultFontSize(int size) {
 
-		if(size < 9)
+		if (size < 9)
 			size = 9;
 		defaultFontSize = size;
 	}
