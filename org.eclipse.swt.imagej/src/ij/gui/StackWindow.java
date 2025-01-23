@@ -463,13 +463,11 @@ public class StackWindow extends ImageWindow
 				slice = 0;
 				if (s != imp.getCurrentSlice()) {
 					/* Changed for SWT. Wrap for SWT in Runnable! */
-					Display.getDefault().syncExec(new Runnable() {
+					Display.getDefault().syncExec(() -> {
 
-						public void run() {
+						imp.updatePosition(c, z, t);
+						setSlice(imp, s);
 
-							imp.updatePosition(c, z, t);
-							setSlice(imp, s);
-						}
 					});
 				}
 			}
@@ -550,16 +548,14 @@ public class StackWindow extends ImageWindow
 
 	private void setSlice(ImagePlus imp, int n) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			if (imp.isLocked()) {
+				IJ.beep();
+				IJ.showStatus("Image is locked");
+			} else
+				imp.setSlice(n);
 
-				if (imp.isLocked()) {
-					IJ.beep();
-					IJ.showStatus("Image is locked");
-				} else
-					imp.setSlice(n);
-			}
 		});
 	}
 
@@ -581,15 +577,12 @@ public class StackWindow extends ImageWindow
 
 	public void setAnimate(boolean b) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			if (running2 != b && animationSelector != null)
+				// System.out.println("running");
+				// animationSelector.updatePlayPauseIcon();
+				running2 = b;
 
-			public void run() {
-
-				if (running2 != b && animationSelector != null)
-					// System.out.println("running");
-					// animationSelector.updatePlayPauseIcon();
-					running2 = b;
-			}
 		});
 	}
 

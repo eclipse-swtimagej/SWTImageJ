@@ -4114,12 +4114,10 @@ public class Functions implements MacroConstants, Measurements {
 								leaveIt = leaveIt || !isTextPattern;
 								leaveIt = leaveIt || ed == Editor.currentMacroEditor;
 								if(!leaveIt) {
-									Display.getDefault().syncExec(new Runnable() {
-
-										public void run() {
+									Display.getDefault().syncExec(() -> {
 
 											ed.close();
-										}
+										
 									});
 								}
 							}
@@ -4128,17 +4126,14 @@ public class Functions implements MacroConstants, Measurements {
 							AtomicReference<String> patternn = new AtomicReference<String>();
 							patternn.set(pattern);
 							TextWindow txtWin = (TextWindow)thisWin;
-							Display.getDefault().syncExec(new Runnable() {
-
-								public void run() {
-
+							Display.getDefault().syncExec(() -> {
 									String title = txtWin.getShell().getText();
 									if(wm.match(title, patternn.get())) {
 										if(title.equals("Results"))
 											IJ.run("Clear Results");
 										txtWin.close();
 									}
-								}
+								
 							});
 						}
 						if(thisWin instanceof RoiManager && pattern.equalsIgnoreCase("roi manager")) {// ROI Manager
@@ -8497,16 +8492,14 @@ public class Functions implements MacroConstants, Measurements {
 			Object frame = WindowManager.getFrontWindow();
 			String[] title2 = new String[1];
 			if(frame != null) {
-				Display.getDefault().syncExec(new Runnable() {
-
-					public void run() {
+				Display.getDefault().syncExec(() -> {
 
 						if(frame instanceof Shell) {
 							title2[0] = ((Shell)frame).getText();
 						} else if(frame instanceof WindowSwt) {
 							title2[0] = ((WindowSwt)frame).getShell().getText();
 						}
-					}
+					
 				});
 				// String title2 = frame!=null?frame.getTitle():null;
 				if(title.equals(title2[0]))

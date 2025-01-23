@@ -184,10 +184,12 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 	}
 
 	public void init() {
-        
-		//String deviceZoom = System.getProperty("org.eclipse.swt.internal.deviceZoom");// Get SWT device zoom!
-		//dscale=Double.parseDouble(deviceZoom)/100.0;
-		dscale=Prefs.getGuiScale();
+
+		// String deviceZoom =
+		// System.getProperty("org.eclipse.swt.internal.deviceZoom");// Get SWT device
+		// zoom!
+		// dscale=Double.parseDouble(deviceZoom)/100.0;
+		dscale = Prefs.getGuiScale();
 		scale = (int) Math.round(dscale);
 		if ((dscale >= 1.5 && dscale < 2.0) || (dscale >= 2.5 && dscale < 3.0))
 			dscale = scale;
@@ -1195,12 +1197,10 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 		if (isLine(tool))
 			lineType = tool;
 		final int selectedTool = tool;
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			setTool2(selectedTool);
 
-				setTool2(selectedTool);
-			}
 		});
 	}
 
@@ -1455,31 +1455,28 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 
 	public static void repaintTool(int tool) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				Toolbar tb = getInstance();
-				if (tb != null) {
-					GC gc = new GC(tb.parent);
-					SWTGraphics2D g = new SWTGraphics2D(gc);
-					// Graphics g = tb.getGraphics();
-					if (IJ.debugMode)
-						IJ.log("Toolbar.repaintTool: " + tool + " " + g);
-					if (g == null)
-						return;
-					if (dscale > 1.0)
-						tb.setStrokeWidth((Graphics2D) g);
-					((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-							RenderingHints.VALUE_ANTIALIAS_ON);
-					tb.drawButton(g, tool);
-					if (g != null)
-						g.dispose();
+			Toolbar tb = getInstance();
+			if (tb != null) {
+				GC gc = new GC(tb.parent);
+				SWTGraphics2D g = new SWTGraphics2D(gc);
+				// Graphics g = tb.getGraphics();
+				if (IJ.debugMode)
+					IJ.log("Toolbar.repaintTool: " + tool + " " + g);
+				if (g == null)
+					return;
+				if (dscale > 1.0)
+					tb.setStrokeWidth((Graphics2D) g);
+				((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				tb.drawButton(g, tool);
+				if (g != null)
 					g.dispose();
-					gc.dispose();
-					tb.redraw();
-				}
+				g.dispose();
+				gc.dispose();
+				tb.redraw();
 			}
+
 		});
 	}
 
@@ -1747,12 +1744,10 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 						pressTimer.cancel();
 						pressTimer = null;
 					}
-					Display.getDefault().syncExec(new Runnable() {
+					Display.getDefault().syncExec(() -> {
 
-						public void run() {
+						triggerPopupMenu(newTool, e, true, true);
 
-							triggerPopupMenu(newTool, e, true, true);
-						}
 					});
 				}
 			}, longClickDelay);

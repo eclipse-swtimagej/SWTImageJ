@@ -228,7 +228,7 @@ public class Opener {
 		try {
 			Display display = Display.getDefault();
 			display.syncExec(() -> {
- 
+
 				String sdir = OpenDialog.getDefaultDirectory();
 				Shell shell = new Shell(display);
 				FileDialog dlg = new FileDialog(shell, SWT.MULTI);
@@ -251,12 +251,10 @@ public class Opener {
 			if (i == 0 && Recorder.record)
 				Recorder.recordPath("open", path);
 			if (i == 0 && !error) {
-				Display.getDefault().syncExec(new Runnable() {
+				Display.getDefault().syncExec(() -> {
 
-					public void run() {
+					Menus.addOpenRecentItem(path);
 
-						Menus.addOpenRecentItem(path);
-					}
 				});
 			}
 		}
@@ -650,12 +648,10 @@ public class Opener {
 			name = name.substring(index + 1);
 		name = name.replaceAll("%20", " ");
 		Editor ed = new Editor(name);
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			ed.getShell().setSize(600, 300);
 
-				ed.getShell().setSize(600, 300);
-			}
 		});
 		ed.create(name, text);
 		IJ.showStatus("");

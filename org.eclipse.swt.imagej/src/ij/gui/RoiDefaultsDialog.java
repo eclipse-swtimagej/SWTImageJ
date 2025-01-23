@@ -14,10 +14,9 @@ public class RoiDefaultsDialog implements PlugIn, DialogListener {
 	private boolean nameChanges;
 
 	public void run(String arg) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				showDialog();
-			}
+			
 		});
 	}
 
