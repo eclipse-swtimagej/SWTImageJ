@@ -84,7 +84,7 @@ public class PixelInspectionTool extends PlugInTool {
 
 	public void showOptionsDialog() {
 
-		if(pi != null)
+		if (pi != null)
 			pi.showDialog();
 	}
 
@@ -96,29 +96,29 @@ public class PixelInspectionTool extends PlugInTool {
 		int radius = PixelInspector.radius;
 		int size = radius * 2 + 1;
 		Overlay overlay = imp.getOverlay();
-		if(overlay == null)
+		if (overlay == null)
 			overlay = new Overlay();
 		Roi roi = null;
 		int index = PixelInspector.getIndex(overlay, PixelInspector.TITLE);
-		if(index >= 0) {
+		if (index >= 0) {
 			roi = overlay.get(index);
 			Rectangle r = roi.getBounds();
-			if(r.width != size || r.height != size) {
+			if (r.width != size || r.height != size) {
 				overlay.remove(index);
 				roi = null;
 			}
-			if(roi != null)
+			if (roi != null)
 				roi.setLocation(x - radius, y - radius);
 		}
-		if(roi == null) {
+		if (roi == null) {
 			roi = new Roi(x - radius, y - radius, size, size);
 			roi.setName(PixelInspector.TITLE);
 			roi.setStrokeColor(Color.red);
 			overlay.add(roi);
 		}
 		imp.setOverlay(overlay);
-		if(pi == null) {
-			if(PixelInspector.instance != null)
+		if (pi == null) {
+			if (PixelInspector.instance != null)
 				PixelInspector.instance.close();
 			pi = new PixelInspector(imp, this);
 		}
@@ -136,7 +136,8 @@ public class PixelInspectionTool extends PlugInTool {
 	}
 }
 
-class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.swt.events.KeyListener, org.eclipse.swt.events.MouseListener, Runnable {
+class PixelInspector extends PlugInFrame
+		implements ImageListener, org.eclipse.swt.events.KeyListener, org.eclipse.swt.events.MouseListener, Runnable {
 	// ImageListener: listens to changes of image data
 	// KeyListener: for fix/unfix key
 	// MouseListener: for "Prefs" label
@@ -144,21 +145,22 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 
 	/* Preferences and related */
 	static final String PREFS_KEY = "pixelinspector."; // key in IJ_Prefs.txt
-	static int radius = (int)Prefs.get(PREFS_KEY + "radius", 3);
+	static int radius = (int) Prefs.get(PREFS_KEY + "radius", 3);
 	private static final String LOC_KEY = "inspector.loc";
 	final static int MAX_RADIUS = 10;// the largest radius possible (ImageJ can hang if too large)
 	int grayDisplayType = 0; // how to display 8-bit&16-bit grayscale pixels
-	final static String[] GRAY_DISPLAY_TYPES = {"Raw", "Calibrated", "Hex"};
+	final static String[] GRAY_DISPLAY_TYPES = { "Raw", "Calibrated", "Hex" };
 	final static int GRAY_RAW = 0, GRAY_CAL = 1, GRAY_HEX = 2;
 	int rgbDisplayType = 0; // how to display rgb pixels
-	final static String[] RGB_DISPLAY_TYPES = {"R,G,B", "Gray Value", "Hex"};
+	final static String[] RGB_DISPLAY_TYPES = { "R,G,B", "Gray Value", "Hex" };
 	final static int RGB_RGB = 0, RGB_GRAY = 1, RGB_HEX = 2;
 	int copyType = 0; // what to copy to the clipboard
-	final static String[] COPY_TYPES = {"Data Only", "x y and Data", "Header and Data"};
+	final static String[] COPY_TYPES = { "Data Only", "x y and Data", "Header and Data" };
 	final static int COPY_DATA = 0, COPY_XY = 1, COPY_HEADER = 2;
 	int colorNumber = 0; // color of the position marker in fixed mode
-	final static String[] COLOR_STRINGS = {"red", "orange", "yellow", "green", "cyan", "blue", "magenta",};
-	final static Color[] COLORS = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA};
+	final static String[] COLOR_STRINGS = { "red", "orange", "yellow", "green", "cyan", "blue", "magenta", };
+	final static Color[] COLORS = { Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE,
+			Color.MAGENTA };
 	int fixKey = '!'; // the key (keycode+0x10000 or char) for fixing/unfixing the position
 	final static int KEYCODE_OFFSET = 0x10000; // we add this to keycodes to separate them from key characters
 	/* current status */
@@ -191,9 +193,9 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		this.imp = imp;
 		this.tool = tool;
 		ij = IJ.getInstance();
-		if(ij == null)
+		if (ij == null)
 			return; // it won't work with the ImageJ applet
-		if(imp == null) {
+		if (imp == null) {
 			IJ.noImage();
 			return;
 		}
@@ -207,10 +209,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		init();
 		Point loc = Prefs.getLocation(PREFS_KEY + "loc");
 		/*
-		 * if (loc!=null)
-		 * setLocation(loc);
-		 * else
-		 * GUI.centerOnImageJScreen(this);
+		 * if (loc!=null) setLocation(loc); else GUI.centerOnImageJScreen(this);
 		 */
 		// setResizable(false);
 		// show();
@@ -226,15 +225,15 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	private void init() {
 
 		Control[] contr = shell.getChildren();
-		for(int i = 0; i < contr.length; i++) {
+		for (int i = 0; i < contr.length; i++) {
 			contr[i].dispose();
 		}
 		size = 2 * radius + 2;
 		// removeAll();
 		getShell().setLayout(new org.eclipse.swt.layout.GridLayout(size, true));
 		labels = new org.eclipse.swt.widgets.Label[size * size];
-		for(int i = 0; i < labels.length; i++) { // make the labels (display fields)
-			if(i == 0) {
+		for (int i = 0; i < labels.length; i++) { // make the labels (display fields)
+			if (i == 0) {
 				prefsLabel = new org.eclipse.swt.widgets.Label(getShell(), SWT.NONE);
 				prefsLabel.setText("Prefs");
 				prefsLabel.addMouseListener(this);
@@ -244,16 +243,11 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		}
 		initializeLabels(); // fill the labels with spaceholders
 		/*
-		 * for (int row=0,p=0; row<size; row++) {
-		 * for (int col=0; col<size; col++,p++) {
-		 * if (row == 0 && col == 0)
-		 * new org.eclipse.swt.widgets.Label(this,SWT.NONE).setText("Prefs");
-		 * //add(prefsLabel);
-		 * else
-		 * //add(labels[p]);
-		 * set
-		 * new org.eclipse.swt.widgets.Label(this,SWT.NONE);
-		 * }
+		 * for (int row=0,p=0; row<size; row++) { for (int col=0; col<size; col++,p++) {
+		 * if (row == 0 && col == 0) new
+		 * org.eclipse.swt.widgets.Label(this,SWT.NONE).setText("Prefs");
+		 * //add(prefsLabel); else //add(labels[p]); set new
+		 * org.eclipse.swt.widgets.Label(this,SWT.NONE); }
 		 */
 		// }
 		// GUI.scale(this);
@@ -270,7 +264,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		// getShell().close(); // also does WindowManager.removeWindow(this);
 		// Prefs.saveLocation(PREFS_KEY+"loc", getLocation());
 		removeImageListeners();
-		synchronized(this) { // terminate the background thread
+		synchronized (this) { // terminate the background thread
 			bgThread.interrupt();
 		}
 		instance = null;
@@ -281,10 +275,10 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	private void removeOutline() {
 
 		Overlay overlay = imp.getOverlay();
-		if(overlay == null)
+		if (overlay == null)
 			return;
 		int index = getIndex(overlay, TITLE);
-		if(index >= 0) {
+		if (index >= 0) {
 			overlay.remove(index);
 			imp.setOverlay(overlay);
 		}
@@ -294,7 +288,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 
 		imp.addImageListener(this);
 		ImageWindow win = imp.getWindow();
-		if(win == null)
+		if (win == null)
 			close();
 		canvas = win.getCanvas();
 		canvas.addKeyListener(this);
@@ -303,7 +297,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	private void removeImageListeners() {
 
 		imp.removeImageListener(this);
-		if(canvas.isDisposed() == false) {
+		if (canvas.isDisposed() == false) {
 			canvas.removeKeyListener(this);
 		}
 	}
@@ -351,11 +345,11 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	/** In the Overlay class in imageJ 1.46g and later. */
 	static int getIndex(Overlay overlay, String name) {
 
-		if(name == null)
+		if (name == null)
 			return -1;
 		Roi[] rois = overlay.toArray();
-		for(int i = rois.length - 1; i >= 0; i--) {
-			if(name.equals(rois[i].getName()))
+		for (int i = rois.length - 1; i >= 0; i--) {
+			if (name.equals(rois[i].getName()))
 				return i;
 		}
 		return -1;
@@ -371,7 +365,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 
 	void update(ImagePlus imp, int whichUpdate, int x, int y) {
 
-		if(imp != this.imp) {
+		if (imp != this.imp) {
 			removeImageListeners();
 			removeOutline();
 			this.imp = imp;
@@ -385,7 +379,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 
 	synchronized void update(int whichUpdate) {
 
-		if(nextUpdate < whichUpdate)
+		if (nextUpdate < whichUpdate)
 			nextUpdate = whichUpdate;
 		notify(); // wake up the background thread
 	}
@@ -394,24 +388,22 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	public void run() {
 
 		boolean doFullUpdate = false;
-		while(true) {
-			if(doFullUpdate) {
+		while (true) {
+			if (doFullUpdate) {
 				setCalibration();
 			}
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				writeNumbers();
 
-					writeNumbers();
-				}
 			});
 			IJ.wait(50);
-			synchronized(this) {
-				if(nextUpdate == 0) {
+			synchronized (this) {
+				if (nextUpdate == 0) {
 					try {
 						wait();
 					} // notify wakes up the thread
-					catch(InterruptedException e) { // interrupted tells the thread to exit
+					catch (InterruptedException e) { // interrupted tells the thread to exit
 						return;
 					}
 				} else {
@@ -425,7 +417,7 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	/** get the surrounding pixels and display them */
 	void writeNumbers() {
 
-		if(imp.getID() != id || imp.getBitDepth() != bitDepth) { // has the image changed?
+		if (imp.getID() != id || imp.getBitDepth() != bitDepth) { // has the image changed?
 			removeImageListeners();
 			addImageListeners();
 			initializeLabels();
@@ -436,33 +428,35 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 			return;
 		}
 		ImageProcessor ip = imp.getProcessor();
-		if(ip == null)
+		if (ip == null)
 			return;
 		int width = ip.getWidth();
 		int height = ip.getHeight();
 		int x0 = this.x0; // class variables may change asynchronously, fixed values needed here
 		int y0 = this.y0;
 		int p = 1; // pointer in labels array
-		for(int x = x0 - radius; x <= x0 + radius; x++, p++)
+		for (int x = x0 - radius; x <= x0 + radius; x++, p++)
 			labels[p].setText(x >= 0 && x < width ? Integer.toString(x) : " ");
-		for(int y = y0 - radius; y <= y0 + radius; y++) {
+		for (int y = y0 - radius; y <= y0 + radius; y++) {
 			boolean yInside = y >= 0 && y < height;
 			int yDisplay = (Analyzer.getMeasurements() & Measurements.INVERT_Y) != 0 ? height - y - 1 : y;
 			labels[p].setText(yInside ? Integer.toString(yDisplay) : " ");
 			p++;
-			for(int x = x0 - radius; x <= x0 + radius; x++, p++) {
-				if(x >= 0 && x < width && yInside) {
-					if(ip instanceof ColorProcessor && rgbDisplayType == RGB_RGB) {
+			for (int x = x0 - radius; x <= x0 + radius; x++, p++) {
+				if (x >= 0 && x < width && yInside) {
+					if (ip instanceof ColorProcessor && rgbDisplayType == RGB_RGB) {
 						int c = ip.getPixel(x, y);
 						int r = (c & 0xff0000) >> 16;
 						int g = (c & 0xff00) >> 8;
 						int b = c & 0xff;
 						labels[p].setText(r + "," + g + "," + b);
-					} else if(ip instanceof ColorProcessor && rgbDisplayType == RGB_HEX)
+					} else if (ip instanceof ColorProcessor && rgbDisplayType == RGB_HEX)
 						labels[p].setText(int2hex(ip.getPixel(x, y), 6));
-					else if((ip instanceof ByteProcessor || ip instanceof ShortProcessor) && grayDisplayType == GRAY_RAW)
+					else if ((ip instanceof ByteProcessor || ip instanceof ShortProcessor)
+							&& grayDisplayType == GRAY_RAW)
 						labels[p].setText(Integer.toString(ip.getPixel(x, y)));
-					else if((ip instanceof ByteProcessor || ip instanceof ShortProcessor) && grayDisplayType == GRAY_HEX)
+					else if ((ip instanceof ByteProcessor || ip instanceof ShortProcessor)
+							&& grayDisplayType == GRAY_HEX)
 						labels[p].setText(int2hex(ip.getPixel(x, y), ip instanceof ByteProcessor ? 2 : 4));
 					else
 						labels[p].setText(stringOf(ip.getPixelValue(x, y), digits, expMode));
@@ -479,61 +473,63 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		// Color bgColor = new Color(0xcccccc); //background for row/column header
 		String placeHolder = "000000.00"; // how much space to reserve (enough for float, calibrated, rgb)
 		ImageProcessor ip = imp.getProcessor();
-		if(ip instanceof ByteProcessor && grayDisplayType == GRAY_RAW) {
+		if (ip instanceof ByteProcessor && grayDisplayType == GRAY_RAW) {
 			placeHolder = "000";
-		} else if(ip instanceof ByteProcessor || ip instanceof ShortProcessor) {
-			if(grayDisplayType == GRAY_RAW || grayDisplayType == GRAY_HEX)
+		} else if (ip instanceof ByteProcessor || ip instanceof ShortProcessor) {
+			if (grayDisplayType == GRAY_RAW || grayDisplayType == GRAY_HEX)
 				placeHolder = "00000"; // minimum space, needed for header (max 99k pixels)
-		} else if(ip instanceof ColorProcessor) {
-			if(rgbDisplayType == RGB_RGB)
+		} else if (ip instanceof ColorProcessor) {
+			if (rgbDisplayType == RGB_RGB)
 				placeHolder = "000,000,000";
-			if(rgbDisplayType == RGB_GRAY)
+			if (rgbDisplayType == RGB_GRAY)
 				placeHolder = "000.00";
-			else if(rgbDisplayType == RGB_HEX)
+			else if (rgbDisplayType == RGB_HEX)
 				placeHolder = "CCCCCC";
 		}
-		if(placeHolder.length() < 5 && (ip.getWidth() > 9999 || ip.getHeight() > 9999))
+		if (placeHolder.length() < 5 && (ip.getWidth() > 9999 || ip.getHeight() > 9999))
 			placeHolder = "00000";
-		if(placeHolder.length() < 4 && (ip.getWidth() > 999 || ip.getHeight() > 999))
+		if (placeHolder.length() < 4 && (ip.getWidth() > 999 || ip.getHeight() > 999))
 			placeHolder = "0000";
 		int p = 0; // pointer in labels array
 		int size = 2 * radius + 1;
-		for(int y = 0; y < size + 1; y++) { // header line and data lines
-			if(y > 0) // no label in top-left corner
+		for (int y = 0; y < size + 1; y++) { // header line and data lines
+			if (y > 0) // no label in top-left corner
 				labels[p].setText(placeHolder);
 			p++;
-			for(int x = 0; x < size; x++, p++)
+			for (int x = 0; x < size; x++, p++)
 				labels[p].setText(placeHolder);
 		}
 		org.eclipse.swt.graphics.Color colorRed = Display.getDefault().getSystemColor(SWT.COLOR_RED);
 		labels[radius + 1].setForeground(colorRed); // write current position in red
 		labels[(2 * radius + 2) * (radius + 1)].setForeground(colorRed);
 		labels[(2 * radius + 2) * (radius + 1) + radius + 1].setForeground(colorRed);
-		for(int i = 0; i < size; i++) { // header lines have a darker background
+		for (int i = 0; i < size; i++) { // header lines have a darker background
 			labels[i + 1].setBackground(bgColor);
 			labels[(2 * radius + 2) * (i + 1)].setBackground(bgColor);
 		}
-		for(int i = 1; i < labels.length; i++)
+		for (int i = 1; i < labels.length; i++)
 			labels[i].setAlignment(Label.RIGHT);
 	}
 
-	/* set the pixel value calibration of the ImageProcessor and the output format */
+	/*
+	 * set the pixel value calibration of the ImageProcessor and the output format
+	 */
 	void setCalibration() {
 
 		Calibration cal = imp.getCalibration();
 		float[] cTable = cal.getFunction() == Calibration.NONE ? null : cal.getCTable();
 		ImageProcessor ip = imp.getProcessor();
-		if(ip != null)
+		if (ip != null)
 			ip.setCalibrationTable(cTable);
-		if(ip instanceof FloatProcessor || cTable != null) {
-			float[] data = (ip instanceof FloatProcessor) ? (float[])ip.getPixels() : cTable;
+		if (ip instanceof FloatProcessor || cTable != null) {
+			float[] data = (ip instanceof FloatProcessor) ? (float[]) ip.getPixels() : cTable;
 			double[] minmax = Tools.getMinMax(data);
 			double maxDataValue = Math.max(Math.abs(minmax[0]), Math.abs(minmax[1]));
-			digits = (int)(6 - Math.log(maxDataValue) / Math.log(10));
-			if(maxDataValue == 0.0)
+			digits = (int) (6 - Math.log(maxDataValue) / Math.log(10));
+			if (maxDataValue == 0.0)
 				digits = 6;
 			expMode = digits < -1 || digits > 7;
-			if(Math.min(minmax[0], minmax[1]) < 0)
+			if (Math.min(minmax[0], minmax[1]) < 0)
 				digits--; // more space needed for minus sign
 		} else {
 			digits = 2;
@@ -547,11 +543,11 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	 */
 	String stringOf(float v, int digits, boolean expMode) {
 
-		if(expMode) {
-			int exp = (int)Math.floor(Math.log(Math.abs(v)) / Math.log(10));
+		if (expMode) {
+			int exp = (int) Math.floor(Math.log(Math.abs(v)) / Math.log(10));
 			double mant = v / Math.pow(10, exp);
 			digits = (exp > 0 && exp < 10) ? 5 : 4;
-			if(v < 0)
+			if (v < 0)
 				digits--; // space needed for minus
 			return IJ.d2s(mant, digits) + "e" + exp;
 		} else
@@ -564,27 +560,27 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		int size = 2 * radius + 1;
 		int p = 1;
 		StringBuffer sb = new StringBuffer();
-		if(copyType == COPY_XY) {
+		if (copyType == COPY_XY) {
 			sb.append(labels[radius + 1].getText());
 			sb.append(delim);
 			sb.append(labels[(2 * radius + 2) * (radius + 1)].getText());
 			sb.append('\n');
-		} else if(copyType == COPY_HEADER) {
-			for(int x = 0; x < size; x++, p++) {
+		} else if (copyType == COPY_HEADER) {
+			for (int x = 0; x < size; x++, p++) {
 				sb.append(delim);
 				sb.append(labels[p].getText());
 			}
 			sb.append('\n');
 		}
 		p = size + 1;
-		for(int y = 0; y < size; y++) {
-			if(copyType == COPY_HEADER) {
+		for (int y = 0; y < size; y++) {
+			if (copyType == COPY_HEADER) {
 				sb.append(labels[p].getText());
 				sb.append(delim);
 			}
 			p++;
-			for(int x = 0; x < size; x++, p++) {
-				if(x > 0)
+			for (int x = 0; x < size; x++, p++) {
+				if (x > 0)
 					sb.append(delim);
 				sb.append(labels[p].getText());
 			}
@@ -593,9 +589,9 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		String s = new String(sb);
 		org.eclipse.swt.dnd.Clipboard cb = new org.eclipse.swt.dnd.Clipboard(Display.getDefault());
 		TextTransfer clip = TextTransfer.getInstance();
-		if(clip == null)
+		if (clip == null)
 			return;
-		cb.setContents(new Object[]{s}, new Transfer[]{clip});
+		cb.setContents(new Object[] { s }, new Transfer[] { clip });
 		IJ.showStatus(size * size + " pixel values copied to clipboard");
 	}
 
@@ -607,20 +603,21 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 		gd.addChoice("Grayscale readout:", GRAY_DISPLAY_TYPES, GRAY_DISPLAY_TYPES[grayDisplayType]);
 		gd.addChoice("RGB readout:", RGB_DISPLAY_TYPES, RGB_DISPLAY_TYPES[rgbDisplayType]);
 		gd.addChoice("Copy to clipboard:", COPY_TYPES, COPY_TYPES[copyType]);
-		gd.addMessage("Use arrow keys to move red outline.\nPress 'c' to copy data to clipboard.", null, Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY));
+		gd.addMessage("Use arrow keys to move red outline.\nPress 'c' to copy data to clipboard.", null,
+				Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY));
 		Point loc = Prefs.getLocation(LOC_KEY);
-		if(loc != null) {
+		if (loc != null) {
 			gd.centerDialog(false);
 			gd.getShell().setLocation(new org.eclipse.swt.graphics.Point(loc.x, loc.y));
 			// gd.setLocation (loc);
 		}
 		gd.showDialog();
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
-		radius = (int)gd.getNextNumber();
-		if(radius < 1)
+		radius = (int) gd.getNextNumber();
+		if (radius < 1)
 			radius = 1;
-		if(radius > MAX_RADIUS)
+		if (radius > MAX_RADIUS)
 			radius = MAX_RADIUS;
 		grayDisplayType = gd.getNextChoiceIndex();
 		rgbDisplayType = gd.getNextChoiceIndex();
@@ -638,10 +635,10 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 
 		boolean addHexSign = digits < 6;
 		char[] buf = new char[addHexSign ? digits + 1 : digits];
-		for(int pos = buf.length - 1; pos >= buf.length - digits; pos--) {
+		for (int pos = buf.length - 1; pos >= buf.length - digits; pos--) {
 			buf[pos] = Tools.hexDigits[i & 0xf];
 			i >>>= 4;
-			if(addHexSign)
+			if (addHexSign)
 				buf[0] = 'x';
 		}
 		return new String(buf);
@@ -669,33 +666,34 @@ class PixelInspector extends PlugInFrame implements ImageListener, org.eclipse.s
 	public void keyPressed(org.eclipse.swt.events.KeyEvent e) {
 
 		boolean thisPanel = e.getSource() instanceof Shell;
-		// used instead of: boolean thisPanel = e.getSource() instanceof PixelInspector; We have an embedded shell in a SWT PluginDialog instance!
-		if(thisPanel && e.character == 'c') {
-			Shell shell = (Shell)e.getSource();
-			if(shell.getText().equals("Pixel Values")) {
+		// used instead of: boolean thisPanel = e.getSource() instanceof PixelInspector;
+		// We have an embedded shell in a SWT PluginDialog instance!
+		if (thisPanel && e.character == 'c') {
+			Shell shell = (Shell) e.getSource();
+			if (shell.getText().equals("Pixel Values")) {
 				copyToClipboard();
 				return;
 			}
 		}
-		if(e.keyCode == SWT.ARROW_UP && y0 > 0) {
+		if (e.keyCode == SWT.ARROW_UP && y0 > 0) {
 			y0--;
 			update(FULL_UPDATE);
-		} else if(e.keyCode == SWT.ARROW_DOWN && y0 < imp.getHeight() - 1) {
+		} else if (e.keyCode == SWT.ARROW_DOWN && y0 < imp.getHeight() - 1) {
 			y0++;
 			update(FULL_UPDATE);
-		} else if(e.keyCode == SWT.ARROW_LEFT && x0 > 0) {
+		} else if (e.keyCode == SWT.ARROW_LEFT && x0 > 0) {
 			x0--;
 			update(FULL_UPDATE);
-		} else if(e.keyCode == SWT.ARROW_RIGHT && x0 < imp.getWidth() - 1) {
+		} else if (e.keyCode == SWT.ARROW_RIGHT && x0 < imp.getWidth() - 1) {
 			x0++;
 			update(FULL_UPDATE);
-		} else if(e.getSource() instanceof Button)
+		} else if (e.getSource() instanceof Button)
 			ij.keyPressed(e); // forward other keys from the panel to ImageJ
 		Overlay overlay = imp.getOverlay();
-		if(overlay == null)
+		if (overlay == null)
 			return;
 		int index = getIndex(overlay, TITLE);
-		if(index >= 0) {
+		if (index >= 0) {
 			overlay.remove(index);
 			Roi roi = new Roi(x0 - radius, y0 - radius, radius * 2 + 1, radius * 2 + 1);
 			roi.setName(TITLE);
