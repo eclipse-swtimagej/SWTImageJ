@@ -37,7 +37,7 @@ import ij.process.ImageProcessor;
  * This plugin implements the Image/Colors/Arrange Channels command, which
  * allows the user to change the order of channels.
  *
-  * @author Norbert Vischer, 3-sep-2012
+ * @author Norbert Vischer, 3-sep-2012
  */
 public class ChannelArranger implements PlugIn, ModifyListener {
 	private ThumbnailsCanvas thumbNails;
@@ -60,28 +60,26 @@ public class ChannelArranger implements PlugIn, ModifyListener {
 		patternString = "1234567890".substring(0, nChannels);
 		allowedDigits = patternString;
 		GenericDialog gd = new GenericDialog("Arrange Channels");
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				org.eclipse.swt.widgets.Composite panel = new org.eclipse.swt.widgets.Composite(gd.getShell(),
-						SWT.NONE);
-				panel.setLayout(new GridLayout(1, true));
-				panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Display.getDefault().syncExec(() -> {
+			org.eclipse.swt.widgets.Composite panel = new org.eclipse.swt.widgets.Composite(gd.getShell(), SWT.NONE);
+			panel.setLayout(new GridLayout(1, true));
+			panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-				thumbNails = new ThumbnailsCanvas(panel, imp);
-				thumbNails.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				Point size = thumbNails.getSize();
-				panel.setSize(size.x, size.y + 200);
-				// panel.add(thumbNails);
-				gd.addPanel(panel);
+			thumbNails = new ThumbnailsCanvas(panel, imp);
+			thumbNails.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			Point size = thumbNails.getSize();
+			panel.setSize(size.x, size.y + 200);
+			// panel.add(thumbNails);
+			gd.addPanel(panel);
 
-				// gd.setInsets(20, 20, 5);
-				gd.addStringField("New channel order:", allowedDigits);
-				Vector v = gd.getStringFields();
-				orderField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
-				orderField.addModifyListener(ChannelArranger.this);
-				gd.addHelp(IJ.URL2 + "/docs/menus/image.html#arrange");
-				gd.setShellSize(new Point(size.x, size.y * 2));
-			}
+			// gd.setInsets(20, 20, 5);
+			gd.addStringField("New channel order:", allowedDigits);
+			Vector v = gd.getStringFields();
+			orderField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
+			orderField.addModifyListener(ChannelArranger.this);
+			gd.addHelp(IJ.URL2 + "/docs/menus/image.html#arrange");
+			gd.setShellSize(new Point(size.x, size.y * 2));
+
 		});
 		gd.showDialog();
 		if (gd.wasCanceled())
@@ -105,12 +103,11 @@ public class ChannelArranger implements PlugIn, ModifyListener {
 		int[] newOrder2 = new int[nChannels2];
 		for (int i = 0; i < nChannels2; i++)
 			newOrder2[i] = newOrder.charAt(i) - 48;
-		/*Avoid a deadlock in the run method with SWT!*/
+		/* Avoid a deadlock in the run method with SWT! */
 		AtomicReference<ImagePlus> imp2 = new AtomicReference<ImagePlus>();
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				imp2.set(ChannelArranger.run(imp, newOrder2));
-			}
+		Display.getDefault().syncExec(() -> {
+			imp2.set(ChannelArranger.run(imp, newOrder2));
+
 		});
 		imp2.get().copyAttributes(imp);
 		if (location != null)
@@ -278,10 +275,9 @@ class ThumbnailsCanvas extends Canvas implements MouseListener, MouseMoveListene
 
 	/* Only for compatibility! */
 	public void repaint() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				redraw();
-			}
+		Display.getDefault().syncExec(() -> {
+			redraw();
+
 		});
 	}
 
@@ -297,7 +293,7 @@ class ThumbnailsCanvas extends Canvas implements MouseListener, MouseMoveListene
 	public void paintControl(PaintEvent e) {
 		GC gc = e.gc;
 		paint(gc);
-		//gc.dispose();
+		// gc.dispose();
 
 	}
 
