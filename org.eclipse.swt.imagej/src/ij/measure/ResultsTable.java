@@ -434,25 +434,25 @@ public class ResultsTable implements Cloneable {
 		}
 		return fp;
 	}
-	
+
 	/** Creates a ResultsTable from an image or image selection. */
 	public static ResultsTable createTableFromImage(ImagePlus imp) {
-		if (imp==null)
+		if (imp == null)
 			return null;
 		Roi roi = imp.getRoi();
 		ImageProcessor ip = imp.getProcessor();
-		if (roi==null || roi.getType()==Roi.RECTANGLE)
+		if (roi == null || roi.getType() == Roi.RECTANGLE)
 			return createTableFromImage(ip);
 		ResultsTable rt = new ResultsTable();
 		Rectangle r = ip.getRoi();
-		for (int y=r.y; y<r.y+r.height; y++) {
+		for (int y = r.y; y < r.y + r.height; y++) {
 			rt.incrementCounter();
-			rt.addLabel(" ", "Y"+y);
-			for (int x=r.x; x<r.x+r.width; x++) {
-				if (roi.contains(x,y))
-					rt.addValue("X"+x, ip.getPixelValue(x,y));
+			rt.addLabel(" ", "Y" + y);
+			for (int x = r.x; x < r.x + r.width; x++) {
+				if (roi.contains(x, y))
+					rt.addValue("X" + x, ip.getPixelValue(x, y));
 				else
-					rt.addValue("X"+x, Double.NaN);
+					rt.addValue("X" + x, Double.NaN);
 			}
 		}
 		return rt;
@@ -802,7 +802,7 @@ public class ResultsTable implements Cloneable {
 			if (columns[i] != null) {
 				String value = getValueAsString(i, row);
 				if (quoteCommas) {
-					if (value!=null && (value.contains(",")||value.equals("")))
+					if (value != null && (value.contains(",") || value.equals("")))
 						value = "\"" + value + "\"";
 				}
 				sb.append(value);
@@ -835,8 +835,8 @@ public class ResultsTable implements Cloneable {
 			String str = null;
 			if (Double.isNaN(value) && stringColumns != null) {
 				ArrayList stringColumn = (ArrayList) stringColumns.get(Integer.valueOf(col));
-				if (stringColumn!=null && row>=0 && row<stringColumn.size())
-					str = (String)stringColumn.get(row);
+				if (stringColumn != null && row >= 0 && row < stringColumn.size())
+					str = (String) stringColumn.get(row);
 			}
 			if (str != null)
 				values[row] = new Variable(str);
@@ -972,7 +972,7 @@ public class ResultsTable implements Cloneable {
 	}
 
 	public void showRowNumbers(boolean showNumbers) {
-		if (!showNumbers && this==Analyzer.getResultsTable()) {
+		if (!showNumbers && this == Analyzer.getResultsTable()) {
 			IJ.beep();
 			IJ.showStatus("Standard \"Results\" table always has row numbers");
 			return;
@@ -1011,7 +1011,7 @@ public class ResultsTable implements Cloneable {
 		double np = n;
 		if (n < 0.0)
 			np = -n;
-		if ((np!=0.0 && np<1.0/Math.pow(10,decimalPlaces)) || np>999999999999d || decimalPlaces<0) {
+		if ((np != 0.0 && np < 1.0 / Math.pow(10, decimalPlaces)) || np > 999999999999d || decimalPlaces < 0) {
 			if (decimalPlaces < 0) {
 				decimalPlaces = -decimalPlaces;
 				if (decimalPlaces > 9)
@@ -1200,10 +1200,9 @@ public class ResultsTable implements Cloneable {
 			if (frame != null && frame instanceof TextWindow) {
 				win = (TextWindow) frame;
 				if (win != null) {
-					Display.getDefault().syncExec(new Runnable() {
-						public void run() {
-							win.getShell().setVisible(true);
-						}
+					Display.getDefault().syncExec(() -> {
+						win.getShell().setVisible(true);
+
 					});
 					WindowManager.setWindow(frame);
 				}

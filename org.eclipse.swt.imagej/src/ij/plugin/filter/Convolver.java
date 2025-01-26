@@ -112,10 +112,9 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		Composite makeButtonPanel;
 		if (!GraphicsEnvironment.isHeadless()) {
 			AtomicReference<Composite> comp = new AtomicReference<Composite>();
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					comp.set(makeButtonPanel(gd));
-				}
+			Display.getDefault().syncExec(() -> {
+				comp.set(makeButtonPanel(gd));
+
 			});
 			gd.addPanel(comp.get());
 		}

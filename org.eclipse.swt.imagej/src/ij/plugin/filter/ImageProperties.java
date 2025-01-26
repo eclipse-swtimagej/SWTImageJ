@@ -123,22 +123,20 @@ public class ImageProperties implements PlugInFilter, org.eclipse.swt.events.Mod
 		}
 		sfields = gd.getStringFields();
 		if (sfields != null) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					for (int i = 0; i < sfields.size(); i++) {
-						((org.eclipse.swt.widgets.Text) sfields.elementAt(i)).addModifyListener(ImageProperties.this);
-					}
+			Display.getDefault().syncExec(() -> {
+				for (int i = 0; i < sfields.size(); i++) {
+					((org.eclipse.swt.widgets.Text) sfields.elementAt(i)).addModifyListener(ImageProperties.this);
 				}
+
 			});
 		}
 		calUnit = cal.getUnit();
 		calPixelWidth = cal.pixelWidth;
 		calPixelHeight = cal.pixelHeight;
 		calPixelDepth = cal.pixelDepth;
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				gd.showDialog();
-			}
+		Display.getDefault().syncExec(() -> {
+			gd.showDialog();
+
 		});
 		if (gd.wasCanceled())
 			return;

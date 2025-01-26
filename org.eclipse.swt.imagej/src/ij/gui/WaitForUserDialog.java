@@ -43,25 +43,21 @@ public class WaitForUserDialog implements SelectionListener, KeyListener {
 	public boolean isVisible() {
 
 		AtomicReference<Boolean> visible = new AtomicReference<Boolean>();
-		Display.getDefault().syncExec(new Runnable() {
-
-			public void run() {
-				if (shell != null && !shell.isDisposed()) {
-					visible.set(shell.isVisible());
-				} else {
-					visible.set(false);
-				}
+		Display.getDefault().syncExec(() -> {
+			if (shell != null && !shell.isDisposed()) {
+				visible.set(shell.isVisible());
+			} else {
+				visible.set(false);
 			}
+
 		});
 		return visible.get();
 	}
 
 	public void close() {
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			shell.close();
 
-			public void run() {
-				shell.close();
-			}
 		});
 	}
 
