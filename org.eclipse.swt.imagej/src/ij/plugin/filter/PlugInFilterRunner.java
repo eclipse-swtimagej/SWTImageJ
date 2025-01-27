@@ -84,7 +84,7 @@ public class PlugInFilterRunner implements Runnable, DialogListener {
 		}
 		if (theFilter instanceof ExtendedPlugInFilter) { // calling showDialog required?
 			try {
-						flags = ((ExtendedPlugInFilter) theFilter).showDialog(imp, command, PlugInFilterRunner.this); // include					
+				flags = ((ExtendedPlugInFilter) theFilter).showDialog(imp, command, PlugInFilterRunner.this); // include
 			} catch (Exception e) {
 				killPreview();
 				if (Macro.MACRO_CANCELED.equals(e.getMessage()))
@@ -542,7 +542,7 @@ public class PlugInFilterRunner implements Runnable, DialogListener {
 
 		synchronized (sliceForThread) {
 			Integer number = (Integer) sliceForThread.get(Thread.currentThread());
-			return (number==null) ? -1 : number.intValue();
+			return (number == null) ? -1 : number.intValue();
 		}
 	}
 
@@ -566,11 +566,9 @@ public class PlugInFilterRunner implements Runnable, DialogListener {
 		} catch (Exception err) {
 			if (thread == previewThread) {
 				gd.previewRunning(false);
-				Display.getDefault().syncExec(new Runnable() {
+				Display.getDefault().syncExec(() -> {
+					previewCheckbox.setSelection(false);
 
-					public void run() {
-						previewCheckbox.setSelection(false);
-					}
 				});
 				bgPreviewOn = false;
 				previewThread = null;

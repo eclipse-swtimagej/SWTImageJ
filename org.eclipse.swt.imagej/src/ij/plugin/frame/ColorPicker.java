@@ -42,53 +42,51 @@ public class ColorPicker extends PlugInDialog {
 	public ColorPicker() {
 		super("CP");
 		if (instance != null) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					shell.forceFocus();
-				}
+			Display.getDefault().syncExec(() -> {
+				shell.forceFocus();
+
 			});
 			return;
 		}
 		double scale = Prefs.getGuiScale();
 		instance = this;
-		
+
 		int width = (int) (columns * colorWidth * scale);
 		int height = (int) ((rows * colorHeight + ybase) * scale);
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				WindowManager.addWindow(ColorPicker.this);
-				shell.addKeyListener(IJ.getInstance());
-				shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-				cg = new ColorGenerator(width, height, new int[width * height]);
-				cg.drawColors(colorWidth, colorHeight, columns, rows);
+		Display.getDefault().syncExec(() -> {
+			WindowManager.addWindow(ColorPicker.this);
+			shell.addKeyListener(IJ.getInstance());
+			shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+			cg = new ColorGenerator(width, height, new int[width * height]);
+			cg.drawColors(colorWidth, colorHeight, columns, rows);
 
-				org.eclipse.swt.widgets.Composite panel = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
-				panel.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-				panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				colorCanvas = new ColorCanvas(panel, width, height, ColorPicker.this, cg, scale);
-				colorCanvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				// panel.add(colorCanvas);
-				String hexColor = Colors.colorToString(Toolbar.getForegroundColor());
-				colorField = new org.eclipse.swt.widgets.Text(panel, SWT.SINGLE);
-				colorField.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 1, 1));
-				colorField.setText(hexColor + " ");
-				colorField.setEditable(false);
-				colorField.setSelection(hexColor.length(), hexColor.length());
-				// GUI.scale(colorField);
-				// panel.add(colorField);
-				// add(panel);
-				// setResizable(false);
-				panel.pack();
-				shell.layout();
-				shell.pack();
-				Point loc = Prefs.getLocation(LOC_KEY);
-				if (loc != null)
-					shell.setLocation(loc.x, loc.y);
-				else
-					GUI.centerOnImageJScreen(ColorPicker.this.shell);
-				shell.setSize(width + 50, height + 100);
-				shell.setVisible(true);
-			}
+			org.eclipse.swt.widgets.Composite panel = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
+			panel.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+			panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			colorCanvas = new ColorCanvas(panel, width, height, ColorPicker.this, cg, scale);
+			colorCanvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			// panel.add(colorCanvas);
+			String hexColor = Colors.colorToString(Toolbar.getForegroundColor());
+			colorField = new org.eclipse.swt.widgets.Text(panel, SWT.SINGLE);
+			colorField.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, true, false, 1, 1));
+			colorField.setText(hexColor + " ");
+			colorField.setEditable(false);
+			colorField.setSelection(hexColor.length(), hexColor.length());
+			// GUI.scale(colorField);
+			// panel.add(colorField);
+			// add(panel);
+			// setResizable(false);
+			panel.pack();
+			shell.layout();
+			shell.pack();
+			Point loc = Prefs.getLocation(LOC_KEY);
+			if (loc != null)
+				shell.setLocation(loc.x, loc.y);
+			else
+				GUI.centerOnImageJScreen(ColorPicker.this.shell);
+			shell.setSize(width + 50, height + 100);
+			shell.setVisible(true);
+
 		});
 	}
 
@@ -317,14 +315,13 @@ class ColorCanvas extends org.eclipse.swt.widgets.Canvas
 		return new Dimension(width, height);
 	}
 
-	/*public void update(Graphics g) {
-		paint(g);
-	}*/
+	/*
+	 * public void update(Graphics g) { paint(g); }
+	 */
 	public void repaint() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				redraw();
-			}
+		Display.getDefault().syncExec(() -> {
+			redraw();
+
 		});
 	}
 
@@ -366,14 +363,14 @@ class ColorCanvas extends org.eclipse.swt.widgets.Canvas
 			background = true;
 			if (doubleClick)
 				editColor();
-			//ip.refreshForeground(background);
-			//ip.refreshBackground(background);
+			// ip.refreshForeground(background);
+			// ip.refreshBackground(background);
 		} else if ((foreground1Rect.contains(x, y)) || (foreground2Rect.contains(x, y))) {
 			background = false;
 			if (doubleClick)
 				editColor();
-			//ip.refreshBackground(background);
-			//ip.refreshForeground(background);
+			// ip.refreshBackground(background);
+			// ip.refreshForeground(background);
 		} else {
 			if (doubleClick)
 				editColor();

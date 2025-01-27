@@ -268,8 +268,9 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 		}
 		ByteProcessor outIp = null;
 		boolean strictMode = oldMacro ? excludeOnEdges : strict;
-		boolean isEDM = imp!=null && imp.getBitDepth()==32 && imp.getTitle().startsWith("EDM of ");
-        outIp = findMaxima(ip, tolerance, strictMode, threshold, outputType, excludeOnEdges, isEDM); //process the image
+		boolean isEDM = imp != null && imp.getBitDepth() == 32 && imp.getTitle().startsWith("EDM of ");
+		outIp = findMaxima(ip, tolerance, strictMode, threshold, outputType, excludeOnEdges, isEDM); // process the
+																										// image
 		if (outIp == null)
 			return; // cancelled by user or previewing or no output image
 		if (!Prefs.blackBackground) // normally, output has an inverted LUT, "active" pixels black (255) - like a
@@ -382,15 +383,15 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 		}
 		int[] maxPositions = new int[len];
 		int jStart = 0;
-        double min = Double.NaN, max = Double.NaN;
-        do {                            //find first non-NaN value
+		double min = Double.NaN, max = Double.NaN;
+		do { // find first non-NaN value
 			max = xx[jStart];
-            min = xx[jStart];
-            jStart++;
-            if (jStart >= xx.length)
-                return new int[]{};     //only NaNs
-        } while (Double.isNaN(min));
-		int maxPos = jStart-1;
+			min = xx[jStart];
+			jStart++;
+			if (jStart >= xx.length)
+				return new int[] {}; // only NaNs
+		} while (Double.isNaN(min));
+		int maxPos = jStart - 1;
 		int lastMaxPos = -1;
 		boolean leftValleyFound = (edgeMode == INCLUDE_EDGE);
 		int maxCount = 0;
@@ -698,9 +699,11 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 				if (checkThreshold && v < threshold)
 					continue;
 				boolean isMax = true;
-				/* check wheter we have a local maximum.
-				 Note: For an EDM, we need all maxima: those of the EDM-corrected values
-				 (needed by findMaxima) and those of the raw values (needed by cleanupMaxima) */
+				/*
+				 * check wheter we have a local maximum. Note: For an EDM, we need all maxima:
+				 * those of the EDM-corrected values (needed by findMaxima) and those of the raw
+				 * values (needed by cleanupMaxima)
+				 */
 				boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but
 																								// faster than isWithin
 				for (int d = 0; d < 8; d++) { // compare with the 8 neighbor pixels
@@ -950,11 +953,9 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 			}
 		}
 		if (previewing && messageArea != null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
+				messageArea.setText((xyCoordinates == null ? 0 : xyCoordinates.npoints) + " Maxima");
 
-				public void run() {
-					messageArea.setText((xyCoordinates == null ? 0 : xyCoordinates.npoints) + " Maxima");
-				}
 			});
 		}
 	} // void analyzeAndMarkMaxima

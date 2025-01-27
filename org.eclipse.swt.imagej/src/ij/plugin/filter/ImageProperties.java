@@ -112,13 +112,12 @@ public class ImageProperties implements PlugInFilter, org.eclipse.swt.events.Mod
 			pixelWidthField = (org.eclipse.swt.widgets.Text) nfields.elementAt(3);
 			pixelHeightField = (org.eclipse.swt.widgets.Text) nfields.elementAt(4);
 			pixelDepthField = (org.eclipse.swt.widgets.Text) nfields.elementAt(5);
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
+			Display.getDefault().syncExec(() -> {
 					for (int i = 0; i < nfields.size(); i++) {
 
 						((org.eclipse.swt.widgets.Text) nfields.elementAt(i)).addModifyListener(ImageProperties.this);
 					}
-				}
+				
 			});
 		}
 		sfields = gd.getStringFields();
