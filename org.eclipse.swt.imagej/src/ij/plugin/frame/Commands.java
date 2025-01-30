@@ -26,7 +26,8 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 	public static final int MAX_COMMANDS = 20;
 	private static Commands instance;
 	private static final String divider = "---------------";
-	private static final String[] commands = {"Blobs", "Open...", "Show Info...", "Close", "Close All", "Appearance...", "Histogram", "Gaussian Blur...", "Record...", "Capture Screen", "Find Commands..."};
+	private static final String[] commands = { "Blobs", "Open...", "Show Info...", "Close", "Close All",
+			"Appearance...", "Histogram", "Gaussian Blur...", "Record...", "Capture Screen", "Find Commands..." };
 	private org.eclipse.swt.widgets.List list;
 	private String command;
 	private org.eclipse.swt.widgets.Button button;
@@ -34,78 +35,75 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 	public Commands() {
 
 		super("Commands");
-		if(instance != null) {
+		if (instance != null) {
 			WindowManager.toFront(instance);
 			return;
 		}
 		instance = this;
 		WindowManager.addWindow(Commands.this);
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-				list = new org.eclipse.swt.widgets.List(shell, SWT.NONE);
-				list.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				list.addSelectionListener(Commands.this);
-				String cmds = Prefs.get(CMDS_KEY, null);
-				if(cmds != null) {
-					String[] cmd = cmds.split(",");
-					int len = cmd.length <= MAX_COMMANDS ? cmd.length : MAX_COMMANDS;
-					boolean isDivider = false;
-					for(int i = 0; i < len; i++) {
-						if(divider.equals(cmd[i])) {
-							isDivider = true;
-							break;
-						}
+			shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+			list = new org.eclipse.swt.widgets.List(shell, SWT.NONE);
+			list.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			list.addSelectionListener(Commands.this);
+			String cmds = Prefs.get(CMDS_KEY, null);
+			if (cmds != null) {
+				String[] cmd = cmds.split(",");
+				int len = cmd.length <= MAX_COMMANDS ? cmd.length : MAX_COMMANDS;
+				boolean isDivider = false;
+				for (int i = 0; i < len; i++) {
+					if (divider.equals(cmd[i])) {
+						isDivider = true;
+						break;
 					}
-					if(isDivider) {
-						for(int i = 0; i < len; i++)
-							list.add(cmd[i]);
-					} else
-						cmds = null;
 				}
-				if(cmds == null)
-					reset();
-				ImageJ ij = IJ.getInstance();
-				shell.addKeyListener(ij);
-				Executer.addCommandListener(Commands.this);
-				// GUI.scale(list);
-				list.addKeyListener(ij);
-				/*
-				 * GridBagLayout gridbag = new GridBagLayout();
-				 * GridBagConstraints c = new GridBagConstraints();
-				 */
-				/*
-				 * c.insets = new Insets(0, 0, 0, 0);
-				 * c.gridx = 0; c.gridy = 0; c.anchor = GridBagConstraints.WEST;
-				 * add(list,c);
-				 */
-				button = new org.eclipse.swt.widgets.Button(shell, SWT.NONE);
-				button.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				button.setText("Edit");
-				button.addSelectionListener(Commands.this);
-				button.addKeyListener(ij);
-				// c.insets = new Insets(2, 6, 6, 6);
-				// c.gridx = 0; c.gridy = 2; c.anchor = GridBagConstraints.CENTER;
-				// add(button, c);
-				shell.layout();
-				shell.pack();
-				org.eclipse.swt.graphics.Point size = shell.getSize();
-				Point loc = Prefs.getLocation(LOC_KEY);
-				if(loc != null)
-					shell.setLocation(loc.x, loc.y);
-				shell.setVisible(true);
+				if (isDivider) {
+					for (int i = 0; i < len; i++)
+						list.add(cmd[i]);
+				} else
+					cmds = null;
 			}
+			if (cmds == null)
+				reset();
+			ImageJ ij = IJ.getInstance();
+			shell.addKeyListener(ij);
+			Executer.addCommandListener(Commands.this);
+			// GUI.scale(list);
+			list.addKeyListener(ij);
+			/*
+			 * GridBagLayout gridbag = new GridBagLayout(); GridBagConstraints c = new
+			 * GridBagConstraints();
+			 */
+			/*
+			 * c.insets = new Insets(0, 0, 0, 0); c.gridx = 0; c.gridy = 0; c.anchor =
+			 * GridBagConstraints.WEST; add(list,c);
+			 */
+			button = new org.eclipse.swt.widgets.Button(shell, SWT.NONE);
+			button.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			button.setText("Edit");
+			button.addSelectionListener(Commands.this);
+			button.addKeyListener(ij);
+			// c.insets = new Insets(2, 6, 6, 6);
+			// c.gridx = 0; c.gridy = 2; c.anchor = GridBagConstraints.CENTER;
+			// add(button, c);
+			shell.layout();
+			shell.pack();
+			org.eclipse.swt.graphics.Point size = shell.getSize();
+			Point loc = Prefs.getLocation(LOC_KEY);
+			if (loc != null)
+				shell.setLocation(loc.x, loc.y);
+			shell.setVisible(true);
+
 		});
 	}
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 
-		if(e.widget instanceof org.eclipse.swt.widgets.Button) {
+		if (e.widget instanceof org.eclipse.swt.widgets.Button) {
 			actionPerformed(e);
-		} else if(e.widget instanceof org.eclipse.swt.widgets.List) {
+		} else if (e.widget instanceof org.eclipse.swt.widgets.List) {
 			itemStateChanged(e);
 		}
 	}
@@ -116,7 +114,7 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 		int dividerIndex = getDividerIndex();
 		StringBuilder sb = new StringBuilder(200);
 		sb.append("| ");
-		for(int i = 0; i < dividerIndex; i++) {
+		for (int i = 0; i < dividerIndex; i++) {
 			String cmd = list.getItem(i);
 			sb.append(cmd);
 			sb.append(" | ");
@@ -127,20 +125,20 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 		gd.addTextAreas(recentCommands, null, 5, 28);
 		int index = dividerIndex + 1;
 		int n = 1;
-		for(int i = index; i < list.getItemCount(); i++) {
+		for (int i = index; i < list.getItemCount(); i++) {
 			gd.setInsets(2, 8, 0);
 			gd.addStringField("Cmd" + IJ.pad(n++, 2) + ":", list.getItem(i), 20);
 		}
 		gd.enableYesNoCancel(" OK ", "Reset");
 		gd.showDialog();
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
-		else if(!gd.wasOKed()) {
+		else if (!gd.wasOKed()) {
 			boolean ok = IJ.showMessageWithCancel("Commands", "Are you sure you want to reset?");
-			if(ok)
+			if (ok)
 				reset();
 		} else {
-			for(int i = index; i < list.getItemCount(); i++) {
+			for (int i = index; i < list.getItemCount(); i++) {
 				list.remove(i);
 				list.add(gd.getNextString(), i);
 			}
@@ -152,13 +150,13 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 		// IJ.log("itemStateChanged: "+e);
 		// if (e.getStateChange() == ItemEvent.SELECTED) {
 		int index = list.getSelectionIndex();
-		if(index < 0)
+		if (index < 0)
 			return;
 		command = list.getItem(index);
-		if(!command.equals(divider)) {
-			if(command.equals("Debug Mode"))
+		if (!command.equals(divider)) {
+			if (command.equals("Debug Mode"))
 				IJ.runMacro("setOption('DebugMode')");
-			else if(command.equals("Hyperstack"))
+			else if (command.equals("Hyperstack"))
 				IJ.runMacro("newImage('HyperStack', '8-bit color label', 400, 300, 3, 4, 25)");
 			else
 				IJ.doCommand(command);
@@ -169,22 +167,20 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 
 	public String commandExecuting(String cmd2) {
 
-		if("Quit".equals(cmd2))
+		if ("Quit".equals(cmd2))
 			return cmd2;
 		String cmd1 = command;
-		if(cmd1 == null || !cmd1.equals(cmd2)) {
+		if (cmd1 == null || !cmd1.equals(cmd2)) {
 			try {
 				list.remove(cmd2);
-			} catch(Exception e) {
+			} catch (Exception e) {
 			}
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				if (list.getItemCount() >= MAX_COMMANDS)
+					list.remove(getDividerIndex() - 1);
+				list.add(cmd2, 0);
 
-					if(list.getItemCount() >= MAX_COMMANDS)
-						list.remove(getDividerIndex() - 1);
-					list.add(cmd2, 0);
-				}
 			});
 		}
 		command = null;
@@ -194,9 +190,9 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 	private int getDividerIndex() {
 
 		int index = 0;
-		for(int i = 0; i < MAX_COMMANDS; i++) {
+		for (int i = 0; i < MAX_COMMANDS; i++) {
 			String cmd = list.getItem(i);
-			if(divider.equals(cmd)) {
+			if (divider.equals(cmd)) {
 				index = i;
 				break;
 			}
@@ -209,7 +205,7 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 		list.removeAll();
 		list.add(divider);
 		int len = commands.length < MAX_COMMANDS ? commands.length : MAX_COMMANDS - 1;
-		for(int i = 0; i < len; i++)
+		for (int i = 0; i < len; i++)
 			list.add(commands[i]);
 	}
 
@@ -223,7 +219,7 @@ public class Commands extends PlugInFrame implements SelectionListener, CommandL
 		Executer.removeCommandListener(this);
 		Prefs.saveLocation(LOC_KEY, shell.getLocation());
 		StringBuilder sb = new StringBuilder(200);
-		for(int i = 0; i < list.getItemCount(); i++) {
+		for (int i = 0; i < list.getItemCount(); i++) {
 			String cmd = list.getItem(i);
 			sb.append(cmd);
 			sb.append(",");
