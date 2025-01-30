@@ -31,5 +31,4 @@ jobs:
     - name: Build with Maven
       env:
         MAVEN_ARGS: "--batch-mode --no-transfer-progress -Dstyle.color=always"
-      with:
-        run: mvn -f org.eclipse.swt.imagej.cbi/pom.xml verify
+      run: mvn -f org.eclipse.swt.imagej.cbi/pom.xml verify
