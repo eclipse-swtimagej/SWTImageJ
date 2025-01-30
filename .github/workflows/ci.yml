@@ -29,5 +29,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build with Maven
+      env:
+        MAVEN_ARGS: "--batch-mode --no-transfer-progress -Dstyle.color=always"
       with:
-        run: mvn -f org.eclipse.swt.imagej.cbi/pom.xml verify --batch-mode --no-transfer-progress
+        run: mvn -f org.eclipse.swt.imagej.cbi/pom.xml verify
