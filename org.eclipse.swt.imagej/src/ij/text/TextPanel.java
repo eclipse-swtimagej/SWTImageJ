@@ -21,6 +21,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
@@ -135,30 +136,46 @@ public class TextPanel
 		// scrolledWrapper.setBackground(Display.getCurrent().getSystemColor(BG_COLOR));
 		this.shell = parent;
 		this.textWindow = textWindow;
+		
+		
+		
+		
+		
 		tc = new TextCanvas(this);
-		tc.setLayoutData(ij.layout.BorderLayout.CENTER);
+		//tc.setLayoutData(ij.layout.BorderLayout.CENTER);
+		GridData gd_canvas = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_canvas.heightHint = 244;
+		gd_canvas.widthHint = 382;
+		tc.setLayoutData(gd_canvas);
+		//tc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		// scrollCanvas.setContent(tc);
 		// scrollCanvas.setMinSize(tc.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		// add("Center",tc);
 		// sbHoriz=new Scrollbar(Scrollbar.HORIZONTAL);
 		// sbHoriz = scrollCanvas.getVerticalBar();
 		// GUI.fixScrollbar(sbHoriz);
+		sbVert = new Slider(parent, SWT.VERTICAL);
+		sbVert.setThumb(1);
+		sbVert.setIncrement(1);
+		sbVert.setPageIncrement(1);
+		sbVert.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true, 1, 1));
+		//sbVert.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, false, true, 1, 1));
+		//sbVert.setLayoutData(ij.layout.BorderLayout.EAST);
+		// GUI.fixScrollbar(sbVert);
+		sbVert.addSelectionListener(this);
+		
+		//sbHoriz.setLayoutData(ij.layout.BorderLayout.SOUTH);
+		// sbHoriz.setFocusable(false); // prevents scroll bar from blinking on Windows
+		// add("South", sbHoriz);
 		sbHoriz = new Slider(parent, SWT.HORIZONTAL);
 		sbHoriz.setSelection(0);
 		sbHoriz.setThumb(1);
 		sbHoriz.setIncrement(1);
 		sbHoriz.setPageIncrement(1);
 		sbHoriz.addSelectionListener(this);
-		sbHoriz.setLayoutData(ij.layout.BorderLayout.SOUTH);
-		// sbHoriz.setFocusable(false); // prevents scroll bar from blinking on Windows
-		// add("South", sbHoriz);
-		sbVert = new Slider(parent, SWT.VERTICAL);
-		sbVert.setThumb(1);
-		sbVert.setIncrement(1);
-		sbVert.setPageIncrement(1);
-		sbVert.setLayoutData(ij.layout.BorderLayout.EAST);
-		// GUI.fixScrollbar(sbVert);
-		sbVert.addSelectionListener(this);
+		sbHoriz.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		//sbHoriz.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
+		
 		// sbVert.setFocusable(false);
 		ImageJ ij = IJ.getInstance();
 		if (ij != null) {

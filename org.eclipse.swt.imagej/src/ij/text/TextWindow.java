@@ -93,7 +93,8 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 		Display.getDefault().syncExec(() -> {
 
 			shell = new Shell(Display.getDefault(), SWT.MODELESS | SWT.DIALOG_TRIM | SWT.RESIZE);
-			shell.setLayout(new ij.layout.BorderLayout());
+			org.eclipse.swt.layout.GridLayout layout = new org.eclipse.swt.layout.GridLayout(2, false);
+			shell.setLayout(layout);
 			shell.setText(title);
 			shell.setText(title);
 			textPanel = new TextPanel(TextWindow.this, shell, title);
@@ -120,7 +121,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 
 			// super(title);
 			shell = new Shell(Display.getDefault(), SWT.MODELESS | SWT.DIALOG_TRIM | SWT.RESIZE);
-			shell.setLayout(new ij.layout.BorderLayout());
+			shell.setLayout(new org.eclipse.swt.layout.GridLayout(2, false));
 			setTitle(title);
 			textPanel = new TextPanel(TextWindow.this, shell, title);
 			textPanel.setColumnHeadings(headings);

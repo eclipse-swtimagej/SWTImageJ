@@ -6,7 +6,6 @@ Bundle-Version: 1.5.0.qualifier
 Export-Package: ij,
  ij.gui,
  ij.io,
- ij.layout,
  ij.macro,
  ij.measure,
  ij.plugin,

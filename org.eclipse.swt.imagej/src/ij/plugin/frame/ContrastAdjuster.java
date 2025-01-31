@@ -1,10 +1,8 @@
 package ij.plugin.frame;
 
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Label;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ItemEvent;
@@ -165,8 +163,18 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 					 * c.gridy = y++; c.insets = new Insets(0, 10, 0, 10);
 					 */
 					// gridbag.setConstraints(panel, c);
-					panel.setLayout(new ij.layout.BorderLayout());
+					//panel.setLayout(new ij.layout.BorderLayout());
+					
+					
+					panel.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
+					
+					
+					
+					
+					
+					
 					minLabel = new org.eclipse.swt.widgets.Label(panel, SWT.NONE);
+					minLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 					// minLabel.setLayoutData("WEST");
 					minLabel.setText(blankLabel8);
 					minLabel.setFont(monoFont);
@@ -174,6 +182,7 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 						minLabel.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));
 					// panel.add("West", minLabel);
 					maxLabel = new org.eclipse.swt.widgets.Label(panel, SWT.NONE);
+					maxLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 					maxLabel.setFont(monoFont);
 					maxLabel.setText(blankLabel8);
 					// maxLabel.setLayoutData("EAST");
@@ -349,18 +358,21 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 
 		if(label2 == null && IJ.isMacOSX())
 			text += "    ";
-		panel = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
+		//panel = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
 		/*
 		 * c.gridy = y++; int bottomInset = IJ.isMacOSX()?4:0; c.insets = new Insets(0,
 		 * 10, bottomInset, 0); gridbag.setConstraints(panel, c);
 		 */
-		panel.setLayout(new ij.layout.FlowLayout(label2 == null ? FlowLayout.CENTER : FlowLayout.LEFT, 0, 0));
-		org.eclipse.swt.widgets.Label label = new org.eclipse.swt.widgets.Label(panel, SWT.NONE);
+		//panel.setLayout(new ij.layout.FlowLayout(label2 == null ? FlowLayout.CENTER : FlowLayout.LEFT, 0, 0));
+		org.eclipse.swt.widgets.Label label = new org.eclipse.swt.widgets.Label(shell, SWT.NONE);
+		label.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, true, 1, 1));
 		label.setFont(sanFont);
+		label.setText(text);
 		// panel.add(label);
 		if(label2 != null) {
 			label2.setFont(monoFont);
-			label2.setAlignment(Label.LEFT);
+			label2.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+			label2.setText(text);
 			// panel.add(label2);
 		}
 		// add(panel);
@@ -1478,7 +1490,7 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 
 class ContrastPlot extends org.eclipse.swt.widgets.Canvas implements org.eclipse.swt.events.MouseListener, PaintListener {
 
-	static final int WIDTH = 128, HEIGHT = 64;
+	static final int WIDTH = 161, HEIGHT = 64;
 	double defaultMin = 0;
 	double defaultMax = 255;
 	double min = 0;
