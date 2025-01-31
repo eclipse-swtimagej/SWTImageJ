@@ -43,6 +43,8 @@
   <modules>
     <module>../org.eclipse.swt.imagej.targetplatform</module>
     <module>../org.eclipse.swt.imagej</module>
+    <module>../org.eclipse.swt.imagej.feature</module>
+    <module>../org.eclipse.swt.imagej.updatesite</module>
   </modules>
   <properties>
     <tycho.version>4.0.10</tycho.version>

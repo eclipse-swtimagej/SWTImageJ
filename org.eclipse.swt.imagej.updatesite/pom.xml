@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.eclipse.swt.imagej</groupId>
+    <artifactId>org.eclipse.swt.imagej.build</artifactId>
+    <version>1.5.0</version>
+    <relativePath>../org.eclipse.swt.imagej.cbi/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>org.eclipse.swt.imagej.updatesite</artifactId>
+  <packaging>eclipse-repository</packaging>
+  <properties>
+    <skip.install>true</skip.install>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-p2-repository-plugin</artifactId>
+        <version>${tycho.version}</version>
+        <configuration>
+          <includeAllDependencies>true</includeAllDependencies>
+          <skipArchive>true</skipArchive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
