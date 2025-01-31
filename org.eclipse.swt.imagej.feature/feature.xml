@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.eclipse.swt.imagej.feature"
+      label="Eclipse SWTImageJ"
+      version="1.5.0.qualifier"
+      plugin="org.eclipse.swt.imagej">
+
+   <description url="https://projects.eclipse.org/projects/technology.swtimagej">
+      This is the Eclipse swt.imagej feature.
+   </description>
+
+   <copyright url="https://projects.eclipse.org/projects/technology.swtimagej">
+      Lablicate GmbH
+   </copyright>
+
+   <license url="https://www.eclipse.org/legal/epl-2.0/">
+      Eclipse License 2.0
+   </license>
+
+   <plugin
+         id="org.eclipse.swt.imagej"
+         version="0.0.0"/>
+
+</feature>
