@@ -170,7 +170,7 @@ import org.eclipse.swt.events.*;
 
 See the Plugin Tool template which was ported to SWT.
 
-#### IJPluginWindowBuilderExample
+### IJPluginWindowBuilderExample
 
 A simple example has been added to create Graphical User Interfaces easily with the WindowBuilder plugin of Eclipse.
 The SWTComposite class can be opened and edited with the WindowBuilder plugin.
