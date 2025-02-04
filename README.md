@@ -172,7 +172,7 @@ See the Plugin Tool template which was ported to SWT.
 
 ### IJPluginWindowBuilderExample
 
-A simple example has been added to create Graphical User Interfaces easily with the WindowBuilder plugin of Eclipse.
+A simple example has been added to create Graphical User Interfaces easily with the [WindowBuilder](https://eclipse.dev/windowbuilder/) plugin of Eclipse.
 The SWTComposite class can be opened and edited with the WindowBuilder plugin.
 To compile the plugin the SWTImage jar has to be added to the classpath (simply built and add org.eclipse.swt.imagej-x.x.x-SNAPSHOT.jar to the Java classpath).
 Copy the compiled plugin classes to the plugins folder of SWTImageJ thus it can be loaded as a plugin and extend the Plugins menu.
