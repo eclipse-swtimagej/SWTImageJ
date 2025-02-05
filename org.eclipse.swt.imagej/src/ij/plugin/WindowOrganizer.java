@@ -188,10 +188,9 @@ public class WindowOrganizer implements PlugIn {
 	void showImageJ() {
 		ImageJ ij = IJ.getInstance();
 		if (ij != null) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					ij.getShell().setActive();
-				}
+			Display.getDefault().syncExec(() -> {
+				ij.getShell().setActive();
+
 			});
 		}
 	}
@@ -210,10 +209,9 @@ public class WindowOrganizer implements PlugIn {
 			for (int i = 0; i < windows.length; i++)
 				WindowManager.toFront(windows[i]);
 		}
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				IJ.getInstance().getShell().setActive();
-			}
+		Display.getDefault().syncExec(() -> {
+			IJ.getInstance().getShell().setActive();
+
 		});
 	}
 

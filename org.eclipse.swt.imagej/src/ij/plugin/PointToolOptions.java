@@ -41,14 +41,13 @@ public class PointToolOptions implements PlugIn, DialogListener {
 
 	public void run(String arg) {
 
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				if (gd != null && gd.isVisible() && !IJ.isMacro()) {
-					gd.getShell().setActive();
-					update();
-				} else
-					showDialog();
-			}
+		Display.getDefault().syncExec(() -> {
+			if (gd != null && gd.isVisible() && !IJ.isMacro()) {
+				gd.getShell().setActive();
+				update();
+			} else
+				showDialog();
+
 		});
 
 	}

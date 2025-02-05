@@ -200,12 +200,12 @@ public class Scaler implements PlugIn, ModifyListener, org.eclipse.swt.events.Fo
 			cal.xOrigin *= xscale;
 			cal.yOrigin *= yscale;
 			Overlay overlay = imp.getOverlay();
-			if (overlay!=null && !imp.getHideOverlay()) {
+			if (overlay != null && !imp.getHideOverlay()) {
 				overlay = overlay.duplicate();
 				int slice = imp.getCurrentSlice();
-				overlay.crop(slice,slice);
+				overlay.crop(slice, slice);
 				Rectangle roi = imp.getProcessor().getRoi();
-				if (roi!=null)
+				if (roi != null)
 					overlay = overlay.crop(ip.getRoi());
 				overlay = overlay.scale(xscale, yscale);
 				imp2.setOverlay(overlay);
@@ -314,15 +314,14 @@ public class Scaler implements PlugIn, ModifyListener, org.eclipse.swt.events.Fo
 		}
 		fields = gd.getStringFields();
 		if (fields != null) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					for (int i = 0; i < fields.size(); i++) {
+			Display.getDefault().syncExec(() -> {
+				for (int i = 0; i < fields.size(); i++) {
 
-						((org.eclipse.swt.widgets.Text) fields.elementAt(i)).addModifyListener(Scaler.this);
-						((org.eclipse.swt.widgets.Text) fields.elementAt(i)).addFocusListener(Scaler.this);
+					((org.eclipse.swt.widgets.Text) fields.elementAt(i)).addModifyListener(Scaler.this);
+					((org.eclipse.swt.widgets.Text) fields.elementAt(i)).addFocusListener(Scaler.this);
 
-					}
 				}
+
 			});
 			xField = (org.eclipse.swt.widgets.Text) fields.elementAt(0);
 			yField = (org.eclipse.swt.widgets.Text) fields.elementAt(1);

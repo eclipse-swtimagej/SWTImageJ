@@ -163,7 +163,7 @@ public class SimpleCommands implements PlugIn {
 		gd.showDialog();
 		if (!gd.wasCanceled()) {
 			label2 = gd.getNextString();
-			if (label2!=null && !label2.equals(label)) {
+			if (label2 != null && !label2.equals(label)) {
 				if (label2.length() == 0)
 					label2 = null;
 				stack.setSliceLabel(label2, n);
@@ -186,7 +186,7 @@ public class SimpleCommands implements PlugIn {
 
 	private void imageToResults() {
 		ResultsTable rt = ResultsTable.createTableFromImage(IJ.getImage());
-		if (rt!=null)
+		if (rt != null)
 			rt.show("Results");
 	}
 
@@ -230,12 +230,11 @@ public class SimpleCommands implements PlugIn {
 	}
 
 	private void openInteractiveModeEditor() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				Editor ed = new Editor();
-				ed.getShell().setSize(600, 500);
-				ed.create(Editor.INTERACTIVE_NAME, "");
-			}
+		Display.getDefault().syncExec(() -> {
+			Editor ed = new Editor();
+			ed.getShell().setSize(600, 500);
+			ed.create(Editor.INTERACTIVE_NAME, "");
+
 		});
 	}
 

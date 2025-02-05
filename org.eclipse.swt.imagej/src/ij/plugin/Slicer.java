@@ -31,11 +31,11 @@ import ij.process.ImageProcessor;
 import ij.util.Tools;
 
 /**
- * Implements the Image/Stacks/Reslice command. Known shortcomings:
- * for FREELINE or POLYLINE ROI, spatial calibration is ignored:
- * the image is sampled at constant _pixel_ increments (distance 1), so
- * (if y/x aspect ratio != 1 in source image) one dimension in the output is not
- * homogeneous (i.e. pixelWidth not the same everywhere).
+ * Implements the Image/Stacks/Reslice command. Known shortcomings: for FREELINE
+ * or POLYLINE ROI, spatial calibration is ignored: the image is sampled at
+ * constant _pixel_ increments (distance 1), so (if y/x aspect ratio != 1 in
+ * source image) one dimension in the output is not homogeneous (i.e. pixelWidth
+ * not the same everywhere).
  */
 public class Slicer implements PlugIn, ModifyListener, SelectionListener {
 
@@ -333,19 +333,17 @@ public class Slicer implements PlugIn, ModifyListener, SelectionListener {
 		gd.addMessage("Output size: " + getSize(cal.pixelDepth, outputSpacing, outputSlices) + "				");
 		fields = gd.getNumericFields();
 		if (!macroRunning) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					for (int i = 0; i < fields.size(); i++)
-						((org.eclipse.swt.widgets.Text) fields.elementAt(i)).addModifyListener(Slicer.this);
-				}
+			Display.getDefault().syncExec(() -> {
+				for (int i = 0; i < fields.size(); i++)
+					((org.eclipse.swt.widgets.Text) fields.elementAt(i)).addModifyListener(Slicer.this);
+
 			});
 		}
 		checkboxes = gd.getCheckboxes();
 		if (!macroRunning) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					((org.eclipse.swt.widgets.Button) checkboxes.elementAt(2)).addSelectionListener(Slicer.this);
-				}
+			Display.getDefault().syncExec(() -> {
+				((org.eclipse.swt.widgets.Button) checkboxes.elementAt(2)).addSelectionListener(Slicer.this);
+
 			});
 		}
 		message = (org.eclipse.swt.widgets.Label) gd.getMessage();
@@ -728,18 +726,13 @@ public class Slicer implements PlugIn, ModifyListener, SelectionListener {
 	}
 
 	/*
-	 * public void textValueChanged(TextEvent e) {
-	 * updateSize();
-	 * }
+	 * public void textValueChanged(TextEvent e) { updateSize(); }
 	 */
 
 	/*
-	 * public void itemStateChanged(ItemEvent e) {
-	 * if (IJ.isMacOSX()) IJ.wait(100);
-	 * Checkbox cb = (Checkbox)checkboxes.elementAt(2);
-	 * nointerpolate = cb.getState();
-	 * updateSize();
-	 * }
+	 * public void itemStateChanged(ItemEvent e) { if (IJ.isMacOSX()) IJ.wait(100);
+	 * Checkbox cb = (Checkbox)checkboxes.elementAt(2); nointerpolate =
+	 * cb.getState(); updateSize(); }
 	 */
 
 	void updateSize() {
