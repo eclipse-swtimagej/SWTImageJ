@@ -78,6 +78,13 @@ In the plugins folder itself a two class template is available, too, where the d
 
 As known from ImageJ newly compiled plugins can be loaded dynamically with the menu ["Help->Refresh Menus"](https://imagej.net/ij/docs/guide/146-33.html).
 
+### IJPluginWindowBuilderExample
+
+A simple example has been added to create Graphical User Interfaces easily with the [WindowBuilder](https://eclipse.dev/windowbuilder/) plugin of Eclipse.
+The SWTComposite class can be opened and edited with the WindowBuilder plugin.
+To compile the plugin the SWTImage jar has to be added to the classpath (simply built and add org.eclipse.swt.imagej-x.x.x-SNAPSHOT.jar to the Java classpath).
+Copy the compiled plugin classes to the plugins folder of SWTImageJ thus it can be loaded as a plugin and extend the Plugins menu.
+
 ### General SWT implementation
 
 In general the SWTImageJ implementation follows the general ImageJ layout of packages, classes and folders familiar to ImageJ developers. 
@@ -169,12 +176,3 @@ You have to import SWT Listeners:
 import org.eclipse.swt.events.*;
 
 See the Plugin Tool template which was ported to SWT.
-
-### IJPluginWindowBuilderExample
-
-A simple example has been added to create Graphical User Interfaces easily with the [WindowBuilder](https://eclipse.dev/windowbuilder/) plugin of Eclipse.
-The SWTComposite class can be opened and edited with the WindowBuilder plugin.
-To compile the plugin the SWTImage jar has to be added to the classpath (simply built and add org.eclipse.swt.imagej-x.x.x-SNAPSHOT.jar to the Java classpath).
-Copy the compiled plugin classes to the plugins folder of SWTImageJ thus it can be loaded as a plugin and extend the Plugins menu.
-
-
