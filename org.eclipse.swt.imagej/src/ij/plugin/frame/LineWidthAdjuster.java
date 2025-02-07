@@ -39,7 +39,7 @@ public class LineWidthAdjuster extends PlugInFrame implements PlugIn, Runnable, 
 	boolean done;
 	Text tf;
 	Button checkbox;
-	int lineWidth0 = (int)Line.getWidth();
+	int lineWidth0 = (int) Line.getWidth();
 
 	public LineWidthAdjuster() {
 		super("Line Width");
@@ -62,29 +62,26 @@ public class LineWidthAdjuster extends PlugInFrame implements PlugIn, Runnable, 
 		slider.setValues(Line.getWidth(), 1, sliderRange + 1, 1, 1, 1);
 		slider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		slider.addSelectionListener(this);
-		/*int margin = IJ.isMacOSX()?5:0;
-		GridBagLayout grid = new GridBagLayout();
-		GridBagConstraints c  = new GridBagConstraints();*/
-		/*panel.setLayout(grid);
-		c.gridx = 0; c.gridy = 0;
-		c.gridwidth = 1;
-		c.ipadx = 100;
-		c.insets = new Insets(margin, 15, margin, 5);
-		c.anchor = GridBagConstraints.CENTER;
-		grid.setConstraints(slider, c);
-		panel.add(slider);
-		c.ipadx = 0;  // reset
-		c.gridx = 1;
-		c.insets = new Insets(margin, 5, margin, 15);*/
+		/*
+		 * int margin = IJ.isMacOSX()?5:0; GridBagLayout grid = new GridBagLayout();
+		 * GridBagConstraints c = new GridBagConstraints();
+		 */
+		/*
+		 * panel.setLayout(grid); c.gridx = 0; c.gridy = 0; c.gridwidth = 1; c.ipadx =
+		 * 100; c.insets = new Insets(margin, 15, margin, 5); c.anchor =
+		 * GridBagConstraints.CENTER; grid.setConstraints(slider, c); panel.add(slider);
+		 * c.ipadx = 0; // reset c.gridx = 1; c.insets = new Insets(margin, 5, margin,
+		 * 15);
+		 */
 		tf = new org.eclipse.swt.widgets.Text(panel, SWT.SINGLE);
 		tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tf.setText("" + Line.getWidth());
 		tf.addModifyListener(this);
-		/*grid.setConstraints(tf, c);
-		panel.add(tf);
-		
-		c.gridx = 2;
-		c.insets = new Insets(margin, 25, margin, 5);*/
+		/*
+		 * grid.setConstraints(tf, c); panel.add(tf);
+		 * 
+		 * c.gridx = 2; c.insets = new Insets(margin, 25, margin, 5);
+		 */
 		checkbox = new org.eclipse.swt.widgets.Button(panel, SWT.CHECK);
 		checkbox.setText("Spline fit");
 		checkbox.setSelection(isSplineFit());
@@ -152,10 +149,9 @@ public class LineWidthAdjuster extends PlugInFrame implements PlugIn, Runnable, 
 					return;
 			}
 			if (setText) {
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						tf.setText("" + value);
-					}
+				Display.getDefault().syncExec(() -> {
+					tf.setText("" + value);
+
 				});
 			}
 			setText = false;
@@ -211,15 +207,15 @@ public class LineWidthAdjuster extends PlugInFrame implements PlugIn, Runnable, 
 		Prefs.saveLocation(LOC_KEY, shell.getLocation());
 		int strokeWidth = -1;
 		ImagePlus imp = WindowManager.getCurrentImage();
-		if (imp!=null) {
+		if (imp != null) {
 			Roi roi = imp.getRoi();
-			if (roi!=null && roi.isLine())
-				strokeWidth = (int)roi.getStrokeWidth();
+			if (roi != null && roi.isLine())
+				strokeWidth = (int) roi.getStrokeWidth();
 		}
-		if (IJ.recording() && strokeWidth>=0 && strokeWidth!=lineWidth0) {
+		if (IJ.recording() && strokeWidth >= 0 && strokeWidth != lineWidth0) {
 			if (Recorder.scriptMode()) {
 				Recorder.recordCall("roi = imp.getRoi();");
-				Recorder.recordCall("roi.setStrokeWidth("+strokeWidth+");");
+				Recorder.recordCall("roi.setStrokeWidth(" + strokeWidth + ");");
 				Recorder.recordCall("imp.draw();");
 			} else {
 				Recorder.record("Roi.setStrokeWidth", strokeWidth);

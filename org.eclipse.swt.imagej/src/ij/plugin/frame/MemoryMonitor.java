@@ -45,7 +45,7 @@ public class MemoryMonitor extends PlugInFrame {
 		if (instance != null) {
 			WindowManager.toFront(instance);
 			return;
-		} 
+		}
 		instance = this;
 		mem = new double[width + 1];
 		Display display = Display.getDefault();
@@ -161,10 +161,9 @@ public class MemoryMonitor extends PlugInFrame {
 		}
 
 		public void repaint() {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					redraw();
-				}
+			Display.getDefault().syncExec(() -> {
+				redraw();
+
 			});
 		}
 

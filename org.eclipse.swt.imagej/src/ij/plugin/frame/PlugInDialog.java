@@ -25,84 +25,33 @@ public class PlugInDialog implements PlugIn, WindowSwt, ShellListener, org.eclip
 	public Shell getShell() {
 		return shell;
 	}
-	/*public String getTitle() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				title = shell.getText();
-			}
-		});
-		return title;
-	}
 
-	public void setTitle(String title) {
-
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				PlugInDialog.this.title=title;
-				shell.setText(title);
-			}
-		});
-	}
-	
-	private void toFront() {
-	    shell.getDisplay().syncExec(new Runnable() {
-	        public void run() {
-	            shell.forceActive();
-	        }
-	    });
-	}*/
-	
 	public PlugInDialog(String title) {
-		this(title,SWT.MODELESS | SWT.DIALOG_TRIM | SWT.RESIZE);
+		this(title, SWT.MODELESS | SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
 
 	public PlugInDialog(String title, int style) {
-		/*super(new Frame(),title);
-		enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-		ImageJ ij = IJ.getInstance();
-		if (IJ.isMacOSX() && ij!=null) {
-			//ij.toFront(); // needed for keyboard shortcuts to work
-			IJ.wait(250);
-		}
-		addWindowListener(this);
-		addFocusListener(this);
-		//	if (IJ.isLinux()) setBackground(ImageJ.backgroundColor);
-		if (ij!=null && !IJ.isMacOSX()) {
-			Image img = ij.getIconImage();
-			if (img!=null)
-				try {setIconImage(img);} catch (Exception e) {}
-		}*/
+
 		Display display = Display.getDefault();
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				shell = new Shell(display, style);
+		Display.getDefault().syncExec(() -> {
+			shell = new Shell(display, style);
 
-				// shell.open();
+			shell.setText(title);
 
-				/*while (!shell.isDisposed()) {
-					if (!display.readAndDispatch()) {
-						display.sleep();
+			PlugInDialog.this.title = title;
+			ImageJ ij = IJ.getInstance();
+			shell.addShellListener(PlugInDialog.this);
+			shell.addFocusListener(PlugInDialog.this);
+
+			if (ij != null && !IJ.isMacOSX()) {
+				org.eclipse.swt.graphics.Image img = ij.getShell().getImage();
+				if (img != null)
+					try {
+						shell.setImage(img);
+					} catch (Exception e) {
 					}
-				}
-				display.dispose();*/
-
-				// super(title);
-				shell.setText(title);
-				// enableEvents(TypedEvent.WINDOW_EVENT_MASK);
-				PlugInDialog.this.title = title;
-				ImageJ ij = IJ.getInstance();
-				shell.addShellListener(PlugInDialog.this);
-				shell.addFocusListener(PlugInDialog.this);
-				// if (IJ.isLinux()) setBackground(ImageJ.backgroundColor);
-				if (ij != null && !IJ.isMacOSX()) {
-					org.eclipse.swt.graphics.Image img = ij.getShell().getImage();
-					if (img != null)
-						try {
-							shell.setImage(img);
-						} catch (Exception e) {
-						}
-				}
 			}
+
 		});
 	}
 
@@ -122,19 +71,9 @@ public class PlugInDialog implements PlugIn, WindowSwt, ShellListener, org.eclip
 
 	}
 
-	/*public void windowClosing(WindowEvent e) {
-		if (e.getSource() == this) {
-			close();
-			if (IJ.recording())
-				Recorder.record("run", "Close");
-		}
-	}*/
-
 	/** Closes this window. */
 	public void close() {
-		/*// setVisible(false);
-		dispose();
-		WindowManager.removeWindow(this);*/
+
 	}
 
 	@Override
@@ -200,5 +139,4 @@ public class PlugInDialog implements PlugIn, WindowSwt, ShellListener, org.eclip
 
 	}
 
-	
 }

@@ -34,39 +34,38 @@ public class PasteController extends PlugInFrame implements PlugIn, SelectionLis
 		instance = this;
 		IJ.register(PasteController.class);
 		// setLayout(new FlowLayout(FlowLayout.CENTER, 2, 5));
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-				org.eclipse.swt.widgets.Label lab = new org.eclipse.swt.widgets.Label(shell, SWT.NONE);
-				lab.setText(" Transfer Mode:");
-				pasteMode = new org.eclipse.swt.widgets.Combo(shell, SWT.DROP_DOWN | SWT.READ_ONLY);
-				pasteMode.add("Copy");
-				pasteMode.add("Blend");
-				pasteMode.add("Difference");
-				pasteMode.add("Transparent-white");
-				pasteMode.add("Transparent-zero");
-				pasteMode.add("AND");
-				pasteMode.add("OR");
-				pasteMode.add("XOR");
-				pasteMode.add("Add");
-				pasteMode.add("Subtract");
-				pasteMode.add("Multiply");
-				pasteMode.add("Divide");
-				pasteMode.add("Min");
-				pasteMode.add("Max");
-				pasteMode.select(1);
+		Display.getDefault().syncExec(() -> {
+			shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+			org.eclipse.swt.widgets.Label lab = new org.eclipse.swt.widgets.Label(shell, SWT.NONE);
+			lab.setText(" Transfer Mode:");
+			pasteMode = new org.eclipse.swt.widgets.Combo(shell, SWT.DROP_DOWN | SWT.READ_ONLY);
+			pasteMode.add("Copy");
+			pasteMode.add("Blend");
+			pasteMode.add("Difference");
+			pasteMode.add("Transparent-white");
+			pasteMode.add("Transparent-zero");
+			pasteMode.add("AND");
+			pasteMode.add("OR");
+			pasteMode.add("XOR");
+			pasteMode.add("Add");
+			pasteMode.add("Subtract");
+			pasteMode.add("Multiply");
+			pasteMode.add("Divide");
+			pasteMode.add("Min");
+			pasteMode.add("Max");
+			pasteMode.select(1);
 
-				pasteMode.addSelectionListener(PasteController.this);
+			pasteMode.addSelectionListener(PasteController.this);
 
-				// add(pasteMode);
-				Roi.setPasteMode(Blitter.COPY);
+			// add(pasteMode);
+			Roi.setPasteMode(Blitter.COPY);
 
-				// GUI.scale(this);
-				shell.pack();
-				GUI.centerOnImageJScreen(PasteController.this.shell);
-				// setResizable(false);
-				shell.setVisible(true);
-			}
+			// GUI.scale(this);
+			shell.pack();
+			GUI.centerOnImageJScreen(PasteController.this.shell);
+			// setResizable(false);
+			shell.setVisible(true);
+
 		});
 	}
 

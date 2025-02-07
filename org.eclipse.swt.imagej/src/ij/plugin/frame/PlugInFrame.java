@@ -17,33 +17,32 @@ public class PlugInFrame implements PlugIn, WindowSwt, ShellListener, org.eclips
 
 	String title;
 	public Shell shell;
-	
+
 	public PlugInFrame(String title) {
-		this(title,SWT.DIALOG_TRIM | SWT.RESIZE);
+		this(title, SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
 
 	public PlugInFrame(String title, int style) {
 
 		Display display = Display.getDefault();
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				shell = new Shell(display, style);
-				shell.setText(title);
-				// enableEvents(TypedEvent.WINDOW_EVENT_MASK);
-				PlugInFrame.this.title = title;
-				ImageJ ij = IJ.getInstance();
-				shell.addShellListener(PlugInFrame.this);
-				shell.addFocusListener(PlugInFrame.this);
-				// if (IJ.isLinux()) setBackground(ImageJ.backgroundColor);
-				if (ij != null && !IJ.isMacOSX()) {
-					org.eclipse.swt.graphics.Image img = ij.getShell().getImage();
-					if (img != null)
-						try {
-							shell.setImage(img);
-						} catch (Exception e) {
-						}
-				}
+		Display.getDefault().syncExec(() -> {
+			shell = new Shell(display, style);
+			shell.setText(title);
+			// enableEvents(TypedEvent.WINDOW_EVENT_MASK);
+			PlugInFrame.this.title = title;
+			ImageJ ij = IJ.getInstance();
+			shell.addShellListener(PlugInFrame.this);
+			shell.addFocusListener(PlugInFrame.this);
+			// if (IJ.isLinux()) setBackground(ImageJ.backgroundColor);
+			if (ij != null && !IJ.isMacOSX()) {
+				org.eclipse.swt.graphics.Image img = ij.getShell().getImage();
+				if (img != null)
+					try {
+						shell.setImage(img);
+					} catch (Exception e) {
+					}
 			}
+
 		});
 
 		// shell.open();
@@ -52,18 +51,18 @@ public class PlugInFrame implements PlugIn, WindowSwt, ShellListener, org.eclips
 	public void run(String arg) {
 
 	}
-	
+
 	public Shell getShell() {
 		return shell;
 	}
-	
 
 	@Override
 	public void shellActivated(ShellEvent e) {
-		
+
 		WindowManager.setWindow(this);
 
 	}
+
 	/**
 	 * Closes this window. We use no close here because there exists a shell.close()
 	 * function!
@@ -85,10 +84,10 @@ public class PlugInFrame implements PlugIn, WindowSwt, ShellListener, org.eclips
 			if (IJ.recording())
 				Recorder.record("run", "Close");
 		}
-		/*Calls the subclass closeSwt method which then calls this closeSwt method!*/
+		/* Calls the subclass closeSwt method which then calls this closeSwt method! */
 		close();
 		// dispose();
-		//WindowManager.removeWindow(this);
+		// WindowManager.removeWindow(this);
 		e.doit = true;
 	}
 
