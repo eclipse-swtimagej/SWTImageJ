@@ -132,9 +132,7 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 			return;
 		}
 		instance = this;
-		Display.getDefault().syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 
 				shell.setLayout(new GridLayout(1, true));
 				panel = controlPanel();
@@ -153,7 +151,7 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 				ImagePlus.addImageListener(SyncWindows.this);
 				Executer.addCommandListener(SyncWindows.this);
 				shell.setVisible(true);
-			}
+			
 		});
 	}
 
@@ -766,12 +764,10 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 	 */
 	public void imageClosed(ImagePlus imp) {
 
-		Display.getDefault().syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 
 				updateWindowList();
-			}
+			
 		});
 	}
 
@@ -786,9 +782,7 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 	 */
 	protected Composite controlPanel() {
 
-		Display.getDefault().syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 
 				p = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
 				p.setLayout(new GridLayout(2, true));
@@ -797,7 +791,7 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 				buildControlPanel();
 				// p.add(buildWindowList(), ij.layout.BorderLayout.NORTH,0);
 				// p.add(buildControlPanel(), ij.layout.BorderLayout.CENTER,1);
-			}
+			
 		});
 		return p;
 	}
@@ -965,9 +959,7 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 		// Don't build a new window list, while the old one is removed.
 		// When an StackWindow is replaced by an OpenStackWindow, updateWindowList
 		// is called again and the other components in the panel are removed, also.
-		Display.getDefault().syncExec(new Runnable() {
-
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				if (wList != null && !wList.isDisposed()) {
 					wList.dispose();
 				}
@@ -981,7 +973,7 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 				// shell.layout();
 				shell.pack();
 				shell.setSize(300, 350);
-			}
+			
 		});
 	}
 
@@ -1253,10 +1245,9 @@ public class SyncWindows extends PlugInFrame implements SelectionListener, Mouse
 	public String commandExecuting(String command) {
 
 		AtomicReference<Boolean> cselect = new AtomicReference<Boolean>();
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
+		Display.getDefault().syncExec(() -> {
 				cselect.set(cScaling.getSelection());
-			}
+			
 		});
 		if (vwins != null && cScaling != null && cselect.get()
 				&& ("In [+]".equals(command) || "Out [-]".equals(command))) {

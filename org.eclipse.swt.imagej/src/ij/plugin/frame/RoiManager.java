@@ -164,12 +164,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		instance = this;
 		// list = new org.eclipse.swt.widgets.List(this,SWT.NONE);
 		errorMessage = null;
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			showWindow();
 
-				showWindow();
-			}
 		});
 	}
 
@@ -185,18 +183,16 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		 * class for the headless execution. This two buttons have to be available but
 		 * we can't wrap them above so we wrap them here for access (see close function)
 		 */
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			showAllCheckbox = new Button(shell, SWT.CHECK);
+			showAllCheckbox.setText("Show All");
+			showAllCheckbox.setSelection(false);
+			labelsCheckbox = new Button(shell, SWT.CHECK);
+			labelsCheckbox.setText("Labels");
+			labelsCheckbox.setSelection(false);
+			list = new org.eclipse.swt.widgets.List(shell, SWT.NONE);
 
-				showAllCheckbox = new Button(shell, SWT.CHECK);
-				showAllCheckbox.setText("Show All");
-				showAllCheckbox.setSelection(false);
-				labelsCheckbox = new Button(shell, SWT.CHECK);
-				labelsCheckbox.setText("Labels");
-				labelsCheckbox.setSelection(false);
-				list = new org.eclipse.swt.widgets.List(shell, SWT.NONE);
-			}
 		});
 		// listModel = new DefaultListModel();
 		// list.setModel(listModel);
@@ -717,12 +713,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		// listModel.addElement(label);
 		AtomicReference<String> ref = new AtomicReference<String>();
 		ref.set(label);
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			list.add(ref.get());
 
-				list.add(ref.get());
-			}
 		});
 		roi.setName(label);
 		Roi roiCopy = (Roi) roi.clone();
@@ -803,12 +797,9 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			return;
 		String[] labell = new String[1];
 		labell[0] = label;
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			list.add(labell[0]);
 
-			public void run() {
-
-				list.add(labell[0]);
-			}
 		});
 		if (label2 != null)
 			roi.setName(label2);
@@ -965,13 +956,11 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	private void deleteOnEDT(final int i) {
 
 		try {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				rois.remove(i);
+				list.remove(i);
 
-					rois.remove(i);
-					list.remove(i);
-				}
 			});
 		} catch (Exception e) {
 		}
@@ -1267,12 +1256,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 						name = name.substring(0, name.length() - 4);
 						AtomicReference<String> listRef = new AtomicReference<String>();
 						listRef.set(name);
-						Display.getDefault().syncExec(new Runnable() {
+						Display.getDefault().syncExec(() -> {
 
-							public void run() {
+							list.add(listRef.get());
 
-								list.add(listRef.get());
-							}
 						});
 						rois.add(roi);
 						nRois++;
@@ -1318,21 +1305,17 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		int[] indexes = getIndexes();
 		AtomicReference<Boolean> saveRois = new AtomicReference<Boolean>();
 		if (indexes.length > 1) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				saveRois.set(saveMultiple(indexes, path));
 
-					saveRois.set(saveMultiple(indexes, path));
-				}
 			});
 			return saveRois.get();
 		} else {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				saveRois.set(saveOne(indexes, path));
 
-					saveRois.set(saveOne(indexes, path));
-				}
 			});
 			return saveRois.get();
 		}
@@ -2564,12 +2547,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if (imp == null)
 			return;
 		boolean[] selection = new boolean[1];
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			selection[0] = showAllCheckbox.getSelection();
 
-				selection[0] = showAllCheckbox.getSelection();
-			}
 		});
 		if (selection[0]) {
 			if (getCount() > 0) {
@@ -2699,12 +2680,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	public int getCount() {
 
 		AtomicReference<Integer> val = new AtomicReference<Integer>();
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			val.set(list.getItemCount());
 
-				val.set(list.getItemCount());
-			}
 		});
 		return list != null ? val.get() : 0;
 	}
@@ -3037,12 +3016,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if (IJ.isMacOSX() && IJ.isMacro())
 			ignoreInterrupts = true;
 		if (list != null) {
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
+				list.removeAll();
 
-					list.removeAll();
-				}
 			});
 		}
 		overlayTemplate = null;
@@ -3353,14 +3330,12 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	public void setEditMode(ImagePlus imp, boolean editMode) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			showAllCheckbox.setSelection(editMode);
+			labelsCheckbox.setSelection(editMode);
+			showAll(editMode ? LABELS : SHOW_NONE);
 
-				showAllCheckbox.setSelection(editMode);
-				labelsCheckbox.setSelection(editMode);
-				showAll(editMode ? LABELS : SHOW_NONE);
-			}
 		});
 	}
 
