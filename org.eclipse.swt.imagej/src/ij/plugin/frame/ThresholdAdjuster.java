@@ -82,7 +82,7 @@ public class ThresholdAdjuster extends PlugInDialog
 	int minValue = -1; // min slider, 0-255
 	int maxValue = -1;
 	int sliderRange = 256;
-	boolean doAutoAdjust,doReset,doApplyLut,doStateChange,doSet; //actions required from user interface
+	boolean doAutoAdjust, doReset, doApplyLut, doStateChange, doSet; // actions required from user interface
 
 	org.eclipse.swt.widgets.Composite panel;
 	org.eclipse.swt.widgets.Button autoB, resetB, applyB, setB;
@@ -100,7 +100,8 @@ public class ThresholdAdjuster extends PlugInDialog
 	boolean done;
 	int lutColor;
 	org.eclipse.swt.widgets.Combo methodChoice, modeChoice;
-	org.eclipse.swt.widgets.Button darkBackgroundCheckbox, stackCheckbox, noResetCheckbox, rawValues, sixteenBitCheckbox;
+	org.eclipse.swt.widgets.Button darkBackgroundCheckbox, stackCheckbox, noResetCheckbox, rawValues,
+			sixteenBitCheckbox;
 	boolean firstActivation = true;
 	boolean setButtonPressed;
 	boolean noReset = true;
@@ -111,311 +112,305 @@ public class ThresholdAdjuster extends PlugInDialog
 
 	public ThresholdAdjuster() {
 		super("Threshold");
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				ImagePlus cimp = WindowManager.getCurrentImage();
-				if (cimp != null && cimp.getBitDepth() == 24) {
-					IJ.error("Threshold Adjuster",
-							"Image>Adjust>Threshold only works with grayscale images.\n \n" + "You can:\n"
-									+ "   Convert to grayscale: Image>Type>8-bit\n"
-									+ "   Convert to RGB stack: Image>Type>RGB Stack\n"
-									+ "   Convert to HSB stack: Image>Type>HSB Stack\n"
-									+ "   Convert to 3 grayscale images: Image>Color>Split Channels\n"
-									+ "   Do color thresholding: Image>Adjust>Color Threshold\n");
-					return;
-				}
-				if (instance != null) {
-					instance.firstActivation = true;
-					// instance.shell.forceActive();
-					instance.setup(cimp, true);
-					instance.updateScrollBars();
-					return;
-				}
-
-				WindowManager.addWindow(ThresholdAdjuster.this);
-				instance = ThresholdAdjuster.this;
-				mode = (int) Prefs.get(MODE_KEY, RED);
-				if (mode < RED || mode > OVER_UNDER)
-					mode = RED;
-				setLutColor(mode);
-				IJ.register(PasteController.class);
-
-				ij = IJ.getInstance();
-				// Font font = IJ.font12;
-				org.eclipse.swt.graphics.Font font = IJ.font12Swt;
-				/*
-				 * GridBagLayout gridbag = new GridBagLayout(); GridBagConstraints c = new
-				 * GridBagConstraints(); setLayout(gridbag);
-				 */
-
-				shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-
-				// plot
-				/*
-				 * int y = 0; c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.fill =
-				 * GridBagConstraints.BOTH; c.anchor = GridBagConstraints.CENTER; c.insets = new
-				 * Insets(10, 10, 0, 10); //top left bottom right
-				 */
-				plot = new ThresholdPlot(shell);
-				plot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				// add(plot, c);
-				/* To do after port to SWT */
-				// plot.addKeyListener(ij);
-
-				// percentiles
-				/*
-				 * c.gridx = 0; c.gridy = y++; c.insets = new Insets(1, 10, 0, 10);
-				 */
-
-				percentiles = new org.eclipse.swt.widgets.Label(shell, SWT.NONE);
-				percentiles.setText("");
-				percentiles.setFont(font);
-				// add(percentiles, c);
-
-				// minThreshold slider
-				// minSlider = new Scrollbar(Scrollbar.HORIZONTAL, sliderRange/3, 1, 0,
-				// sliderRange);
-				// GUI.fixScrollbar(minSlider);
-				/*
-				 * c.gridx = 0; c.gridy = y++; c.gridwidth = 1; c.weightx =
-				 * IJ.isMacintosh()?90:100; c.fill = GridBagConstraints.HORIZONTAL; c.insets =
-				 * new Insets(1, 10, 0, 0);
-				 */
-				// add(minSlider, c);
-				// minSlider.addAdjustmentListener(this);
-				// minSlider.addMouseWheelListener(this);
-//		minSlider.addKeyListener(ij);
-				// minSlider.setUnitIncrement(1);
-				// minSlider.setFocusable(false);
-
-				minSlider = new org.eclipse.swt.widgets.Slider(shell, SWT.HORIZONTAL);
-				minSlider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				minSlider.setValues(sliderRange / 3, 0, sliderRange, 1, 1, 1);
-				minSlider.addSelectionListener(ThresholdAdjuster.this);
-				minSlider.addMouseWheelListener(ThresholdAdjuster.this);
-				minSlider.addKeyListener(ij);
-				// addLabel("Minimum", null);
-
-				// minThreshold slider label
-				/*
-				 * c.gridx = 1; c.gridwidth = 1; c.weightx = IJ.isMacintosh()?10:0; c.insets =
-				 * new Insets(5, 0, 0, 10);
-				 */
-				String text = "000000";
-				int columns = 4;
-				minLabel = new org.eclipse.swt.widgets.Text(shell, SWT.SINGLE);
-				minLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
-				minLabel.setText(text);
-				// minLabel.setFont(font);
-				// add(minLabel, c);
-				minLabel.addFocusListener(ThresholdAdjuster.this);
-				minLabel.addMouseWheelListener(ThresholdAdjuster.this);
-				minLabel.addKeyListener(ThresholdAdjuster.this);
-
-				// maxThreshold slider
-				// maxSlider = new Scrollbar(Scrollbar.HORIZONTAL, sliderRange*2/3, 1, 0,
-				// sliderRange);
-				/*
-				 * GUI.fixScrollbar(maxSlider); c.gridx = 0; c.gridy = y++; c.gridwidth = 1;
-				 * c.weightx = 100; c.insets = new Insets(2, 10, 0, 0); add(maxSlider, c);
-				 */
-				// maxSlider.addAdjustmentListener(this);
-				// maxSlider.addMouseWheelListener(this);
-//		maxSlider.addKeyListener(ij);
-				// maxSlider.setUnitIncrement(1);
-				// maxSlider.setFocusable(false);
-
-				maxSlider = new org.eclipse.swt.widgets.Slider(shell, SWT.HORIZONTAL);
-				maxSlider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				maxSlider.setValues(sliderRange * 2 / 3, 0, sliderRange, 1, 1, 1);
-				maxSlider.addSelectionListener(ThresholdAdjuster.this);
-				maxSlider.addMouseWheelListener(ThresholdAdjuster.this);
-				maxSlider.addKeyListener(ij);
-
-				// maxThreshold slider label
-				/*
-				 * c.gridx = 1; c.gridwidth = 1; c.weightx = 0; c.insets = new Insets(2, 0, 0,
-				 * 10);
-				 */
-				/*
-				 * maxLabel = new TextField(text,columns); maxLabel.setFont(font); add(maxLabel,
-				 * c); maxLabel.addFocusListener(this); maxLabel.addMouseWheelListener(this);
-				 * maxLabel.addKeyListener(this);
-				 */
-
-				maxLabel = new org.eclipse.swt.widgets.Text(shell, SWT.SINGLE);
-				maxLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
-				maxLabel.setText(text);
-				// maxLabel.setFont(font);
-				// add(minLabel, c);
-				maxLabel.addFocusListener(ThresholdAdjuster.this);
-				maxLabel.addMouseWheelListener(ThresholdAdjuster.this);
-				maxLabel.addKeyListener(ThresholdAdjuster.this);
-
-				// choices
-				// panel = new Panel();
-				org.eclipse.swt.widgets.Composite panel2 = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
-				panel2.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
-				panel2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				// methodChoice = new Choice();
-				int selIndex = 0;
-				methodChoice = new org.eclipse.swt.widgets.Combo(panel2, SWT.DROP_DOWN | SWT.READ_ONLY);
-				methodChoice.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				for (int i = 0; i < methodNames.length; i++) {
-					methodChoice.add(methodNames[i]);
-					if (methodNames[i].equals(method)) {
-						selIndex = i;
-					}
-				}
-
-				methodChoice.select(selIndex);
-				methodChoice.addSelectionListener(ThresholdAdjuster.this);
-				// methodChoice.addKeyListener(ij);
-				// panel.add(methodChoice);
-				// modeChoice = new Choice();
-				modeChoice = new org.eclipse.swt.widgets.Combo(panel2, SWT.DROP_DOWN | SWT.READ_ONLY);
-				modeChoice.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				for (int i = 0; i < modes.length; i++)
-					modeChoice.add(modes[i]);
-				modeChoice.select(mode);
-				modeChoice.addSelectionListener(ThresholdAdjuster.this);
-				// modeChoice.addKeyListener(ij);
-				// panel.add(modeChoice);
-				/*
-				 * c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.insets = new Insets(8, 5, 0,
-				 * 5); c.anchor = GridBagConstraints.CENTER; c.fill = GridBagConstraints.NONE;
-				 * add(panel, c);
-				 */
-
-				// checkboxes
-				// panel = new Panel();
-				org.eclipse.swt.widgets.Composite panel3 = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
-				panel3.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
-				// panel.setLayout(new GridLayout(2, 2));
-				boolean db = Prefs.get(DARK_BACKGROUND, Prefs.blackBackground ? true : false);
-				// darkBackground = new Checkbox("Dark background");
-				darkBackgroundCheckbox  = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
-				darkBackgroundCheckbox .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				darkBackgroundCheckbox .setText("Dark background");
-				darkBackgroundCheckbox .setSelection(db);
-				darkBackgroundCheckbox .addSelectionListener(ThresholdAdjuster.this);
-				// panel.add(darkBackground);
-				// stackHistogram = new Checkbox("Stack histogram");
-
-				stackCheckbox = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
-				stackCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				stackCheckbox.setText("Stack histogram");
-				stackCheckbox.setSelection(false);
-				stackCheckbox.addSelectionListener(ThresholdAdjuster.this);
-				
-				noReset = Prefs.get(NO_RESET, true);
-				sixteenBit = Prefs.get(SIXTEEN_BIT, false);
-				if (sixteenBit)
-					noReset = true;
-				
-							
-				sixteenBitCheckbox = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
-				sixteenBitCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				sixteenBitCheckbox.setText("16-bit histogram");
-				sixteenBitCheckbox.setSelection(sixteenBit);
-				sixteenBitCheckbox.addSelectionListener(ThresholdAdjuster.this);
-				
-				noResetCheckbox  = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
-				noResetCheckbox .setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				noResetCheckbox .setText("Don't reset range");
-				noResetCheckbox .setSelection(noReset);
-				noResetCheckbox .addSelectionListener(ThresholdAdjuster.this);
-				
-				rawValues = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
-				rawValues.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				rawValues.setText("Raw values");
-				rawValues.setSelection(Prefs.get(RAW_VALUES, false));
-				rawValues.addSelectionListener(ThresholdAdjuster.this);
-				
-				
-				// panel.add(stackHistogram);
-				// noReset = Prefs.get(NO_RESET, false);
-				// noResetButton = new Checkbox("Don't reset range");
-
-				
-
-				// panel.add(noResetButton);
-				/*
-				 * c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.insets = new Insets(5, 5, 0,
-				 * 0); add(panel, c);
-				 */
-
-				// buttons
-				int trim = IJ.isMacOSX() ? 11 : 0;
-				// panel = new Panel();
-				org.eclipse.swt.widgets.Composite panel4 = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
-				panel4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				panel4.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
-				// int hgap = IJ.isMacOSX()?1:5;
-				// panel.setLayout(new FlowLayout(FlowLayout.RIGHT,hgap,0));
-				// autoB = new TrimmedButton("Auto",trim);
-				autoB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
-				autoB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				autoB.setText("Auto");
-				autoB.addSelectionListener(ThresholdAdjuster.this);
-				autoB.addKeyListener(ij);
-				// panel.add(autoB);
-				// applyB = new TrimmedButton("Apply",trim);
-				// applyB.addActionListener(this);
-				applyB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
-				applyB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				applyB.setText("Apply");
-				applyB.addSelectionListener(ThresholdAdjuster.this);
-				applyB.addKeyListener(ij);
-				// panel.add(applyB);
-				// resetB = new TrimmedButton("Reset",trim);
-				// resetB.addActionListener(this);
-
-				resetB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
-				resetB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				resetB.setText("Reset");
-				resetB.addSelectionListener(ThresholdAdjuster.this);
-				resetB.addKeyListener(ij);
-				// panel.add(resetB);
-
-				// setB = new TrimmedButton("Set",trim);
-				// setB.addActionListener(this);
-				setB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
-				setB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				setB.setText("Set");
-				setB.addSelectionListener(ThresholdAdjuster.this);
-				setB.addKeyListener(ij);
-				// panel.add(setB);
-				/*
-				 * c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.insets = new Insets(0, 5, 10,
-				 * 5); add(panel, c);
-				 */
-				/* To do after port to SWT */
-				// addKeyListener(ij); // ImageJ handles keyboard shortcuts
-				// GUI.scale(this);
-				shell.layout(true);
-				shell.pack();
-				Point loc = Prefs.getLocation(LOC_KEY);
-				if (loc != null)
-					shell.setLocation(loc.x, loc.y);
-				else
-					GUI.centerOnImageJScreen(shell);
-				// if (IJ.isMacOSX()) setResizable(false);
-				// show();
-				shell.setVisible(true);
-				ImagePlus imp = WindowManager.getCurrentImage();
-				ImagePlus.addImageListener(ThresholdAdjuster.this);
-				if (imp != null) {
-					setup(imp, true);
-					updateScrollBars();
-				}
-
+		Display.getDefault().syncExec(() -> {
+			ImagePlus cimp = WindowManager.getCurrentImage();
+			if (cimp != null && cimp.getBitDepth() == 24) {
+				IJ.error("Threshold Adjuster",
+						"Image>Adjust>Threshold only works with grayscale images.\n \n" + "You can:\n"
+								+ "   Convert to grayscale: Image>Type>8-bit\n"
+								+ "   Convert to RGB stack: Image>Type>RGB Stack\n"
+								+ "   Convert to HSB stack: Image>Type>HSB Stack\n"
+								+ "   Convert to 3 grayscale images: Image>Color>Split Channels\n"
+								+ "   Do color thresholding: Image>Adjust>Color Threshold\n");
+				return;
 			}
+			if (instance != null) {
+				instance.firstActivation = true;
+				// instance.shell.forceActive();
+				instance.setup(cimp, true);
+				instance.updateScrollBars();
+				return;
+			}
+
+			WindowManager.addWindow(ThresholdAdjuster.this);
+			instance = ThresholdAdjuster.this;
+			mode = (int) Prefs.get(MODE_KEY, RED);
+			if (mode < RED || mode > OVER_UNDER)
+				mode = RED;
+			setLutColor(mode);
+			IJ.register(PasteController.class);
+
+			ij = IJ.getInstance();
+			// Font font = IJ.font12;
+			org.eclipse.swt.graphics.Font font = IJ.font12Swt;
+			/*
+			 * GridBagLayout gridbag = new GridBagLayout(); GridBagConstraints c = new
+			 * GridBagConstraints(); setLayout(gridbag);
+			 */
+
+			shell.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+
+			// plot
+			/*
+			 * int y = 0; c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.fill =
+			 * GridBagConstraints.BOTH; c.anchor = GridBagConstraints.CENTER; c.insets = new
+			 * Insets(10, 10, 0, 10); //top left bottom right
+			 */
+			plot = new ThresholdPlot(shell);
+			plot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			// add(plot, c);
+			/* To do after port to SWT */
+			// plot.addKeyListener(ij);
+
+			// percentiles
+			/*
+			 * c.gridx = 0; c.gridy = y++; c.insets = new Insets(1, 10, 0, 10);
+			 */
+
+			percentiles = new org.eclipse.swt.widgets.Label(shell, SWT.NONE);
+			percentiles.setText("");
+			percentiles.setFont(font);
+			// add(percentiles, c);
+
+			// minThreshold slider
+			// minSlider = new Scrollbar(Scrollbar.HORIZONTAL, sliderRange/3, 1, 0,
+			// sliderRange);
+			// GUI.fixScrollbar(minSlider);
+			/*
+			 * c.gridx = 0; c.gridy = y++; c.gridwidth = 1; c.weightx =
+			 * IJ.isMacintosh()?90:100; c.fill = GridBagConstraints.HORIZONTAL; c.insets =
+			 * new Insets(1, 10, 0, 0);
+			 */
+			// add(minSlider, c);
+			// minSlider.addAdjustmentListener(this);
+			// minSlider.addMouseWheelListener(this);
+//		minSlider.addKeyListener(ij);
+			// minSlider.setUnitIncrement(1);
+			// minSlider.setFocusable(false);
+
+			minSlider = new org.eclipse.swt.widgets.Slider(shell, SWT.HORIZONTAL);
+			minSlider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			minSlider.setValues(sliderRange / 3, 0, sliderRange, 1, 1, 1);
+			minSlider.addSelectionListener(ThresholdAdjuster.this);
+			minSlider.addMouseWheelListener(ThresholdAdjuster.this);
+			minSlider.addKeyListener(ij);
+			// addLabel("Minimum", null);
+
+			// minThreshold slider label
+			/*
+			 * c.gridx = 1; c.gridwidth = 1; c.weightx = IJ.isMacintosh()?10:0; c.insets =
+			 * new Insets(5, 0, 0, 10);
+			 */
+			String text = "000000";
+			int columns = 4;
+			minLabel = new org.eclipse.swt.widgets.Text(shell, SWT.SINGLE);
+			minLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
+			minLabel.setText(text);
+			// minLabel.setFont(font);
+			// add(minLabel, c);
+			minLabel.addFocusListener(ThresholdAdjuster.this);
+			minLabel.addMouseWheelListener(ThresholdAdjuster.this);
+			minLabel.addKeyListener(ThresholdAdjuster.this);
+
+			// maxThreshold slider
+			// maxSlider = new Scrollbar(Scrollbar.HORIZONTAL, sliderRange*2/3, 1, 0,
+			// sliderRange);
+			/*
+			 * GUI.fixScrollbar(maxSlider); c.gridx = 0; c.gridy = y++; c.gridwidth = 1;
+			 * c.weightx = 100; c.insets = new Insets(2, 10, 0, 0); add(maxSlider, c);
+			 */
+			// maxSlider.addAdjustmentListener(this);
+			// maxSlider.addMouseWheelListener(this);
+//		maxSlider.addKeyListener(ij);
+			// maxSlider.setUnitIncrement(1);
+			// maxSlider.setFocusable(false);
+
+			maxSlider = new org.eclipse.swt.widgets.Slider(shell, SWT.HORIZONTAL);
+			maxSlider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			maxSlider.setValues(sliderRange * 2 / 3, 0, sliderRange, 1, 1, 1);
+			maxSlider.addSelectionListener(ThresholdAdjuster.this);
+			maxSlider.addMouseWheelListener(ThresholdAdjuster.this);
+			maxSlider.addKeyListener(ij);
+
+			// maxThreshold slider label
+			/*
+			 * c.gridx = 1; c.gridwidth = 1; c.weightx = 0; c.insets = new Insets(2, 0, 0,
+			 * 10);
+			 */
+			/*
+			 * maxLabel = new TextField(text,columns); maxLabel.setFont(font); add(maxLabel,
+			 * c); maxLabel.addFocusListener(this); maxLabel.addMouseWheelListener(this);
+			 * maxLabel.addKeyListener(this);
+			 */
+
+			maxLabel = new org.eclipse.swt.widgets.Text(shell, SWT.SINGLE);
+			maxLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
+			maxLabel.setText(text);
+			// maxLabel.setFont(font);
+			// add(minLabel, c);
+			maxLabel.addFocusListener(ThresholdAdjuster.this);
+			maxLabel.addMouseWheelListener(ThresholdAdjuster.this);
+			maxLabel.addKeyListener(ThresholdAdjuster.this);
+
+			// choices
+			// panel = new Panel();
+			org.eclipse.swt.widgets.Composite panel2 = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
+			panel2.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
+			panel2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			// methodChoice = new Choice();
+			int selIndex = 0;
+			methodChoice = new org.eclipse.swt.widgets.Combo(panel2, SWT.DROP_DOWN | SWT.READ_ONLY);
+			methodChoice.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			for (int i = 0; i < methodNames.length; i++) {
+				methodChoice.add(methodNames[i]);
+				if (methodNames[i].equals(method)) {
+					selIndex = i;
+				}
+			}
+
+			methodChoice.select(selIndex);
+			methodChoice.addSelectionListener(ThresholdAdjuster.this);
+			// methodChoice.addKeyListener(ij);
+			// panel.add(methodChoice);
+			// modeChoice = new Choice();
+			modeChoice = new org.eclipse.swt.widgets.Combo(panel2, SWT.DROP_DOWN | SWT.READ_ONLY);
+			modeChoice.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			for (int i = 0; i < modes.length; i++)
+				modeChoice.add(modes[i]);
+			modeChoice.select(mode);
+			modeChoice.addSelectionListener(ThresholdAdjuster.this);
+			// modeChoice.addKeyListener(ij);
+			// panel.add(modeChoice);
+			/*
+			 * c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.insets = new Insets(8, 5, 0,
+			 * 5); c.anchor = GridBagConstraints.CENTER; c.fill = GridBagConstraints.NONE;
+			 * add(panel, c);
+			 */
+
+			// checkboxes
+			// panel = new Panel();
+			org.eclipse.swt.widgets.Composite panel3 = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
+			panel3.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
+			// panel.setLayout(new GridLayout(2, 2));
+			boolean db = Prefs.get(DARK_BACKGROUND, Prefs.blackBackground ? true : false);
+			// darkBackground = new Checkbox("Dark background");
+			darkBackgroundCheckbox = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
+			darkBackgroundCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			darkBackgroundCheckbox.setText("Dark background");
+			darkBackgroundCheckbox.setSelection(db);
+			darkBackgroundCheckbox.addSelectionListener(ThresholdAdjuster.this);
+			// panel.add(darkBackground);
+			// stackHistogram = new Checkbox("Stack histogram");
+
+			stackCheckbox = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
+			stackCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			stackCheckbox.setText("Stack histogram");
+			stackCheckbox.setSelection(false);
+			stackCheckbox.addSelectionListener(ThresholdAdjuster.this);
+
+			noReset = Prefs.get(NO_RESET, true);
+			sixteenBit = Prefs.get(SIXTEEN_BIT, false);
+			if (sixteenBit)
+				noReset = true;
+
+			sixteenBitCheckbox = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
+			sixteenBitCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			sixteenBitCheckbox.setText("16-bit histogram");
+			sixteenBitCheckbox.setSelection(sixteenBit);
+			sixteenBitCheckbox.addSelectionListener(ThresholdAdjuster.this);
+
+			noResetCheckbox = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
+			noResetCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			noResetCheckbox.setText("Don't reset range");
+			noResetCheckbox.setSelection(noReset);
+			noResetCheckbox.addSelectionListener(ThresholdAdjuster.this);
+
+			rawValues = new org.eclipse.swt.widgets.Button(panel3, SWT.CHECK);
+			rawValues.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			rawValues.setText("Raw values");
+			rawValues.setSelection(Prefs.get(RAW_VALUES, false));
+			rawValues.addSelectionListener(ThresholdAdjuster.this);
+
+			// panel.add(stackHistogram);
+			// noReset = Prefs.get(NO_RESET, false);
+			// noResetButton = new Checkbox("Don't reset range");
+
+			// panel.add(noResetButton);
+			/*
+			 * c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.insets = new Insets(5, 5, 0,
+			 * 0); add(panel, c);
+			 */
+
+			// buttons
+			int trim = IJ.isMacOSX() ? 11 : 0;
+			// panel = new Panel();
+			org.eclipse.swt.widgets.Composite panel4 = new org.eclipse.swt.widgets.Composite(shell, SWT.NONE);
+			panel4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			panel4.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
+			// int hgap = IJ.isMacOSX()?1:5;
+			// panel.setLayout(new FlowLayout(FlowLayout.RIGHT,hgap,0));
+			// autoB = new TrimmedButton("Auto",trim);
+			autoB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
+			autoB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			autoB.setText("Auto");
+			autoB.addSelectionListener(ThresholdAdjuster.this);
+			autoB.addKeyListener(ij);
+			// panel.add(autoB);
+			// applyB = new TrimmedButton("Apply",trim);
+			// applyB.addActionListener(this);
+			applyB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
+			applyB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			applyB.setText("Apply");
+			applyB.addSelectionListener(ThresholdAdjuster.this);
+			applyB.addKeyListener(ij);
+			// panel.add(applyB);
+			// resetB = new TrimmedButton("Reset",trim);
+			// resetB.addActionListener(this);
+
+			resetB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
+			resetB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			resetB.setText("Reset");
+			resetB.addSelectionListener(ThresholdAdjuster.this);
+			resetB.addKeyListener(ij);
+			// panel.add(resetB);
+
+			// setB = new TrimmedButton("Set",trim);
+			// setB.addActionListener(this);
+			setB = new org.eclipse.swt.widgets.Button(panel4, SWT.NONE);
+			setB.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			setB.setText("Set");
+			setB.addSelectionListener(ThresholdAdjuster.this);
+			setB.addKeyListener(ij);
+			// panel.add(setB);
+			/*
+			 * c.gridx = 0; c.gridy = y++; c.gridwidth = 2; c.insets = new Insets(0, 5, 10,
+			 * 5); add(panel, c);
+			 */
+			/* To do after port to SWT */
+			// addKeyListener(ij); // ImageJ handles keyboard shortcuts
+			// GUI.scale(this);
+			shell.layout(true);
+			shell.pack();
+			Point loc = Prefs.getLocation(LOC_KEY);
+			if (loc != null)
+				shell.setLocation(loc.x, loc.y);
+			else
+				GUI.centerOnImageJScreen(shell);
+			// if (IJ.isMacOSX()) setResizable(false);
+			// show();
+			shell.setVisible(true);
+			ImagePlus imp = WindowManager.getCurrentImage();
+			ImagePlus.addImageListener(ThresholdAdjuster.this);
+			if (imp != null) {
+				setup(imp, true);
+				updateScrollBars();
+			}
+
 		});
 		thread = new Thread(this, "ThresholdAdjuster");
 		// thread.setPriority(thread.getPriority()-1);
 		thread.start();
-		
+
 	}
 
 	public Shell getShell() {
@@ -564,25 +559,25 @@ public class ThresholdAdjuster extends PlugInDialog
 					Recorder.recordString(
 							"call(\"ij.plugin.frame.ThresholdAdjuster.setMode\", \"" + modes[mode] + "\");\n");
 			}
-		} else if (source==darkBackgroundCheckbox) {
+		} else if (source == darkBackgroundCheckbox) {
 			conditionalAutoAdjust = true;
-		} else if (source==noResetCheckbox) {
+		} else if (source == noResetCheckbox) {
 			noReset = noResetCheckbox.getSelection();
 			conditionalAutoAdjust = true;
 		} else if (source == rawValues) {
 			ThresholdAdjuster.update();
 
-		} else if (source==sixteenBitCheckbox) {
+		} else if (source == sixteenBitCheckbox) {
 			sixteenBit = sixteenBitCheckbox.getSelection();
 			if (sixteenBit)
 				noReset = true;
 			conditionalAutoAdjust = true;
-		} else if (source==stackCheckbox) {
+		} else if (source == stackCheckbox) {
 			conditionalAutoAdjust = true;
 		} else
 			doAutoAdjust = true;
 		ImagePlus imp = WindowManager.getCurrentImage();
-		if (conditionalAutoAdjust && imp!=null && imp.isThreshold())
+		if (conditionalAutoAdjust && imp != null && imp.isThreshold())
 			doAutoAdjust = true;
 		notify();
 	}
@@ -633,10 +628,9 @@ public class ThresholdAdjuster extends PlugInDialog
 					maxThreshold = ip.getMax();
 			}
 			boolean[] rawValuesSelection = new boolean[1];
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					rawValuesSelection[0] = rawValues.getSelection();
-				}
+			Display.getDefault().syncExec(() -> {
+				rawValuesSelection[0] = rawValues.getSelection();
+
 			});
 			ImageStatistics stats = plot.setHistogram(imp, entireStack(imp), rawValuesSelection[0]);
 
@@ -647,10 +641,9 @@ public class ThresholdAdjuster extends PlugInDialog
 				maxThreshold = scaleDown(ip, maxThreshold);
 			} else {
 				if (enableAutoThreshold && !isThreshold) {
-					Display.getDefault().syncExec(new Runnable() {
-						public void run() {
-							autoSetLevels(imp);
-						}
+					Display.getDefault().syncExec(() -> {
+						autoSetLevels(imp);
+
 					});
 				} else
 					minThreshold = ImageProcessor.NO_THRESHOLD; // may be an invisible threshold after 'apply'
@@ -681,21 +674,20 @@ public class ThresholdAdjuster extends PlugInDialog
 	}
 
 	boolean entireStack(ImagePlus imp) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				selection = stackCheckbox.getSelection();
+		Display.getDefault().syncExec(() -> {
+			selection = stackCheckbox.getSelection();
 
-			}
 		});
 		return stackCheckbox != null && selection && imp.getStackSize() > 1;
 	}
 
 	void autoSetLevels(ImagePlus imp) {
 		int bitDepth = imp.getBitDepth();
-		boolean darkb = darkBackgroundCheckbox!=null && darkBackgroundCheckbox.getSelection();
+		boolean darkb = darkBackgroundCheckbox != null && darkBackgroundCheckbox.getSelection();
 		boolean stack = entireStack(imp);
-		boolean hist16 = sixteenBit && bitDepth!=32;
-		String methodAndOptions = method+(darkb?" dark":"")+(hist16?" 16-bit":"")+(stack?" stack":"")+(noReset?" no-reset":"");
+		boolean hist16 = sixteenBit && bitDepth != 32;
+		String methodAndOptions = method + (darkb ? " dark" : "") + (hist16 ? " 16-bit" : "") + (stack ? " stack" : "")
+				+ (noReset ? " no-reset" : "");
 		imp.setAutoThreshold(methodAndOptions);
 		ImageProcessor ip = imp.getProcessor();
 		double level1 = ip.getMinThreshold();
@@ -704,40 +696,32 @@ public class ThresholdAdjuster extends PlugInDialog
 		imp.updateAndDraw();
 		minThreshold = scaleDown(ip, level1);
 		maxThreshold = scaleDown(ip, level2);
-		//IJ.log("autoSetLevels: "+level1+" "+level2+" "+methodAndOptions);
+		// IJ.log("autoSetLevels: "+level1+" "+level2+" "+methodAndOptions);
 		updateScrollBars();
 		if (IJ.recording()) {
-			if (noReset && ip.getBitDepth()!=8) {
+			if (noReset && ip.getBitDepth() != 8) {
 				ImageStatistics stats2 = ip.getStats();
-				if (ip.getMin()>stats2.min || ip.getMax()<stats2.max)
-					ContrastAdjuster.recordSetMinAndMax(ip.getMin(),ip.getMax());
+				if (ip.getMin() > stats2.min || ip.getMax() < stats2.max)
+					ContrastAdjuster.recordSetMinAndMax(ip.getMin(), ip.getMax());
 			}
 			if (Recorder.scriptMode())
-				Recorder.recordCall("imp.setAutoThreshold(\""+methodAndOptions+"\");");
+				Recorder.recordCall("imp.setAutoThreshold(\"" + methodAndOptions + "\");");
 			else
 				Recorder.record("setAutoThreshold", methodAndOptions);
 		}
-		
+
 		/*
-		if (stats == null || stats.histogram == null) {
-			minThreshold = defaultMinThreshold;
-			maxThreshold = defaultMaxThreshold;
-			return;
-		}
-		int modifiedModeCount = stats.histogram[stats.mode];
-		if (!method.equals(methodNames[DEFAULT]))
-			stats.histogram[stats.mode] = plot.originalModeCount;
-		int threshold = thresholder.getThreshold(method, stats.histogram);
-		stats.histogram[stats.mode] = modifiedModeCount;
-		if (thresholdHigh(ip)) // dark background for non-inverting LUT, or bright background for inverting LUT
-		{minThreshold=threshold+(addOne?1:0); maxThreshold=255;}
-		 else {
-			minThreshold = 0;
-			maxThreshold = threshold;
-		}
-		if (minThreshold > 255)
-			minThreshold = 255;
-		*/
+		 * if (stats == null || stats.histogram == null) { minThreshold =
+		 * defaultMinThreshold; maxThreshold = defaultMaxThreshold; return; } int
+		 * modifiedModeCount = stats.histogram[stats.mode]; if
+		 * (!method.equals(methodNames[DEFAULT])) stats.histogram[stats.mode] =
+		 * plot.originalModeCount; int threshold = thresholder.getThreshold(method,
+		 * stats.histogram); stats.histogram[stats.mode] = modifiedModeCount; if
+		 * (thresholdHigh(ip)) // dark background for non-inverting LUT, or bright
+		 * background for inverting LUT {minThreshold=threshold+(addOne?1:0);
+		 * maxThreshold=255;} else { minThreshold = 0; maxThreshold = threshold; } if
+		 * (minThreshold > 255) minThreshold = 255;
+		 */
 	}
 
 	/**
@@ -746,7 +730,7 @@ public class ThresholdAdjuster extends PlugInDialog
 	 * non-inverting LUT)
 	 */
 	boolean thresholdHigh(ImageProcessor ip) {
-		boolean darkb = darkBackgroundCheckbox!=null && darkBackgroundCheckbox.getSelection();
+		boolean darkb = darkBackgroundCheckbox != null && darkBackgroundCheckbox.getSelection();
 		boolean invertedLut = ip.isInvertedLut();
 		return invertedLut ? !darkb : darkb;
 	}
@@ -802,85 +786,83 @@ public class ThresholdAdjuster extends PlugInDialog
 	}
 
 	void updatePercentiles(ImagePlus imp, ImageProcessor ip) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				if (percentiles == null)
-					return;
-				ImageStatistics stats = plot.stats;
-				int minThresholdInt = (int) Math.round(minThreshold);
-				if (minThresholdInt < 0)
-					minThresholdInt = 0;
-				if (minThresholdInt > 255)
-					minThresholdInt = 255;
-				int maxThresholdInt = (int) Math.round(maxThreshold);
-				if (maxThresholdInt < 0)
-					maxThresholdInt = 0;
-				if (maxThresholdInt > 255)
-					maxThresholdInt = 255;
-				if (stats != null && stats.histogram != null && stats.histogram.length == 256
-						&& ip.getMinThreshold() != ImageProcessor.NO_THRESHOLD) {
-					int[] histogram = stats.histogram;
-					int below = 0, inside = 0, above = 0;
-					int minValue = 0, maxValue = 255;
-					if (imp.getBitDepth() == 16 && !entireStack(imp)) { // 16-bit histogram for better accuracy
-						ip.setRoi(imp.getRoi());
-						histogram = ip.getHistogram();
-						minThresholdInt = (int) Math.round(ip.getMinThreshold());
-						if (minThresholdInt < 0)
-							minThresholdInt = 0;
-						maxThresholdInt = (int) Math.round(ip.getMaxThreshold());
-						if (maxThresholdInt > 65535)
-							maxThresholdInt = 65535;
-						minValue = 0;
-						maxValue = histogram.length - 1;
-					}
-					for (int i = minValue; i < minThresholdInt; i++)
-						below += histogram[i];
-					for (int i = minThresholdInt; i <= maxThresholdInt; i++)
-						inside += histogram[i];
-					for (int i = maxThresholdInt + 1; i <= maxValue; i++)
-						above += histogram[i];
-					int total = below + inside + above;
-					// IJ.log("<"+minThresholdInt+":"+below+" in:"+inside+";
-					// >"+maxThresholdInt+":"+above+" sum="+total);
-					if (mode == OVER_UNDER)
-						percentiles.setText("below: " + IJ.d2s(100. * below / total) + " %,  above: "
-								+ IJ.d2s(100. * above / total) + " %");
-					else
-						percentiles.setText(IJ.d2s(100. * inside / total) + " %");
-				} else
-					percentiles.setText("");
-			}
+		Display.getDefault().syncExec(() -> {
+			if (percentiles == null)
+				return;
+			ImageStatistics stats = plot.stats;
+			int minThresholdInt = (int) Math.round(minThreshold);
+			if (minThresholdInt < 0)
+				minThresholdInt = 0;
+			if (minThresholdInt > 255)
+				minThresholdInt = 255;
+			int maxThresholdInt = (int) Math.round(maxThreshold);
+			if (maxThresholdInt < 0)
+				maxThresholdInt = 0;
+			if (maxThresholdInt > 255)
+				maxThresholdInt = 255;
+			if (stats != null && stats.histogram != null && stats.histogram.length == 256
+					&& ip.getMinThreshold() != ImageProcessor.NO_THRESHOLD) {
+				int[] histogram = stats.histogram;
+				int below = 0, inside = 0, above = 0;
+				int minValue = 0, maxValue = 255;
+				if (imp.getBitDepth() == 16 && !entireStack(imp)) { // 16-bit histogram for better accuracy
+					ip.setRoi(imp.getRoi());
+					histogram = ip.getHistogram();
+					minThresholdInt = (int) Math.round(ip.getMinThreshold());
+					if (minThresholdInt < 0)
+						minThresholdInt = 0;
+					maxThresholdInt = (int) Math.round(ip.getMaxThreshold());
+					if (maxThresholdInt > 65535)
+						maxThresholdInt = 65535;
+					minValue = 0;
+					maxValue = histogram.length - 1;
+				}
+				for (int i = minValue; i < minThresholdInt; i++)
+					below += histogram[i];
+				for (int i = minThresholdInt; i <= maxThresholdInt; i++)
+					inside += histogram[i];
+				for (int i = maxThresholdInt + 1; i <= maxValue; i++)
+					above += histogram[i];
+				int total = below + inside + above;
+				// IJ.log("<"+minThresholdInt+":"+below+" in:"+inside+";
+				// >"+maxThresholdInt+":"+above+" sum="+total);
+				if (mode == OVER_UNDER)
+					percentiles.setText("below: " + IJ.d2s(100. * below / total) + " %,  above: "
+							+ IJ.d2s(100. * above / total) + " %");
+				else
+					percentiles.setText(IJ.d2s(100. * inside / total) + " %");
+			} else
+				percentiles.setText("");
+
 		});
 	}
 
 	void updateLabels(ImagePlus imp, ImageProcessor ip) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				if (minLabel == null || maxLabel == null || enterPressed)
-					return;
-				double min = ip.getMinThreshold();
-				double max = ip.getMaxThreshold();
-				if (min == ImageProcessor.NO_THRESHOLD) {
-					minLabel.setText("");
-					maxLabel.setText("");
+		Display.getDefault().syncExec(() -> {
+			if (minLabel == null || maxLabel == null || enterPressed)
+				return;
+			double min = ip.getMinThreshold();
+			double max = ip.getMaxThreshold();
+			if (min == ImageProcessor.NO_THRESHOLD) {
+				minLabel.setText("");
+				maxLabel.setText("");
+			} else {
+				Calibration cal = imp.getCalibration();
+				boolean calibrated = cal.calibrated() && !rawValues.getSelection();
+				if (calibrated) {
+					min = cal.getCValue((int) min);
+					max = cal.getCValue((int) max);
+				}
+				if ((((int) min == min && (int) max == max && Math.abs(min) < 1e6 && Math.abs(max) < 1e6))
+						|| (ip instanceof ShortProcessor && (cal.isSigned16Bit() || !calibrated))) {
+					minLabel.setText(ResultsTable.d2s(min, 0));
+					maxLabel.setText(ResultsTable.d2s(max, 0));
 				} else {
-					Calibration cal = imp.getCalibration();
-					boolean calibrated = cal.calibrated() && !rawValues.getSelection();
-					if (calibrated) {
-						min = cal.getCValue((int) min);
-						max = cal.getCValue((int) max);
-					}
-					if ((((int) min == min && (int) max == max && Math.abs(min) < 1e6 && Math.abs(max) < 1e6))
-							|| (ip instanceof ShortProcessor && (cal.isSigned16Bit() || !calibrated))) {
-						minLabel.setText(ResultsTable.d2s(min, 0));
-						maxLabel.setText(ResultsTable.d2s(max, 0));
-					} else {
-						minLabel.setText(min == -1e30 ? "-1e30" : d2s(min));
-						maxLabel.setText(max == 1e30 ? "1e30" : d2s(max));
-					}
+					minLabel.setText(min == -1e30 ? "-1e30" : d2s(min));
+					maxLabel.setText(max == 1e30 ? "1e30" : d2s(max));
 				}
 			}
+
 		});
 	}
 
@@ -890,18 +872,21 @@ public class ThresholdAdjuster extends PlugInDialog
 	 */
 	String d2s(double x) {
 		int digits = 2;
-		if (Math.abs(x)<100) digits=3;
-		if (Math.abs(x)<10) digits=4;
-		if (x<0 && digits==4) digits=3;
-		return Math.abs(x)>=1e6 ? IJ.d2s(x,-2) : ResultsTable.d2s(x,digits);  //the latter uses exp notation also for small x
+		if (Math.abs(x) < 100)
+			digits = 3;
+		if (Math.abs(x) < 10)
+			digits = 4;
+		if (x < 0 && digits == 4)
+			digits = 3;
+		return Math.abs(x) >= 1e6 ? IJ.d2s(x, -2) : ResultsTable.d2s(x, digits); // the latter uses exp notation also
+																					// for small x
 	}
 
 	void updateScrollBars() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				minSlider.setSelection((int) minThreshold);
-				maxSlider.setSelection((int) maxThreshold);
-			}
+		Display.getDefault().syncExec(() -> {
+			minSlider.setSelection((int) minThreshold);
+			maxSlider.setSelection((int) maxThreshold);
+
 		});
 	}
 
@@ -913,62 +898,59 @@ public class ThresholdAdjuster extends PlugInDialog
 	}
 
 	void adjustMinThreshold(ImagePlus imp, ImageProcessor ip, double value) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				if (IJ.altKeyDown() || IJ.shiftKeyDown()) {
-					double width = maxThreshold - minThreshold;
-					if (width < 1.0)
-						width = 1.0;
-					minThreshold = value;
-					maxThreshold = minThreshold + width;
-					if ((minThreshold + width) > 255) {
-						minThreshold = 255 - width;
-						maxThreshold = minThreshold + width;
-						minSlider.setSelection((int) minThreshold);
-					}
-					maxSlider.setSelection((int) maxThreshold);
-					scaleUpAndSet(ip, minThreshold, maxThreshold);
-					return;
-				}
+		Display.getDefault().syncExec(() -> {
+			if (IJ.altKeyDown() || IJ.shiftKeyDown()) {
+				double width = maxThreshold - minThreshold;
+				if (width < 1.0)
+					width = 1.0;
 				minThreshold = value;
-				if (maxThreshold < minThreshold) {
-					maxThreshold = minThreshold;
-					maxSlider.setSelection((int) maxThreshold);
+				maxThreshold = minThreshold + width;
+				if ((minThreshold + width) > 255) {
+					minThreshold = 255 - width;
+					maxThreshold = minThreshold + width;
+					minSlider.setSelection((int) minThreshold);
 				}
+				maxSlider.setSelection((int) maxThreshold);
 				scaleUpAndSet(ip, minThreshold, maxThreshold);
+				return;
 			}
+			minThreshold = value;
+			if (maxThreshold < minThreshold) {
+				maxThreshold = minThreshold;
+				maxSlider.setSelection((int) maxThreshold);
+			}
+			scaleUpAndSet(ip, minThreshold, maxThreshold);
+
 		});
 	}
 
 	void adjustMaxThreshold(ImagePlus imp, ImageProcessor ip, int cvalue) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				maxThreshold = cvalue;
-				if (minThreshold > maxThreshold) {
-					minThreshold = maxThreshold;
-					minSlider.setSelection((int) minThreshold);
-				}
-				if (minThreshold < 0) { // remove NO_THRESHOLD
-					minThreshold = 0;
-					minSlider.setSelection((int) minThreshold);
-				}
-				scaleUpAndSet(ip, minThreshold, maxThreshold);
-				IJ.setKeyUp(KeyEvent.VK_ALT);
-				IJ.setKeyUp(KeyEvent.VK_SHIFT);
+		Display.getDefault().syncExec(() -> {
+			maxThreshold = cvalue;
+			if (minThreshold > maxThreshold) {
+				minThreshold = maxThreshold;
+				minSlider.setSelection((int) minThreshold);
 			}
+			if (minThreshold < 0) { // remove NO_THRESHOLD
+				minThreshold = 0;
+				minSlider.setSelection((int) minThreshold);
+			}
+			scaleUpAndSet(ip, minThreshold, maxThreshold);
+			IJ.setKeyUp(KeyEvent.VK_ALT);
+			IJ.setKeyUp(KeyEvent.VK_SHIFT);
+
 		});
 	}
 
 	void reset(ImagePlus imp, ImageProcessor ip) {
-		//IJ.log("reset1: "+noReset+" "+sixteenBitChanged+" "+mode);
+		// IJ.log("reset1: "+noReset+" "+sixteenBitChanged+" "+mode);
 		ip.resetThreshold();
 		if (!noReset)
 			resetMinAndMax(ip);
 		boolean[] rawValuesSelection = new boolean[1];
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				rawValuesSelection[0] = rawValues.getSelection();
-			}
+		Display.getDefault().syncExec(() -> {
+			rawValuesSelection[0] = rawValues.getSelection();
+
 		});
 		ImageStatistics stats = plot.setHistogram(imp, entireStack(imp), rawValuesSelection[0]);
 		if (ip.getBitDepth() != 8 && entireStack(imp))
@@ -984,89 +966,86 @@ public class ThresholdAdjuster extends PlugInDialog
 
 	/** Numeric input via 'Set' dialog or minLabel, maxLabel TextFields */
 	void doSet(ImagePlus imp, ImageProcessor ip) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				double level1 = ip.getMinThreshold();
-				double level2 = ip.getMaxThreshold();
-				Calibration cal = imp.getCalibration();
-				if (level1 == ImageProcessor.NO_THRESHOLD) {
-					level1 = scaleUp(ip, defaultMinThreshold);
-					level2 = scaleUp(ip, defaultMaxThreshold);
-				}
-				boolean calibrated = cal.calibrated() && !rawValues.getSelection();
-				if (calibrated) {
-					level1 = cal.getCValue(level1);
-					level2 = cal.getCValue(level2);
-				}
-				if (setButtonPressed) {
-					int digits = (ip instanceof FloatProcessor) || (calibrated && !cal.isSigned16Bit())
-							? Math.max(Analyzer.getPrecision(), 4)
-							: 0;
-					GenericDialog gd = new GenericDialog("Set Threshold Levels");
-					gd.addNumericField("Lower threshold level: ", level1, Math.abs(level1) < 1e7 ? digits : -4, 10,
-							null);
-					gd.addNumericField("Upper threshold level: ", level2, Math.abs(level2) < 1e7 ? digits : -4, 10,
-							null);
-					gd.showDialog();
-					if (gd.wasCanceled()) {
-						setButtonPressed = false;
-						return;
-					}
-					level1 = gd.getNextNumber();
-					level2 = gd.getNextNumber();
+		Display.getDefault().syncExec(() -> {
+			double level1 = ip.getMinThreshold();
+			double level2 = ip.getMaxThreshold();
+			Calibration cal = imp.getCalibration();
+			if (level1 == ImageProcessor.NO_THRESHOLD) {
+				level1 = scaleUp(ip, defaultMinThreshold);
+				level2 = scaleUp(ip, defaultMaxThreshold);
+			}
+			boolean calibrated = cal.calibrated() && !rawValues.getSelection();
+			if (calibrated) {
+				level1 = cal.getCValue(level1);
+				level2 = cal.getCValue(level2);
+			}
+			if (setButtonPressed) {
+				int digits = (ip instanceof FloatProcessor) || (calibrated && !cal.isSigned16Bit())
+						? Math.max(Analyzer.getPrecision(), 4)
+						: 0;
+				GenericDialog gd = new GenericDialog("Set Threshold Levels");
+				gd.addNumericField("Lower threshold level: ", level1, Math.abs(level1) < 1e7 ? digits : -4, 10, null);
+				gd.addNumericField("Upper threshold level: ", level2, Math.abs(level2) < 1e7 ? digits : -4, 10, null);
+				gd.showDialog();
+				if (gd.wasCanceled()) {
 					setButtonPressed = false;
+					return;
+				}
+				level1 = gd.getNextNumber();
+				level2 = gd.getNextNumber();
+				setButtonPressed = false;
+			} else {
+				level1 = Tools.parseDouble(minLabel.getText(), level1);
+				level2 = Tools.parseDouble(maxLabel.getText(), level2);
+			}
+			enterPressed = false;
+			if (calibrated) {
+				level1 = cal.getRawValue(level1);
+				level2 = cal.getRawValue(level2);
+			}
+			if (level2 < level1)
+				level2 = level1;
+			resetMinAndMax(ip);
+			double minValue = ip.getMin();
+			double maxValue = ip.getMax();
+			if (imp.getStackSize() == 1) {
+				if (level1 < minValue)
+					level1 = minValue;
+				if (level2 > maxValue)
+					level2 = maxValue;
+			}
+			IJ.wait(500);
+			ip.setThreshold(level1, level2, lutColor);
+			ip.setSnapshotPixels(null); // disable undo
+			previousImageID = 0;
+			setup(imp, false);
+			updateScrollBars();
+			if (IJ.recording()) {
+				if (imp.getBitDepth() == 32) {
+					if (Recorder.scriptMode())
+						Recorder.recordCall("IJ.setThreshold(imp, " + IJ.d2s(ip.getMinThreshold(), 4) + ", "
+								+ IJ.d2s(ip.getMaxThreshold(), 4) + ");");
+					else
+						Recorder.record("setThreshold", ip.getMinThreshold(), ip.getMaxThreshold());
 				} else {
-					level1 = Tools.parseDouble(minLabel.getText(), level1);
-					level2 = Tools.parseDouble(maxLabel.getText(), level2);
-				}
-				enterPressed = false;
-				if (calibrated) {
-					level1 = cal.getRawValue(level1);
-					level2 = cal.getRawValue(level2);
-				}
-				if (level2 < level1)
-					level2 = level1;
-				resetMinAndMax(ip);
-				double minValue = ip.getMin();
-				double maxValue = ip.getMax();
-				if (imp.getStackSize() == 1) {
-					if (level1 < minValue)
-						level1 = minValue;
-					if (level2 > maxValue)
-						level2 = maxValue;
-				}
-				IJ.wait(500);
-				ip.setThreshold(level1, level2, lutColor);
-				ip.setSnapshotPixels(null); // disable undo
-				previousImageID = 0;
-				setup(imp, false);
-				updateScrollBars();
-				if (IJ.recording()) {
-					if (imp.getBitDepth() == 32) {
+					int min = (int) ip.getMinThreshold();
+					int max = (int) ip.getMaxThreshold();
+					if (cal.isSigned16Bit() && calibrated) {
+						min = (int) cal.getCValue(level1);
+						max = (int) cal.getCValue(level2);
 						if (Recorder.scriptMode())
-							Recorder.recordCall("IJ.setThreshold(imp, " + IJ.d2s(ip.getMinThreshold(), 4) + ", "
-									+ IJ.d2s(ip.getMaxThreshold(), 4) + ");");
+							Recorder.recordCall("IJ.setThreshold(imp, " + min + ", " + max + ");");
 						else
-							Recorder.record("setThreshold", ip.getMinThreshold(), ip.getMaxThreshold());
+							Recorder.record("setThreshold", min, max);
 					} else {
-						int min = (int) ip.getMinThreshold();
-						int max = (int) ip.getMaxThreshold();
-						if (cal.isSigned16Bit() && calibrated) {
-							min = (int) cal.getCValue(level1);
-							max = (int) cal.getCValue(level2);
-							if (Recorder.scriptMode())
-								Recorder.recordCall("IJ.setThreshold(imp, " + min + ", " + max + ");");
-							else
-								Recorder.record("setThreshold", min, max);
-						} else {
-							if (Recorder.scriptMode())
-								Recorder.recordCall("IJ.setRawThreshold(imp, " + min + ", " + max + ");");
-							else
-								Recorder.record("setThreshold", min, max, "raw");
-						}
+						if (Recorder.scriptMode())
+							Recorder.recordCall("IJ.setRawThreshold(imp, " + min + ", " + max + ");");
+						else
+							Recorder.record("setThreshold", min, max, "raw");
 					}
 				}
 			}
+
 		});
 	}
 
@@ -1107,7 +1086,7 @@ public class ThresholdAdjuster extends PlugInDialog
 
 	void runThresholdCommand() {
 		Thresholder.setMethod(method);
-		Thresholder.setBackground(darkBackgroundCheckbox.getSelection()?"Dark":"Light");
+		Thresholder.setBackground(darkBackgroundCheckbox.getSelection() ? "Dark" : "Light");
 		if (IJ.recording()) {
 			Recorder.setCommand("Convert to Mask");
 			(new Thresholder()).run("mask");
@@ -1116,13 +1095,15 @@ public class ThresholdAdjuster extends PlugInDialog
 			(new Thresholder()).run("mask");
 	}
 
-	static final int RESET=0, AUTO=1, HIST=2, APPLY=3, STATE_CHANGE=4, MIN_THRESHOLD=5, MAX_THRESHOLD=6, SET=7;
+	static final int RESET = 0, AUTO = 1, HIST = 2, APPLY = 3, STATE_CHANGE = 4, MIN_THRESHOLD = 5, MAX_THRESHOLD = 6,
+			SET = 7;
 
 	// Separate thread that does the potentially time-consuming processing
 	public void run() {
 		while (!done) {
 			synchronized (this) {
-				if (!doAutoAdjust && !doReset && !doApplyLut && !doStateChange && !doSet && minValue<0 &&  maxValue<0) {
+				if (!doAutoAdjust && !doReset && !doApplyLut && !doStateChange && !doSet && minValue < 0
+						&& maxValue < 0) {
 					try {
 						wait();
 					} catch (InterruptedException e) {
@@ -1158,8 +1139,7 @@ public class ThresholdAdjuster extends PlugInDialog
 		} else if (doSet) {
 			action = SET;
 			doSet = false;
-		} 
-		else if (minValue >= 0) {
+		} else if (minValue >= 0) {
 			action = MIN_THRESHOLD;
 			minValue = -1;
 		} else if (maxValue >= 0) {
@@ -1276,7 +1256,7 @@ public class ThresholdAdjuster extends PlugInDialog
 	}
 
 	public static boolean isDarkBackground() {
-		return instance!=null?instance.darkBackgroundCheckbox.getSelection():false;
+		return instance != null ? instance.darkBackgroundCheckbox.getSelection() : false;
 	}
 
 	/** Returns the current thresholding method ("Default", "Huang", etc). */
@@ -1286,7 +1266,7 @@ public class ThresholdAdjuster extends PlugInDialog
 
 	/** Sets the thresholding method ("Default", "Huang", etc). */
 	public static void setMethod(String thresholdingMethod) {
-		if (thresholdingMethod==null)
+		if (thresholdingMethod == null)
 			return;
 		boolean valid = false;
 		for (int i = 0; i < methodNames.length; i++) {
@@ -1298,8 +1278,8 @@ public class ThresholdAdjuster extends PlugInDialog
 		if (valid) {
 			method = thresholdingMethod;
 			int index = method.indexOf(" ");
-			if (index>0)
-				method = method.substring(0,index);
+			if (index > 0)
+				method = method.substring(0, index);
 			if (instance != null) {
 				for (int i = 0; i < instance.methodChoice.getItemCount(); i++) {
 					final String value = instance.methodChoice.getItem(i);
@@ -1492,10 +1472,9 @@ class ThresholdPlot extends org.eclipse.swt.widgets.Canvas
 	 */
 
 	public void repaint() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				redraw();
-			}
+		Display.getDefault().syncExec(() -> {
+			redraw();
+
 		});
 	}
 
@@ -1557,7 +1536,7 @@ class ThresholdPlot extends org.eclipse.swt.widgets.Canvas
 		gc.drawRectangle(lowerThreshold + 1, 0, upperThreshold - lowerThreshold, height + 1);
 		gc.drawLine(lowerThreshold + 1, 1, upperThreshold + 1, 1);
 
-		//gc.dispose();
+		// gc.dispose();
 
 	}
 
