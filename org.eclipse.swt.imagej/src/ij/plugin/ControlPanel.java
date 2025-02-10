@@ -32,11 +32,10 @@ import ij.Menus;
 
 /**
  * ControlPanel. This plugin displays a panel with ImageJ commands in a
- * hierarchical tree structure.
- * Base on the Swing version of:
+ * hierarchical tree structure. Base on the Swing version of:
  * 
- * @author Cezar M. Tigaret <c.tigaret@ucl.ac.uk>
- *         Shortened for SWT which already offers tree functions!
+ * @author Cezar M. Tigaret <c.tigaret@ucl.ac.uk> Shortened for SWT which
+ *         already offers tree functions!
  */
 public class ControlPanel implements PlugIn, ShellListener {
 
@@ -91,12 +90,10 @@ public class ControlPanel implements PlugIn, ShellListener {
 	 */
 	public void run(String arg) {
 
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
+			load();
 
-				load();
-			}
 		});
 	}
 	/* *********************************************************************** */
@@ -109,12 +106,12 @@ public class ControlPanel implements PlugIn, ShellListener {
 		shell = new Shell(Display.getDefault());
 		shell.setText("Command Finder");
 		// shell.setLayout(new GridLayout(1, true));
-		if(imageJ != null && !IJ.isMacOSX()) {
+		if (imageJ != null && !IJ.isMacOSX()) {
 			Image img = imageJ.getIconImage();
-			if(img != null)
+			if (img != null)
 				try {
 					shell.setImage(img);
-				} catch(Exception e) {
+				} catch (Exception e) {
 				}
 		}
 		// Composite northPanel = new Composite(shell, SWT.NONE);
@@ -134,11 +131,10 @@ public class ControlPanel implements PlugIn, ShellListener {
 			public void treeExpanded(TreeEvent e) {
 
 				/*
-				 * TreeItem item = (TreeItem) e.item; TreeItem[] children = item.getItems();
-				 * for (int i = 0; i < children.length; i++) if (children[i].getData() == null)
-				 * // Removes dummy items. children[i].dispose(); else // Child files already
-				 * added to the tree. return;
-				 * doRootFromMenus(tree);
+				 * TreeItem item = (TreeItem) e.item; TreeItem[] children = item.getItems(); for
+				 * (int i = 0; i < children.length; i++) if (children[i].getData() == null) //
+				 * Removes dummy items. children[i].dispose(); else // Child files already added
+				 * to the tree. return; doRootFromMenus(tree);
 				 */
 			}
 		});
@@ -148,7 +144,7 @@ public class ControlPanel implements PlugIn, ShellListener {
 
 				Point point = new Point(event.x, event.y);
 				TreeItem item = tree.getItem(point);
-				if(item != null) {
+				if (item != null) {
 					actionPerformed(item);
 				}
 			}
@@ -178,11 +174,11 @@ public class ControlPanel implements PlugIn, ShellListener {
 		 */
 		tree.setRedraw(false); // Stop redraw until operation complete
 		TreeItem[] items = tree.getItems();
-		for(TreeItem item : items) {
+		for (TreeItem item : items) {
 			item.setExpanded(true);
 		}
 		tree.setRedraw(true);
-		if(hasShell) {
+		if (hasShell) {
 			shell.setSize(300, 600);
 			shell.open();
 		}
@@ -201,9 +197,9 @@ public class ControlPanel implements PlugIn, ShellListener {
 	 */
 	private synchronized void doRootFromMenus(Tree root) {
 
-		if(root.getItemCount() > 0) {
+		if (root.getItemCount() > 0) {
 			TreeItem[] items = root.getItems();
-			for(int y = 0; y < items.length; y++) {
+			for (int y = 0; y < items.length; y++) {
 				items[y].dispose();
 			}
 		}
@@ -211,13 +207,13 @@ public class ControlPanel implements PlugIn, ShellListener {
 		// node.setText("ImageJ Menus");
 		// if(argLength==0) node.setUserObject("Control Panel");
 		Menu menuBar = Menus.getMenuBar();
-		for(int i = 0; i < menuBar.getItemCount(); i++) {
+		for (int i = 0; i < menuBar.getItemCount(); i++) {
 			MenuItem menu = menuBar.getItem(i);
 			TreeItem menuNode = new TreeItem(root, SWT.NONE);
 			menuNode.setText(menu.getText());
 			Object data = menu.getData("ActionCommand");
 			menuNode.setData("ActionCommand", data);
-			if((menu.getStyle() & SWT.CASCADE) == 0) {
+			if ((menu.getStyle() & SWT.CASCADE) == 0) {
 				/* Simply set a arbitrary string if we don't have a Cascade menu!! */
 				menuNode.setData("IsCascade", "false");
 			} else {
@@ -245,22 +241,20 @@ public class ControlPanel implements PlugIn, ShellListener {
 	 * <strong>Note: </strong> this method bypasses the tree buildup based on the
 	 * {@link populateNode(Hashtable,DefaultMutableTreeNode)} method.
 	 * 
-	 * @param menu
-	 *            The Menu instance to be searched recursively for menu items
-	 * @param node
-	 *            The DefaultMutableTreeNode corresponding to the
-	 *            <code>Menu menu</code> argument.
+	 * @param menu The Menu instance to be searched recursively for menu items
+	 * @param node The DefaultMutableTreeNode corresponding to the
+	 *             <code>Menu menu</code> argument.
 	 */
 	private void recurseSubMenu(Menu menu, TreeItem node) {
 
 		int items = menu.getItemCount();
-		if(items == 0)
+		if (items == 0)
 			return;
-		for(int i = 0; i < items; i++) {
+		for (int i = 0; i < items; i++) {
 			MenuItem mItem = menu.getItem(i);
 			String label = mItem.getText();
 			Object data = mItem.getData("ActionCommand");
-			if(mItem.getMenu() != null) {
+			if (mItem.getMenu() != null) {
 				TreeItem subNode = new TreeItem(node, SWT.NONE);
 				subNode.setText(mItem.getText());
 				subNode.setData("ActionCommand", data);
@@ -268,12 +262,12 @@ public class ControlPanel implements PlugIn, ShellListener {
 				// subNode.setImage(img);
 				recurseSubMenu(mItem.getMenu(), subNode);
 				// node.add(subNode);
-			} else if(mItem instanceof MenuItem) {
-				if(!(mItem.getStyle() == SWT.SEPARATOR)) {
+			} else if (mItem instanceof MenuItem) {
+				if (!(mItem.getStyle() == SWT.SEPARATOR)) {
 					TreeItem leaf = new TreeItem(node, SWT.NONE);
 					leaf.setText(mItem.getText());
 					leaf.setData("ActionCommand", data);
-					if((menu.getStyle() & SWT.CASCADE) == 0) {
+					if ((menu.getStyle() & SWT.CASCADE) == 0) {
 						/* Simply set a arbitrary string if we don't have a Cascade menu!! */
 						leaf.setData("IsCascade", "false");
 					} else {
@@ -281,9 +275,9 @@ public class ControlPanel implements PlugIn, ShellListener {
 						leaf.setData("IsCascade", null);
 					}
 					// node.add(leaf);
-					if(treeCommands == null)
+					if (treeCommands == null)
 						treeCommands = new Hashtable();
-					if(label.equals("Reload Plugins")) {
+					if (label.equals("Reload Plugins")) {
 						reloadMI = mItem;
 						treeCommands.put(label, "Reload Plugins From Panel");
 					}
@@ -294,7 +288,17 @@ public class ControlPanel implements PlugIn, ShellListener {
 
 	void showHelp() {
 
-		IJ.showMessage("About Control Panel...", "This plugin displays a panel with ImageJ commands in a hierarchical tree structure.\n" + " \n" + "Usage:\n" + " \n" + "     Click on a leaf node to launch the corresponding ImageJ command (or plugin)\n" + "     (double-click on X Window Systems)\n" + " \n" + "     Double-click on a tree branch node (folder) to expand or collapse it\n" + " \n" + "     Click and drag on a tree branch node (folder) to display its descendants,\n" + "     in a separate (child) panel (\"tear-off\" mock-up)\n" + " \n" + "     In a child panel, use the \"Show Parent\" menu item to re-open the parent panel\n" + "     if it was accidentally closed\n" + " \n" + "Author: Cezar M. Tigaret (c.tigaret@ucl.ac.uk)\n" + "This code is in the public domain.");
+		IJ.showMessage("About Control Panel...",
+				"This plugin displays a panel with ImageJ commands in a hierarchical tree structure.\n" + " \n"
+						+ "Usage:\n" + " \n"
+						+ "     Click on a leaf node to launch the corresponding ImageJ command (or plugin)\n"
+						+ "     (double-click on X Window Systems)\n" + " \n"
+						+ "     Double-click on a tree branch node (folder) to expand or collapse it\n" + " \n"
+						+ "     Click and drag on a tree branch node (folder) to display its descendants,\n"
+						+ "     in a separate (child) panel (\"tear-off\" mock-up)\n" + " \n"
+						+ "     In a child panel, use the \"Show Parent\" menu item to re-open the parent panel\n"
+						+ "     if it was accidentally closed\n" + " \n"
+						+ "Author: Cezar M. Tigaret (c.tigaret@ucl.ac.uk)\n" + "This code is in the public domain.");
 	}
 
 	// 1. trim away the eclosing brackets
@@ -303,15 +307,15 @@ public class ControlPanel implements PlugIn, ShellListener {
 	String pStr2Key(String pathString) {
 
 		String keyword = pathString;
-		if(keyword.startsWith("["))
+		if (keyword.startsWith("["))
 			keyword = keyword.substring(keyword.indexOf("[") + 1, keyword.length());
-		if(keyword.endsWith("]"))
+		if (keyword.endsWith("]"))
 			keyword = keyword.substring(0, keyword.lastIndexOf("]"));
 		StringTokenizer st = new StringTokenizer(keyword, ",");
 		String result = "";
-		while(st.hasMoreTokens()) {
+		while (st.hasMoreTokens()) {
 			String token = st.nextToken();
-			if(token.startsWith(" "))
+			if (token.startsWith(" "))
 				token = token.substring(1, token.length()); // remove leading space
 			result += token + ".";
 		}
@@ -325,7 +329,7 @@ public class ControlPanel implements PlugIn, ShellListener {
 		// keyword = keyword.replace('_',' '); // restore the spaces from underscores
 		StringTokenizer st = new StringTokenizer(keyword, ".");
 		String result = "";
-		while(st.hasMoreTokens()) {
+		while (st.hasMoreTokens()) {
 			String token = st.nextToken();
 			result += token + ", ";
 		}
@@ -344,13 +348,13 @@ public class ControlPanel implements PlugIn, ShellListener {
 
 		StringTokenizer st = new StringTokenizer(s, ", \t");
 		int nInts = st.countTokens();
-		if(nInts == 0)
+		if (nInts == 0)
 			return null;
 		int[] ints = new int[nInts];
-		for(int i = 0; i < nInts; i++) {
+		for (int i = 0; i < nInts; i++) {
 			try {
 				ints[i] = Integer.parseInt(st.nextToken());
-			} catch(NumberFormatException e) {
+			} catch (NumberFormatException e) {
 				return null;
 			}
 		}
@@ -360,13 +364,13 @@ public class ControlPanel implements PlugIn, ShellListener {
 	public void actionPerformed(TreeItem item) {
 
 		String cmd = item.getText();
-		if(cmd == null)
+		if (cmd == null)
 			return;
-		if(cmd.equals("Help")) {
+		if (cmd.equals("Help")) {
 			showHelp();
 			return;
 		}
-		if(cmd.equals("Show Parent")) {
+		if (cmd.equals("Show Parent")) {
 			/*
 			 * DefaultMutableTreeNode parent = (DefaultMutableTreeNode) root.getParent(); if
 			 * (parent != null) { TreePanel panel = pcp.getPanelForNode(parent); if (panel
@@ -375,17 +379,17 @@ public class ControlPanel implements PlugIn, ShellListener {
 			 */
 			return;
 		}
-		if(cmd.equals("Reload Plugins From Panel")) {// cmd fired by clicking on tree leaf
+		if (cmd.equals("Reload Plugins From Panel")) {// cmd fired by clicking on tree leaf
 			// pcp.closeAll(false);
 			IJ.doCommand("Reload Plugins");
 		} else {
-			if(cmd.equals("Reload Plugins")) { // cmd fired from ImageJ menu; don't propagate it further
+			if (cmd.equals("Reload Plugins")) { // cmd fired from ImageJ menu; don't propagate it further
 				// pcp.closeAll(false);
 			} else {
-				String data = (String)item.getData("ActionCommand");
-				String isCascade = (String)item.getData("IsCascade");
-				if(isCascade != null) {
-					if(data != null) {
+				String data = (String) item.getData("ActionCommand");
+				String isCascade = (String) item.getData("IsCascade");
+				if (isCascade != null) {
+					if (data != null) {
 						IJ.doCommand(data);
 					} else {
 						IJ.doCommand(cmd);

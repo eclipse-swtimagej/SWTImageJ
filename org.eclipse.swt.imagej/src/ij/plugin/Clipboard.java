@@ -150,11 +150,10 @@ public class Clipboard implements PlugIn, Transferable {
 					text = Tools.fixNewLines(text);
 				Editor ed = new Editor();
 				final String cliText = text;
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						ed.getShell().setSize(600, 300);
-						ed.create("Clipboard", cliText);
-					}
+				Display.getDefault().syncExec(() -> {
+					ed.getShell().setSize(600, 300);
+					ed.create("Clipboard", cliText);
+
 				});
 				IJ.showStatus("");
 			} else

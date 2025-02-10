@@ -26,9 +26,9 @@ import ij.plugin.frame.Recorder;
 import ij.process.ImageProcessor;
 
 /**
- * This plugin, which concatenates two or more images or stacks,
- * implements the Image/Stacks/Tools/Concatenate command.
- * Has the option of viewing the concatenated stack as a 4D image.
+ * This plugin, which concatenates two or more images or stacks, implements the
+ * Image/Stacks/Tools/Concatenate command. Has the option of viewing the
+ * concatenated stack as a 4D image.
  * 
  * @author Jon Jackson j.jackson # ucl.ac.uk
  */
@@ -68,8 +68,8 @@ public class Concatenator implements PlugIn, SelectionListener {
 	}
 
 	/**
-	 * Displays a dialog requiring user to choose images and
-	 * returns ImagePlus of concatenated images.
+	 * Displays a dialog requiring user to choose images and returns ImagePlus of
+	 * concatenated images.
 	 */
 	public ImagePlus run() {
 		if (!showDialog())
@@ -98,14 +98,21 @@ public class Concatenator implements PlugIn, SelectionListener {
 	/** Concatenates four images, stacks or hyperstacks. */
 	public static ImagePlus run(ImagePlus img1, ImagePlus img2, ImagePlus img3, ImagePlus img4) {
 		ImagePlus[] images = new ImagePlus[4];
-		images[0]=img1; images[1]=img2;  images[2]=img3; images[3]=img4;
+		images[0] = img1;
+		images[1] = img2;
+		images[2] = img3;
+		images[3] = img4;
 		return (new Concatenator()).concatenate(images, false);
 	}
 
 	/** Concatenates five images, stacks or hyperstacks. */
 	public static ImagePlus run(ImagePlus img1, ImagePlus img2, ImagePlus img3, ImagePlus img4, ImagePlus img5) {
 		ImagePlus[] images = new ImagePlus[5];
-		images[0]=img1; images[1]=img2;  images[2]=img3; images[3]=img4; images[4]=img5;
+		images[0] = img1;
+		images[1] = img2;
+		images[2] = img3;
+		images[3] = img4;
+		images[4] = img5;
 		return (new Concatenator()).concatenate(images, false);
 	}
 
@@ -120,10 +127,9 @@ public class Concatenator implements PlugIn, SelectionListener {
 	}
 
 	/*
-	 * // Why does this not work with Java 6?
-	 * public static ImagePlus run(ImagePlus... args) {
-	 * return (new Concatenator()).concatenate(args, false);
-	 * }
+	 * // Why does this not work with Java 6? public static ImagePlus
+	 * run(ImagePlus... args) { return (new Concatenator()).concatenate(args,
+	 * false); }
 	 */
 
 	/** Concatenates two or more images or stacks. */
@@ -395,24 +401,23 @@ public class Concatenator implements PlugIn, SelectionListener {
 		gd.addCheckbox("Keep original images", keep_option);
 		gd.addCheckbox("Open as 4D_image", im4D_option);
 		if (!macro) { // Monitor user selections
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					choices = gd.getChoices();
-					for (Enumeration e = choices.elements(); e.hasMoreElements();)
-						((org.eclipse.swt.widgets.Combo) e.nextElement()).addSelectionListener(Concatenator.this);
-					Vector v = gd.getCheckboxes();
-					allWindows = (org.eclipse.swt.widgets.Button) v.firstElement();
-					allWindows.addSelectionListener(Concatenator.this);
-					Event event = null;
-					if (all_option) {
-						// itemStateChanged(new ItemEvent(allWindows, ItemEvent.ITEM_STATE_CHANGED,
-						// null, ItemEvent.SELECTED));
-						event = new org.eclipse.swt.widgets.Event();
-						event.type = SWT.SELECTED;
-						event.widget = allWindows;
-						itemStateChanged(event);
-					}
+			Display.getDefault().syncExec(() -> {
+				choices = gd.getChoices();
+				for (Enumeration e = choices.elements(); e.hasMoreElements();)
+					((org.eclipse.swt.widgets.Combo) e.nextElement()).addSelectionListener(Concatenator.this);
+				Vector v = gd.getCheckboxes();
+				allWindows = (org.eclipse.swt.widgets.Button) v.firstElement();
+				allWindows.addSelectionListener(Concatenator.this);
+				Event event = null;
+				if (all_option) {
+					// itemStateChanged(new ItemEvent(allWindows, ItemEvent.ITEM_STATE_CHANGED,
+					// null, ItemEvent.SELECTED));
+					event = new org.eclipse.swt.widgets.Event();
+					event.type = SWT.SELECTED;
+					event.widget = allWindows;
+					itemStateChanged(event);
 				}
+
 			});
 		}
 		gd.showDialog();
