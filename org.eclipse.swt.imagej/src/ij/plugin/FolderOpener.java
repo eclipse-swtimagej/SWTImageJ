@@ -194,7 +194,7 @@ public class FolderOpener implements PlugIn, ModifyListener {
 			list = (String[]) fileList.toArray(new String[fileList.size()]);
 
 		String title = directory;
-		title = trimTitle(title);	
+		title = trimTitle(title);
 		list = trimFileList(list);
 		if (list == null)
 			return;
@@ -515,24 +515,22 @@ public class FolderOpener implements PlugIn, ModifyListener {
 			}
 		}
 	}
-	
+
 	public static String trimTitle(String title) {
 		if (title.endsWith(File.separator) || title.endsWith("/"))
-			title = title.substring(0, title.length()-1);
+			title = title.substring(0, title.length() - 1);
 		int index = title.lastIndexOf(File.separatorChar);
-		if (index!=-1)
+		if (index != -1)
 			title = title.substring(index + 1);
 		else {
 			index = title.lastIndexOf("/");
-			if (index!=-1)
+			if (index != -1)
 				title = title.substring(index + 1);
 		}
 		if (title.endsWith(":"))
-			title = title.substring(0, title.length()-1);
+			title = title.substring(0, title.length() - 1);
 		return title;
 	}
-
-
 
 	private void error(String msg) {
 		IJ.error("Import>Image Sequence", msg);
@@ -569,7 +567,7 @@ public class FolderOpener implements PlugIn, ModifyListener {
 				fi.longOffset = fi.getOffset() + i * (size + fi.getGap());
 				stack.addImage(fi);
 			}
-		} else {		
+		} else {
 			for (FileInfo fi : info) {
 				if (fi.fileType == FileInfo.RGB48) {
 					for (int slice = 1; slice <= 3; slice++) {
@@ -620,20 +618,19 @@ public class FolderOpener implements PlugIn, ModifyListener {
 		gd.addStringField("Count:", countStr, 6);
 		gd.addNumericField("Step:", this.step, 0, 6, "");
 		if (!IJ.isMacro() && !GraphicsEnvironment.isHeadless()) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					Vector v = gd.getStringFields();
-					dirField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
-					dirField.addModifyListener(FolderOpener.this);
-					filterField = (org.eclipse.swt.widgets.Text) v.elementAt(1);
-					filterField.addModifyListener(FolderOpener.this);
-					countField = (org.eclipse.swt.widgets.Text) v.elementAt(2);
-					v = gd.getNumericFields();
-					startField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
-					startField.addModifyListener(FolderOpener.this);
-					stepField = (org.eclipse.swt.widgets.Text) v.elementAt(1);
-					stepField.addModifyListener(FolderOpener.this);
-				}
+			Display.getDefault().syncExec(() -> {
+				Vector v = gd.getStringFields();
+				dirField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
+				dirField.addModifyListener(FolderOpener.this);
+				filterField = (org.eclipse.swt.widgets.Text) v.elementAt(1);
+				filterField.addModifyListener(FolderOpener.this);
+				countField = (org.eclipse.swt.widgets.Text) v.elementAt(2);
+				v = gd.getNumericFields();
+				startField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
+				startField.addModifyListener(FolderOpener.this);
+				stepField = (org.eclipse.swt.widgets.Text) v.elementAt(1);
+				stepField.addModifyListener(FolderOpener.this);
+
 			});
 		}
 		gd.addNumericField("Scale:", this.scale, 0, 6, "%");

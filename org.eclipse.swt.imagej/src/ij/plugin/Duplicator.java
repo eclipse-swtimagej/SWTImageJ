@@ -526,13 +526,11 @@ public class Duplicator implements PlugIn, SelectionListener, VerifyListener {
 				Vector v = gd.getStringFields();
 				titleField = (org.eclipse.swt.widgets.Text) v.elementAt(0);
 				rangeField = (org.eclipse.swt.widgets.Text) v.elementAt(1);
-				Display.getDefault().syncExec(new Runnable() {
+				Display.getDefault().syncExec(() -> {
 
-					public void run() {
+					titleField.addVerifyListener(Duplicator.this);
+					rangeField.addVerifyListener(Duplicator.this);
 
-						titleField.addVerifyListener(Duplicator.this);
-						rangeField.addVerifyListener(Duplicator.this);
-					}
 				});
 			}
 		}
@@ -668,18 +666,16 @@ public class Duplicator implements PlugIn, SelectionListener, VerifyListener {
 					.elementAt(gd.getCheckboxes().size() - 1));
 			AtomicReference<Integer> nRangeFieldss = new AtomicReference<Integer>();
 			nRangeFieldss.set(nRangeFields);
-			Display.getDefault().syncExec(new Runnable() {
+			Display.getDefault().syncExec(() -> {
 
-				public void run() {
-
-					stackCheckbox.addSelectionListener(Duplicator.this);
-					Vector v = gd.getStringFields();
-					rangeFields = new org.eclipse.swt.widgets.Text[3];
-					for (int i = 0; i < nRangeFieldss.get(); i++) {
-						rangeFields[i] = (org.eclipse.swt.widgets.Text) v.elementAt(i + 1);
-						rangeFields[i].addVerifyListener(Duplicator.this);
-					}
+				stackCheckbox.addSelectionListener(Duplicator.this);
+				Vector v = gd.getStringFields();
+				rangeFields = new org.eclipse.swt.widgets.Text[3];
+				for (int i = 0; i < nRangeFieldss.get(); i++) {
+					rangeFields[i] = (org.eclipse.swt.widgets.Text) v.elementAt(i + 1);
+					rangeFields[i].addVerifyListener(Duplicator.this);
 				}
+
 			});
 		}
 		gd.setSmartRecording(true);

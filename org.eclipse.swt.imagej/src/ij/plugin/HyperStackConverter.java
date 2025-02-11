@@ -277,10 +277,9 @@ public class HyperStackConverter implements PlugIn {
 			else {
 				AtomicReference<ImagePlus> ref = new AtomicReference<ImagePlus>();
 				ref.set(imp2);
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						new StackWindow(ref.get());
-					}
+				Display.getDefault().syncExec(() -> {
+					new StackWindow(ref.get());
+
 				});
 			}
 		}
@@ -392,10 +391,9 @@ public class HyperStackConverter implements PlugIn {
 		if (imp.getWindow() != null || imp != imp2) {
 			AtomicReference<ImagePlus> ref = new AtomicReference<ImagePlus>();
 			ref.set(imp2);
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					new StackWindow(ref.get());
-				}
+			Display.getDefault().syncExec(() -> {
+				new StackWindow(ref.get());
+
 			});
 		}
 		if (imp != imp2) {

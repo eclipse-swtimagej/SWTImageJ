@@ -405,12 +405,10 @@ public class GelAnalyzer implements PlugIn {
 		// gel = null;
 		ipLanes = null;
 		Toolbar toolbar = Toolbar.getInstance();
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			toolbar.setColor(Color.black);
+			toolbar.setTool(Toolbar.LINE);
 
-			public void run() {
-				toolbar.setColor(Color.black);
-				toolbar.setTool(Toolbar.LINE);
-			}
 		});
 		ImageWindow win = WindowManager.getCurrentWindow();
 		ImageCanvas canvas = win.getCanvas();
