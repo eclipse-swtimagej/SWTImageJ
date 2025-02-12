@@ -52,61 +52,59 @@ public class LUT_Editor implements PlugIn, SelectionListener {
 		Recorder.suspendRecording();
 		int red = 0, green = 0, blue = 0;
 		GenericDialog gd = new GenericDialog("LUT Editor");
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				org.eclipse.swt.widgets.Composite panel = new org.eclipse.swt.widgets.Composite(gd.getShell(),
-						SWT.NONE);
-				panel.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
+		Display.getDefault().syncExec(() -> {
+			org.eclipse.swt.widgets.Composite panel = new org.eclipse.swt.widgets.Composite(gd.getShell(), SWT.NONE);
+			panel.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
 
-				colorPanel = new ColorPanel(panel, imp);
-				GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 4);
-				gd_composite_1.widthHint = 200;
-				gd_composite_1.heightHint = 200;
-				colorPanel.setLayoutData(gd_composite_1);
+			colorPanel = new ColorPanel(panel, imp);
+			GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 4);
+			gd_composite_1.widthHint = 200;
+			gd_composite_1.heightHint = 200;
+			colorPanel.setLayoutData(gd_composite_1);
 
-				if (colorPanel.getMapSize() != 256) {
-					IJ.showMessage("LUT Editor", "LUT must have 256 entries");
-					return;
-				}
-				org.eclipse.swt.widgets.Composite buttonPanel = new org.eclipse.swt.widgets.Composite(panel, SWT.NONE);
-				buttonPanel.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-				openButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
-				openButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-				openButton.setText("Open...");
-				openButton.addSelectionListener(LUT_Editor.this);
-				// buttonPanel.add(openButton);
-				saveButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
-				saveButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-				saveButton.setText("Save...");
-				saveButton.addSelectionListener(LUT_Editor.this);
-				// buttonPanel.add(saveButton);
-				resizeButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
-				resizeButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-				resizeButton.setText("Set...");
-				resizeButton.addSelectionListener(LUT_Editor.this);
-				// buttonPanel.add(resizeButton);
-				invertButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
-				invertButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-				invertButton.setText("Invert...");
-				invertButton.addSelectionListener(LUT_Editor.this);
-				// buttonPanel.add(invertButton);
-				panel.pack();
-				// panel.add(colorPanel);
-				// panel.add(buttonPanel);
-				// gd.addPanel(panel);
-				gd.getShell().layout();
-				gd.showDialog();
-				Recorder.resumeRecording();
-				if (gd.wasCanceled()) {
-					colorPanel.cancelLUT();
-					return;
-				} else {
-					colorPanel.applyLUT();
-					String lutName = imp.getProp(LUT.nameKey);
-					if (lutName != null && !lutName.endsWith(" (edited)"))
-						imp.setProp(LUT.nameKey, lutName + " (edited)");
-				}
+			if (colorPanel.getMapSize() != 256) {
+				IJ.showMessage("LUT Editor", "LUT must have 256 entries");
+				return;
 			}
+			org.eclipse.swt.widgets.Composite buttonPanel = new org.eclipse.swt.widgets.Composite(panel, SWT.NONE);
+			buttonPanel.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+			openButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
+			openButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			openButton.setText("Open...");
+			openButton.addSelectionListener(LUT_Editor.this);
+			// buttonPanel.add(openButton);
+			saveButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
+			saveButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			saveButton.setText("Save...");
+			saveButton.addSelectionListener(LUT_Editor.this);
+			// buttonPanel.add(saveButton);
+			resizeButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
+			resizeButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			resizeButton.setText("Set...");
+			resizeButton.addSelectionListener(LUT_Editor.this);
+			// buttonPanel.add(resizeButton);
+			invertButton = new org.eclipse.swt.widgets.Button(buttonPanel, SWT.NONE);
+			invertButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			invertButton.setText("Invert...");
+			invertButton.addSelectionListener(LUT_Editor.this);
+			// buttonPanel.add(invertButton);
+			panel.pack();
+			// panel.add(colorPanel);
+			// panel.add(buttonPanel);
+			// gd.addPanel(panel);
+			gd.getShell().layout();
+			gd.showDialog();
+			Recorder.resumeRecording();
+			if (gd.wasCanceled()) {
+				colorPanel.cancelLUT();
+				return;
+			} else {
+				colorPanel.applyLUT();
+				String lutName = imp.getProp(LUT.nameKey);
+				if (lutName != null && !lutName.endsWith(" (edited)"))
+					imp.setProp(LUT.nameKey, lutName + " (edited)");
+			}
+
 		});
 	}
 
@@ -554,7 +552,7 @@ class ColorPanel extends org.eclipse.swt.widgets.Canvas implements org.eclipse.s
 		SWTGraphics2D g = new SWTGraphics2D(gc);
 		paint(g);
 		g.dispose();
-		//gc.dispose();
+		// gc.dispose();
 	}
 
 	public void paint(Graphics g) {
