@@ -143,10 +143,9 @@ public class Orthogonal_Views
 		}
 		win = imp.getWindow();
 		canvas = win.getCanvas();
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				addListeners(canvas);
-			}
+		Display.getDefault().syncExec(() -> {
+			addListeners(canvas);
+
 		});
 		magnification = canvas.getMagnification();
 		imp.deleteRoi();
@@ -251,127 +250,123 @@ public class Orthogonal_Views
 	}
 
 	private void updateMagnification(int x, int y) {
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
 
-			public void run() {
-
-				double magnification = win.getCanvas().getMagnification();
-				int z = imp.getSlice() - 1;
-				ImageWindow xz_win = xz_image.getWindow();
-				if (xz_win == null)
-					return;
-				ImageCanvas xz_ic = xz_win.getCanvas();
-				double xz_mag = xz_ic.getMagnification();
-				double arat = az / ax;
-				int zcoord = (int) (arat * z);
-				if (flipXZ)
-					zcoord = (int) (arat * (imp.getNSlices() - z));
-				while (xz_mag < magnification) {
-					xz_ic.zoomIn(xz_ic.screenX(x), xz_ic.screenY(zcoord));
-					xz_mag = xz_ic.getMagnification();
-				}
-				while (xz_mag > magnification) {
-					xz_ic.zoomOut(xz_ic.screenX(x), xz_ic.screenY(zcoord));
-					xz_mag = xz_ic.getMagnification();
-				}
-				ImageWindow yz_win = yz_image.getWindow();
-				if (yz_win == null)
-					return;
-				ImageCanvas yz_ic = yz_win.getCanvas();
-				double yz_mag = yz_ic.getMagnification();
-				zcoord = (int) (arat * z);
-				while (yz_mag < magnification) {
-					yz_ic.zoomIn(yz_ic.screenX(zcoord), yz_ic.screenY(y));
-					yz_mag = yz_ic.getMagnification();
-				}
-				while (yz_mag > magnification) {
-					yz_ic.zoomOut(yz_ic.screenX(zcoord), yz_ic.screenY(y));
-					yz_mag = yz_ic.getMagnification();
-				}
+			double magnification = win.getCanvas().getMagnification();
+			int z = imp.getSlice() - 1;
+			ImageWindow xz_win = xz_image.getWindow();
+			if (xz_win == null)
+				return;
+			ImageCanvas xz_ic = xz_win.getCanvas();
+			double xz_mag = xz_ic.getMagnification();
+			double arat = az / ax;
+			int zcoord = (int) (arat * z);
+			if (flipXZ)
+				zcoord = (int) (arat * (imp.getNSlices() - z));
+			while (xz_mag < magnification) {
+				xz_ic.zoomIn(xz_ic.screenX(x), xz_ic.screenY(zcoord));
+				xz_mag = xz_ic.getMagnification();
 			}
+			while (xz_mag > magnification) {
+				xz_ic.zoomOut(xz_ic.screenX(x), xz_ic.screenY(zcoord));
+				xz_mag = xz_ic.getMagnification();
+			}
+			ImageWindow yz_win = yz_image.getWindow();
+			if (yz_win == null)
+				return;
+			ImageCanvas yz_ic = yz_win.getCanvas();
+			double yz_mag = yz_ic.getMagnification();
+			zcoord = (int) (arat * z);
+			while (yz_mag < magnification) {
+				yz_ic.zoomIn(yz_ic.screenX(zcoord), yz_ic.screenY(y));
+				yz_mag = yz_ic.getMagnification();
+			}
+			while (yz_mag > magnification) {
+				yz_ic.zoomOut(yz_ic.screenX(zcoord), yz_ic.screenY(y));
+				yz_mag = yz_ic.getMagnification();
+			}
+
 		});
 	}
 
 	void updateViews(Point p, ImageStack is) {
-		Display.getDefault().syncExec(new Runnable() {
+		Display.getDefault().syncExec(() -> {
+			if (fp1 == null)
+				return;
+			updateXZView(p, is);
 
-			public void run() {
-				if (fp1 == null)
-					return;
-				updateXZView(p, is);
+			double arat = az / ax;
+			int width2 = fp1.getWidth();
+			int height2 = (int) Math.round(fp1.getHeight() * az);
+			if (height2 < 1)
+				height2 = 1;
+			if (width2 != fp1.getWidth() || height2 != fp1.getHeight()) {
+				fp1.setInterpolate(true);
+				ImageProcessor sfp1 = fp1.resize(width2, height2);
+				if (!rgb)
+					sfp1.setMinAndMax(min, max);
+				xz_image.setProcessor("XZ " + p.y, sfp1);
+			} else {
+				if (!rgb)
+					fp1.setMinAndMax(min, max);
+				xz_image.setProcessor("XZ " + p.y, fp1);
+			}
 
-				double arat = az / ax;
-				int width2 = fp1.getWidth();
-				int height2 = (int) Math.round(fp1.getHeight() * az);
+			if (rotateYZ)
+				updateYZView(p, is);
+			else
+				updateZYView(p, is);
+
+			width2 = (int) Math.round(fp2.getWidth() * az);
+			if (width2 < 1)
+				width2 = 1;
+			height2 = fp2.getHeight();
+			String title = "YZ ";
+			if (rotateYZ) {
+				width2 = fp2.getWidth();
+				height2 = (int) Math.round(fp2.getHeight() * az);
 				if (height2 < 1)
 					height2 = 1;
-				if (width2 != fp1.getWidth() || height2 != fp1.getHeight()) {
-					fp1.setInterpolate(true);
-					ImageProcessor sfp1 = fp1.resize(width2, height2);
-					if (!rgb)
-						sfp1.setMinAndMax(min, max);
-					xz_image.setProcessor("XZ " + p.y, sfp1);
-				} else {
-					if (!rgb)
-						fp1.setMinAndMax(min, max);
-					xz_image.setProcessor("XZ " + p.y, fp1);
-				}
-
-				if (rotateYZ)
-					updateYZView(p, is);
-				else
-					updateZYView(p, is);
-
-				width2 = (int) Math.round(fp2.getWidth() * az);
-				if (width2 < 1)
-					width2 = 1;
-				height2 = fp2.getHeight();
-				String title = "YZ ";
-				if (rotateYZ) {
-					width2 = fp2.getWidth();
-					height2 = (int) Math.round(fp2.getHeight() * az);
-					if (height2 < 1)
-						height2 = 1;
-					title = "ZY ";
-				}
-				if (width2 != fp2.getWidth() || height2 != fp2.getHeight()) {
-					fp2.setInterpolate(true);
-					ImageProcessor sfp2 = fp2.resize(width2, height2);
-					if (!rgb)
-						sfp2.setMinAndMax(min, max);
-					yz_image.setProcessor(title + p.x, sfp2);
-				} else {
-					if (!rgb)
-						fp2.setMinAndMax(min, max);
-					yz_image.setProcessor(title + p.x, fp2);
-				}
-
-				calibrate();
-				if (yz_image.getWindow() == null) {
-					yz_image.show();
-					ImageCanvas ic = yz_image.getCanvas();
-					ic.addKeyListener(Orthogonal_Views.this);
-					ic.addMouseListener(Orthogonal_Views.this);
-					ic.addMouseMoveListener(Orthogonal_Views.this);
-					ic.setCustomRoi(true);
-					yzID = yz_image.getID();
-				} else {
-					ImageCanvas ic = yz_image.getWindow().getCanvas();
-					ic.setCustomRoi(true);
-				}
-				if (xz_image.getWindow() == null) {
-					xz_image.show();
-					ImageCanvas ic = xz_image.getCanvas();
-					ic.addKeyListener(Orthogonal_Views.this);
-					ic.addMouseListener(Orthogonal_Views.this);
-					ic.addMouseMoveListener(Orthogonal_Views.this);
-					ic.setCustomRoi(true);
-					xzID = xz_image.getID();
-				} else {
-					ImageCanvas ic = xz_image.getWindow().getCanvas();
-					ic.setCustomRoi(true);
-				}
+				title = "ZY ";
 			}
+			if (width2 != fp2.getWidth() || height2 != fp2.getHeight()) {
+				fp2.setInterpolate(true);
+				ImageProcessor sfp2 = fp2.resize(width2, height2);
+				if (!rgb)
+					sfp2.setMinAndMax(min, max);
+				yz_image.setProcessor(title + p.x, sfp2);
+			} else {
+				if (!rgb)
+					fp2.setMinAndMax(min, max);
+				yz_image.setProcessor(title + p.x, fp2);
+			}
+
+			calibrate();
+			if (yz_image.getWindow() == null) {
+				yz_image.show();
+				ImageCanvas ic = yz_image.getCanvas();
+				ic.addKeyListener(Orthogonal_Views.this);
+				ic.addMouseListener(Orthogonal_Views.this);
+				ic.addMouseMoveListener(Orthogonal_Views.this);
+				ic.setCustomRoi(true);
+				yzID = yz_image.getID();
+			} else {
+				ImageCanvas ic = yz_image.getWindow().getCanvas();
+				ic.setCustomRoi(true);
+			}
+			if (xz_image.getWindow() == null) {
+				xz_image.show();
+				ImageCanvas ic = xz_image.getCanvas();
+				ic.addKeyListener(Orthogonal_Views.this);
+				ic.addMouseListener(Orthogonal_Views.this);
+				ic.addMouseMoveListener(Orthogonal_Views.this);
+				ic.setCustomRoi(true);
+				xzID = xz_image.getID();
+			} else {
+				ImageCanvas ic = xz_image.getWindow().getCanvas();
+				ic.setCustomRoi(true);
+			}
+
 		});
 
 	}
@@ -640,74 +635,76 @@ public class Orthogonal_Views
 		path.moveTo(x, 0f);
 		path.lineTo(x, height);
 	}
-    /*In ImageJ 'dispose' is the original method name which a fixed method name in SWT!*/
-	void disposeMethod() {
-		Display.getDefault().syncExec(new Runnable() {
 
-			public void run() {
-				synchronized (this) {
-					done = true;
-					notify();
-				}
-				Overlay overlay = imp.getOverlay();
-				if (overlay!=null) {
-					overlay.remove(CROSS);
-					ImageCanvas ic = imp.getCanvas();
-					if (ic!=null)
-						ic.setCustomRoi(true);
-					if (overlay.size()==0)
-						imp.setOverlay(null);
-					else
-						imp.draw();
-				}
-				if (canvas.isDisposed() == false) {
-					canvas.removeMouseListener(Orthogonal_Views.this);
-					canvas.removeMouseMoveListener(Orthogonal_Views.this);
-					canvas.removeKeyListener(Orthogonal_Views.this);
-					canvas.setCustomRoi(false);
-				}
-				xz_image.setOverlay(null);
-				ImageWindow win1 = xz_image.getWindow();
-				if (win1 != null) {
-					win1.getShell().removeMouseMoveListener(Orthogonal_Views.this);
-					ImageCanvas ic = win1.getCanvas();
-					if (ic != null) {
-						ic.removeKeyListener(Orthogonal_Views.this);
-						ic.removeMouseListener(Orthogonal_Views.this);
-						ic.removeMouseMoveListener(Orthogonal_Views.this);
-						ic.setCustomRoi(false);
-					}
-				}
-				xz_image.changes = false;
-				xz_image.close();
-				yz_image.setOverlay(null);
-				ImageWindow win2 = yz_image.getWindow();
-				if (win2 != null) {
-					win2.getShell().removeMouseMoveListener(Orthogonal_Views.this);
-					ImageCanvas ic = win2.getCanvas();
-					if (ic != null) {
-						ic.removeKeyListener(Orthogonal_Views.this);
-						ic.removeMouseListener(Orthogonal_Views.this);
-						ic.removeMouseMoveListener(Orthogonal_Views.this);
-						ic.setCustomRoi(false);
-					}
-				}
-				yz_image.changes = false;
-				yz_image.close();
-				ImagePlus.removeImageListener(Orthogonal_Views.this);
-				Executer.removeCommandListener(Orthogonal_Views.this);
-				if (win.getShell().isDisposed() == false) {
-					win.getShell().removeShellListener(Orthogonal_Views.this);
-					win.getShell().removeMouseWheelListener(Orthogonal_Views.this);
-					win.getShell().removeFocusListener(Orthogonal_Views.this);
-					win.setResizable(true);
-				}
-				instance = null;
-				previousID = imp.getID();
-				previousX = crossLoc.x;
-				previousY = crossLoc.y;
-				imageStack = null;
+	/*
+	 * In ImageJ 'dispose' is the original method name which a fixed method name in
+	 * SWT!
+	 */
+	void disposeMethod() {
+		Display.getDefault().syncExec(() -> {
+			synchronized (this) {
+				done = true;
+				notify();
 			}
+			Overlay overlay = imp.getOverlay();
+			if (overlay != null) {
+				overlay.remove(CROSS);
+				ImageCanvas ic = imp.getCanvas();
+				if (ic != null)
+					ic.setCustomRoi(true);
+				if (overlay.size() == 0)
+					imp.setOverlay(null);
+				else
+					imp.draw();
+			}
+			if (canvas.isDisposed() == false) {
+				canvas.removeMouseListener(Orthogonal_Views.this);
+				canvas.removeMouseMoveListener(Orthogonal_Views.this);
+				canvas.removeKeyListener(Orthogonal_Views.this);
+				canvas.setCustomRoi(false);
+			}
+			xz_image.setOverlay(null);
+			ImageWindow win1 = xz_image.getWindow();
+			if (win1 != null) {
+				win1.getShell().removeMouseMoveListener(Orthogonal_Views.this);
+				ImageCanvas ic = win1.getCanvas();
+				if (ic != null) {
+					ic.removeKeyListener(Orthogonal_Views.this);
+					ic.removeMouseListener(Orthogonal_Views.this);
+					ic.removeMouseMoveListener(Orthogonal_Views.this);
+					ic.setCustomRoi(false);
+				}
+			}
+			xz_image.changes = false;
+			xz_image.close();
+			yz_image.setOverlay(null);
+			ImageWindow win2 = yz_image.getWindow();
+			if (win2 != null) {
+				win2.getShell().removeMouseMoveListener(Orthogonal_Views.this);
+				ImageCanvas ic = win2.getCanvas();
+				if (ic != null) {
+					ic.removeKeyListener(Orthogonal_Views.this);
+					ic.removeMouseListener(Orthogonal_Views.this);
+					ic.removeMouseMoveListener(Orthogonal_Views.this);
+					ic.setCustomRoi(false);
+				}
+			}
+			yz_image.changes = false;
+			yz_image.close();
+			ImagePlus.removeImageListener(Orthogonal_Views.this);
+			Executer.removeCommandListener(Orthogonal_Views.this);
+			if (win.getShell().isDisposed() == false) {
+				win.getShell().removeShellListener(Orthogonal_Views.this);
+				win.getShell().removeMouseWheelListener(Orthogonal_Views.this);
+				win.getShell().removeFocusListener(Orthogonal_Views.this);
+				win.setResizable(true);
+			}
+			instance = null;
+			previousID = imp.getID();
+			previousX = crossLoc.x;
+			previousY = crossLoc.y;
+			imageStack = null;
+
 		});
 	}
 
@@ -864,7 +861,7 @@ public class Orthogonal_Views
 		GeneralPath path = new GeneralPath();
 		drawCross(imp, p, path);
 		if (!done) {
-			if (imp.getOverlay()==null)
+			if (imp.getOverlay() == null)
 				imp.setOverlay(new Overlay());
 			setOverlay(imp, path);
 		}
@@ -875,10 +872,10 @@ public class Orthogonal_Views
 		arrangeWindows(sticky);
 		initialized = true;
 	}
-	
+
 	private void setOverlay(ImagePlus imp, GeneralPath path) {
 		Overlay overlay = imp.getOverlay();
-		if (overlay==null)
+		if (overlay == null)
 			overlay = new Overlay();
 		Roi roi = new ShapeRoi(path);
 		roi.setStrokeColor(color);
@@ -973,8 +970,7 @@ public class Orthogonal_Views
 
 	public void imageClosed(ImagePlus imp) {
 		/*
-		 * if (!done)
-		 * dispose();
+		 * if (!done) dispose();
 		 */
 	}
 
@@ -1043,14 +1039,11 @@ public class Orthogonal_Views
 	}
 
 	/*
-	 * public void windowActivated(WindowEvent e) {
-	 * arrangeWindows(sticky);
-	 * }
+	 * public void windowActivated(WindowEvent e) { arrangeWindows(sticky); }
 	 */
 
 	/*
-	 * public void windowClosed(WindowEvent e) {
-	 * }
+	 * public void windowClosed(WindowEvent e) { }
 	 */
 
 	@Override
@@ -1062,19 +1055,13 @@ public class Orthogonal_Views
 	}
 
 	/*
-	 * public void windowClosing(WindowEvent e) {
-	 * if (!done)
-	 * dispose();
-	 * }
+	 * public void windowClosing(WindowEvent e) { if (!done) dispose(); }
 	 * 
-	 * public void windowDeactivated(WindowEvent e) {
-	 * }
+	 * public void windowDeactivated(WindowEvent e) { }
 	 */
 
 	/*
-	 * public void windowDeiconified(WindowEvent e) {
-	 * arrangeWindows(sticky);
-	 * }
+	 * public void windowDeiconified(WindowEvent e) { arrangeWindows(sticky); }
 	 */
 	@Override
 	public void shellDeiconified(ShellEvent arg0) {
@@ -1158,9 +1145,9 @@ public class Orthogonal_Views
 		if (instance != null)
 			instance.disposeMethod();
 	}
-	
- 	public static void start() {
-		if (instance==null)
+
+	public static void start() {
+		if (instance == null)
 			IJ.run("Orthogonal Views");
 	}
 
