@@ -313,14 +313,12 @@ public class ColorThresholder extends PlugInFrame
 				if (!done) {// RPD
 					ImagePlus imp = WindowManager.getCurrentImage();
 					if (imp != null) {
-						Display.getDefault().asyncExec(new Runnable() {
+						Display.getDefault().asyncExec(() -> {
 
-							public void run() {
+							reset(imp);
+							apply(imp);
+							imp.updateAndDraw();
 
-								reset(imp);
-								apply(imp);
-								imp.updateAndDraw();
-							}
 						});
 					}
 				}
