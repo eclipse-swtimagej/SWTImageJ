@@ -106,6 +106,9 @@ For efficiency the painting area is restricted to the visible shell or editor ar
 
 In the original ImageJ implementation the AWTEvent is used as an argument with the ij.gui.DialogListener interface method dialogItemChanged. This was ported to a [TypedEvent](https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fevents%2FTypedEvent.html) argument for SWT.
 
+For some parts (selection API) the SWTGraphics2D library is used to convert Java2D calls to SWT graphic calls, see:
+See: https://github.com/jfree/swtgraphics2d
+
 ### List of some typical SWT replacements
 
 #### Listeners:
