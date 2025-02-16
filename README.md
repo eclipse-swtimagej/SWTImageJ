@@ -89,6 +89,11 @@ Copy the compiled plugin classes to the plugins folder of SWTImageJ thus it can 
 
 In general the SWTImageJ implementation follows the general ImageJ layout of packages, classes and folders familiar to ImageJ developers. 
 
+For some parts (selection API) the SWTGraphics2D library is used to convert Java2D calls to SWT graphic calls, see:
+See: https://github.com/jfree/swtgraphics2d
+
+For a fast image display the processor classes of ImageJ have been translated to SWT. For this I tried out several known described implementations but found myself a more effective method with a direct pixel transfer similar to the creation of a BufferedImage (see the different processor classes).
+
 In ImageJ the user interface or the image display (ImageWindow) are AWT Frames or Dialogs. In SWT the shells are created within the classes with some custom methods.
 The reasons are noted in the API description (see API description 1, 2) and on StackOverflow: 
 
@@ -105,9 +110,6 @@ is larger then the shell (parent canvas fills the shell) the zoom indicator will
 For efficiency the painting area is restricted to the visible shell or editor area.
 
 In the original ImageJ implementation the AWTEvent is used as an argument with the ij.gui.DialogListener interface method dialogItemChanged. This was ported to a [TypedEvent](https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fswt%2Fevents%2FTypedEvent.html) argument for SWT.
-
-For some parts (selection API) the SWTGraphics2D library is used to convert Java2D calls to SWT graphic calls, see:
-See: https://github.com/jfree/swtgraphics2d
 
 ### List of some typical SWT replacements
 
