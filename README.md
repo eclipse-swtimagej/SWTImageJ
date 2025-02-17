@@ -46,7 +46,9 @@ Stack Overflow:   [https://stackoverflow.com/questions/tagged/imagej](https://st
 
 ### Run SWTImageJ
 
-To start SWTImageJ as an Desktop application simply import the plugin project into Eclipse (It might be important to use the RCP distribution of Eclipse if you don't get the required SWT, JFace... libraries added by default to the Plugins classpath): 
+To start SWTImageJ as an Desktop application simply import the plugin project into Eclipse. 
+
+It might be important to use the RCP distribution of Eclipse if you don't get the required SWT, JFace... libraries added by default to the Plugins classpath: 
 
 [Eclipse IDE for RCP and RAP Developers](https://www.eclipse.org/downloads/packages/release/2024-12/r/eclipse-ide-rcp-and-rap-developers).
 
