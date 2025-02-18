@@ -150,8 +150,8 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 	 * Plugins should call IJ.getVersion() or IJ.getFullVersion() to get the version
 	 * string.
 	 */
-	public static final String VERSION = "1.54n";
-	public static final String BUILD = "7";
+	public static final String VERSION = "1.54p";
+	public static final String BUILD = "";
 	public static org.eclipse.swt.graphics.Color backgroundColor = new org.eclipse.swt.graphics.Color(
 			Display.getCurrent(), 237, 237, 237);
 	/** SansSerif, 12-point, plain font. */
