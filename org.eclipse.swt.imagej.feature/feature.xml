@@ -6,7 +6,7 @@
       plugin="org.eclipse.swt.imagej">
 
    <description url="https://projects.eclipse.org/projects/technology.swtimagej">
-      This is the Eclipse swt.imagej feature.
+      ImageJ for the Standard Widgets Toolkit
    </description>
 
    <copyright url="https://projects.eclipse.org/projects/technology.swtimagej">
