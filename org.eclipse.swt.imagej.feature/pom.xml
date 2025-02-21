@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.eclipse.swt.imagej</groupId>
+		<artifactId>org.eclipse.swt.imagej.build</artifactId>
+		<version>1.5.0</version>
+		<relativePath>../org.eclipse.swt.imagej.cbi/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>org.eclipse.swt.imagej.feature</artifactId>
+	<packaging>eclipse-feature</packaging>
+	<version>1.5.0-SNAPSHOT</version>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+				<version>${tycho.version}</version>
+
+				<executions>
+					<execution>
+						<id>source-feature</id>
+						<phase>package</phase>
+						<goals>
+							<goal>feature-source</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-p2-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<executions>
+					<execution>
+						<id>attached-p2-metadata</id>
+						<phase>package</phase>
+						<goals>
+							<goal>p2-metadata</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
