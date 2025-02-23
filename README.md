@@ -60,7 +60,7 @@ If you want to start it with another IDE put the required libraries on the Java 
 
 ### Built SWTImageJ as a *.jar (not runnable)
 
-To built SWTImageJ as a *.jar library use Maven in the SWTImageJ directory with:
+To built SWTImageJ as a *.jar library use [Maven](https://maven.apache.org/) in the SWTImageJ directory with:
 
 mvn -f org.eclipse.swt.imagej.cbi/pom.xml clean install
 
