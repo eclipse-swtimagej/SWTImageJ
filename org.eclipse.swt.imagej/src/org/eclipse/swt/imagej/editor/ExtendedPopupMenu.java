@@ -47,7 +47,9 @@ public class ExtendedPopupMenu {
 		 * We can read in a properties file to ignore certain menus!
 		 */
 		ignored = new HashSet<String>();
-		readFile("contextmenu.txt");
+		/* If we want to exclude menu items we can read in a text file with items to ignore.
+		 * readFile("contextmenu.txt"); 
+		 */
 		recurseMenu(menuBar, builtMenu);
 	}
 
