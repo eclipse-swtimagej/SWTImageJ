@@ -68,7 +68,7 @@ To integrate more libraries with Maven and the target platform , see: [https://w
 
 ### ImageJ Macros and Scripts
 
-Available ImageJ Macros and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) using the default ImageJ macro functions or ImageJ API should run. However sometimes source corrections for SWT are necessary.
+Available [ImageJ Macros](https://imagej.net/ij/developer/macro/macros.html) and Scripts (Beanshell, Jython, JavaScript - if interpreter is available in the plugins folder) using the default ImageJ macro functions or ImageJ API should run. However sometimes source corrections for SWT are necessary.
 
 
 In SWTImageJ the Java and Macro/Script editor was ported to the SWT StyledText widget with code templates (press control-space) and syntax highlighting.
