@@ -358,7 +358,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		org.eclipse.swt.widgets.MenuItem newItem = new org.eclipse.swt.widgets.MenuItem(fileMenu, SWT.PUSH);
 		newItem.setText("New...");
 		int cmdOrCtrl = IJ.isMacOSX() ? SWT.COMMAND : SWT.CTRL;
-		newItem.setAccelerator(cmdOrCtrl + 'n');
+		newItem.setAccelerator(cmdOrCtrl + SWT.SHIFT+ 'n');
 		newItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem openItem = new org.eclipse.swt.widgets.MenuItem(fileMenu, SWT.PUSH);
 		openItem.setText("Open...");
@@ -560,12 +560,12 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem macrosFunctionsItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				macrosFunctionsItem.setText("Macro Functions...");
-				macrosFunctionsItem.setAccelerator(cmdOrCtrl + 'm');
+				macrosFunctionsItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'm');
 				macrosFunctionsItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem functionFinderItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				functionFinderItem.setText("Function Finder...");
-				functionFinderItem.setAccelerator(cmdOrCtrl +SWT.SHIFT+ 'f');
+				functionFinderItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'f');
 				functionFinderItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem enterInteractiveModeItem = new org.eclipse.swt.widgets.MenuItem(
 						macroMenu, SWT.PUSH);
@@ -574,7 +574,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem assignToRepeatCmdItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				assignToRepeatCmdItem.setText("Assign to Repeat Cmd");
-				assignToRepeatCmdItem.setAccelerator(cmdOrCtrl + 'a');
+				assignToRepeatCmdItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'a');
 				assignToRepeatCmdItem.addSelectionListener(Editor.this);
 				new org.eclipse.swt.widgets.MenuItem(macroMenu, SWT.SEPARATOR);
 				org.eclipse.swt.widgets.MenuItem evaluateMacroItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
@@ -589,7 +589,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem evaluateBeanShellItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				evaluateBeanShellItem.setText("Evaluate BeanShell");
-				evaluateBeanShellItem.setAccelerator(cmdOrCtrl + 'b');
+				evaluateBeanShellItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'b');
 				evaluateBeanShellItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem evaluatePythonItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
@@ -599,7 +599,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem showLogWindowItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				showLogWindowItem.setText("Show Log Window");
-				showLogWindowItem.setAccelerator(cmdOrCtrl + 'a');
+				showLogWindowItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'a');
 				showLogWindowItem.addSelectionListener(Editor.this);
 				new org.eclipse.swt.widgets.MenuItem(macroMenu, SWT.SEPARATOR);
 				// MACROS_MENU_ITEMS must be updated if items are added to Editor.this menu
@@ -627,7 +627,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 					org.eclipse.swt.widgets.MenuItem fastTraceItem = new org.eclipse.swt.widgets.MenuItem(debugMenu,
 							SWT.PUSH);
 					fastTraceItem.setText("Fast Trace");
-					fastTraceItem.setAccelerator(SWT.MOD1 + 't');
+					fastTraceItem.setAccelerator(SWT.MOD1 + SWT.SHIFT + 't');
 					fastTraceItem.addSelectionListener(Editor.this);
 					org.eclipse.swt.widgets.MenuItem runItem = new org.eclipse.swt.widgets.MenuItem(debugMenu,
 							SWT.PUSH);
@@ -636,7 +636,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 					org.eclipse.swt.widgets.MenuItem runToInsertionPointItem = new org.eclipse.swt.widgets.MenuItem(
 							debugMenu, SWT.PUSH);
 					runToInsertionPointItem.setText("Run to Insertion Point");
-					runToInsertionPointItem.setAccelerator(SWT.MOD1 + 'e');
+					runToInsertionPointItem.setAccelerator(SWT.MOD1 + SWT.SHIFT + 'e');
 					runToInsertionPointItem.addSelectionListener(Editor.this);
 					org.eclipse.swt.widgets.MenuItem abortItem = new org.eclipse.swt.widgets.MenuItem(debugMenu,
 							SWT.PUSH);
