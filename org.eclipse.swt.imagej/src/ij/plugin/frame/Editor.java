@@ -357,15 +357,16 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		m.setMenu(fileMenu);
 		org.eclipse.swt.widgets.MenuItem newItem = new org.eclipse.swt.widgets.MenuItem(fileMenu, SWT.PUSH);
 		newItem.setText("New...");
-		newItem.setAccelerator(SWT.CTRL + 'n');
+		int cmdOrCtrl = IJ.isMacOSX() ? SWT.COMMAND : SWT.CTRL;
+		newItem.setAccelerator(cmdOrCtrl + 'n');
 		newItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem openItem = new org.eclipse.swt.widgets.MenuItem(fileMenu, SWT.PUSH);
 		openItem.setText("Open...");
-		openItem.setAccelerator(SWT.CTRL + 'o');
+		openItem.setAccelerator(cmdOrCtrl + 'o');
 		openItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem saveItem = new org.eclipse.swt.widgets.MenuItem(fileMenu, SWT.PUSH);
 		saveItem.setText("Save");
-		saveItem.setAccelerator(SWT.CTRL + 's');
+		saveItem.setAccelerator(cmdOrCtrl + 's');
 		saveItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem saveAsItem = new org.eclipse.swt.widgets.MenuItem(fileMenu, SWT.PUSH);
 		saveAsItem.setText("Save As...");
@@ -385,10 +386,10 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		undoItem.addSelectionListener(Editor.this);
 		if (IJ.isWindows()) {
 			undoItem.setText("Undo  Ctrl+Z");
-			undoItem.setAccelerator(SWT.CTRL + 'z');
+			undoItem.setAccelerator(cmdOrCtrl + 'z');
 		} else {
 			undoItem.setText("Undo");
-			undoItem.setAccelerator(SWT.CTRL + 'z');
+			undoItem.setAccelerator(cmdOrCtrl + 'z');
 		}
 		new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.SEPARATOR);
 		org.eclipse.swt.widgets.MenuItem cutItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
@@ -397,38 +398,38 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			cutItem.setText("Cut  Ctrl+X");
 		else {
 			cutItem.setText("Cut");
-			cutItem.setAccelerator(SWT.CTRL + 'x');
+			cutItem.setAccelerator(cmdOrCtrl + 'x');
 		}
 		org.eclipse.swt.widgets.MenuItem copyItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		copyItem.addSelectionListener(Editor.this);
 		if (IJ.isWindows()) {
 			copyItem.setText("Copy  Ctrl+C");
-			copyItem.setAccelerator(SWT.CTRL + 'c');
+			copyItem.setAccelerator(cmdOrCtrl + 'c');
 		} else {
 			copyItem.setText("Copy");
-			copyItem.setAccelerator(SWT.CTRL + 'c');
+			copyItem.setAccelerator(cmdOrCtrl + 'c');
 		}
 		org.eclipse.swt.widgets.MenuItem pasteItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		pasteItem.addSelectionListener(Editor.this);
 		if (IJ.isWindows()) {
 			pasteItem.setText("Paste  Ctrl+V");
-			pasteItem.setAccelerator(SWT.CTRL + 'v');
+			pasteItem.setAccelerator(cmdOrCtrl + 'v');
 		} else {
 			pasteItem.setText("Paste");
-			pasteItem.setAccelerator(SWT.CTRL + 'v');
+			pasteItem.setAccelerator(cmdOrCtrl + 'v');
 		}
 		new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.SEPARATOR);
 		org.eclipse.swt.widgets.MenuItem findItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		findItem.setText("Find...");
-		findItem.setAccelerator(SWT.CTRL + 'f');
+		findItem.setAccelerator(cmdOrCtrl + 'f');
 		findItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem findNextItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		findNextItem.setText("Find Next");
-		findNextItem.setAccelerator(SWT.CTRL + 'g');
+		findNextItem.setAccelerator(cmdOrCtrl + 'g');
 		findNextItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem goToLineItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		goToLineItem.setText("Go to Line...");
-		goToLineItem.setAccelerator(SWT.CTRL + 'l');
+		goToLineItem.setAccelerator(cmdOrCtrl + 'l');
 		goToLineItem.addSelectionListener(Editor.this);
 		new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.SEPARATOR);
 		org.eclipse.swt.widgets.MenuItem selectAllItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
@@ -437,7 +438,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		selectAllItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem balanceItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		balanceItem.setText("Balance");
-		balanceItem.setAccelerator(SWT.CTRL + 'b');
+		balanceItem.setAccelerator(cmdOrCtrl + 'b');
 		balanceItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem detabItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		detabItem.setText("Detab...");
@@ -509,7 +510,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	}
 
 	public void create(String name, String text) {
-
+		int cmdOrCtrl = IJ.isMacOSX() ? SWT.COMMAND : SWT.CTRL;
 		Display.getDefault().syncExec(() -> {
 
 			ta.append(text);
@@ -540,12 +541,12 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem runMacroItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				runMacroItem.setText("Run Macro");
-				runMacroItem.setAccelerator(SWT.CTRL + 'r');
+				runMacroItem.setAccelerator(cmdOrCtrl + 'r');
 				runMacroItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem evaluateLineItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				evaluateLineItem.setText("Evaluate Line");
-				evaluateLineItem.setAccelerator(SWT.CTRL + 'y');
+				evaluateLineItem.setAccelerator(cmdOrCtrl + 'y');
 				evaluateLineItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem abortMacroItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
@@ -554,17 +555,17 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem installMacrosItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				installMacrosItem.setText("Install Macros");
-				installMacrosItem.setAccelerator(SWT.CTRL + 'i');
+				installMacrosItem.setAccelerator(cmdOrCtrl + 'i');
 				installMacrosItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem macrosFunctionsItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				macrosFunctionsItem.setText("Macro Functions...");
-				macrosFunctionsItem.setAccelerator(SWT.CTRL + 'm');
+				macrosFunctionsItem.setAccelerator(cmdOrCtrl + 'm');
 				macrosFunctionsItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem functionFinderItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				functionFinderItem.setText("Function Finder...");
-				functionFinderItem.setAccelerator(SWT.CTRL + 'f');
+				functionFinderItem.setAccelerator(cmdOrCtrl +SWT.SHIFT+ 'f');
 				functionFinderItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem enterInteractiveModeItem = new org.eclipse.swt.widgets.MenuItem(
 						macroMenu, SWT.PUSH);
@@ -573,7 +574,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem assignToRepeatCmdItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				assignToRepeatCmdItem.setText("Assign to Repeat Cmd");
-				assignToRepeatCmdItem.setAccelerator(SWT.CTRL + 'a');
+				assignToRepeatCmdItem.setAccelerator(cmdOrCtrl + 'a');
 				assignToRepeatCmdItem.addSelectionListener(Editor.this);
 				new org.eclipse.swt.widgets.MenuItem(macroMenu, SWT.SEPARATOR);
 				org.eclipse.swt.widgets.MenuItem evaluateMacroItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
@@ -583,22 +584,22 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem evaluateJavaScriptItem = new org.eclipse.swt.widgets.MenuItem(
 						macroMenu, SWT.PUSH);
 				evaluateJavaScriptItem.setText("Evaluate JavaScript");
-				evaluateJavaScriptItem.setAccelerator(SWT.CTRL + 'j');
+				evaluateJavaScriptItem.setAccelerator(cmdOrCtrl + 'j');
 				evaluateJavaScriptItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem evaluateBeanShellItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				evaluateBeanShellItem.setText("Evaluate BeanShell");
-				evaluateBeanShellItem.setAccelerator(SWT.CTRL + 'b');
+				evaluateBeanShellItem.setAccelerator(cmdOrCtrl + 'b');
 				evaluateBeanShellItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem evaluatePythonItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				evaluatePythonItem.setText("Evaluate Python");
-				evaluatePythonItem.setAccelerator(SWT.CTRL + 'p');
+				evaluatePythonItem.setAccelerator(cmdOrCtrl + 'p');
 				evaluatePythonItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem showLogWindowItem = new org.eclipse.swt.widgets.MenuItem(macroMenu,
 						SWT.PUSH);
 				showLogWindowItem.setText("Show Log Window");
-				showLogWindowItem.setAccelerator(SWT.CTRL + 'a');
+				showLogWindowItem.setAccelerator(cmdOrCtrl + 'a');
 				showLogWindowItem.addSelectionListener(Editor.this);
 				new org.eclipse.swt.widgets.MenuItem(macroMenu, SWT.SEPARATOR);
 				// MACROS_MENU_ITEMS must be updated if items are added to Editor.this menu
@@ -647,7 +648,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				org.eclipse.swt.widgets.MenuItem compileAndRunItem = new org.eclipse.swt.widgets.MenuItem(fileMenu,
 						SWT.PUSH);
 				compileAndRunItem.setText("Compile and Run");
-				compileAndRunItem.setAccelerator(SWT.CTRL + 'r');
+				compileAndRunItem.setAccelerator(cmdOrCtrl + 'r');
 				compileAndRunItem.addSelectionListener(Editor.this);
 			}
 			if (language != null) {
