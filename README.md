@@ -162,7 +162,7 @@ Some dialogs are based on JFace.
 
 #### Layout differences
 
-Instead of the BorderLayout most of the times the SWT GridLayout is used which can be applied very flexible to components.
+Instead of the BorderLayout most of the times the SWT [GridLayout](https://www.eclipse.org/articles/Article-Understanding-Layouts/Understanding-Layouts.htm) is used which can be applied very flexible to components.
 
 #### Mouse Listeners
 
