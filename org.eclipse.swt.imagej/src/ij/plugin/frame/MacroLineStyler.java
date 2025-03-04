@@ -74,10 +74,10 @@ class MacroLineStyler implements LineStyleListener {
 		Display display = Display.getDefault();
 		if (Display.isSystemDarkTheme()) {
 
-			colors = new Color[] { new Color(display, new RGB(255, 255, 255)), // black
-					new Color(display, new RGB(177, 102, 218)), // red
+			colors = new Color[] { new Color(display, new RGB(209,227,188)), // black
+					new Color(display, new RGB(236,169,169)), // red
 					new Color(display, new RGB(104, 151, 187)), // green
-					new Color(display, new RGB(23, 198, 163)) // blue
+					new Color(display, new RGB(211,153,231)) // blue
 			};
 
 		} else {
