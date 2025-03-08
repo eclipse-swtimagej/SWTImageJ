@@ -46,7 +46,7 @@ Stack Overflow:   [https://stackoverflow.com/questions/tagged/imagej](https://st
 
 ### ImageJ Plugins
 
-ImageJ Plugins [https://imagej.net/ij/plugins/index.html] (https://imagej.net/ij/plugins/index.html)
+ImageJ Plugins [https://imagej.net/ij/plugins/index.html](https://imagej.net/ij/plugins/index.html)
 
 ### Run SWTImageJ
 
