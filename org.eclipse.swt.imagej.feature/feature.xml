@@ -3,18 +3,20 @@
       id="org.eclipse.swt.imagej.feature"
       label="Eclipse SWTImageJ"
       version="1.5.0.qualifier"
-      plugin="org.eclipse.swt.imagej">
+      plugin="org.eclipse.swt.imagej"
+      license-feature="org.eclipse.license"
+      license-feature-version="2.0.2.qualifier">
 
    <description url="https://projects.eclipse.org/projects/technology.swtimagej">
       ImageJ for the Standard Widgets Toolkit
    </description>
 
-   <copyright url="https://projects.eclipse.org/projects/technology.swtimagej">
+   <copyright url="https://lablicate.com">
       Lablicate GmbH
    </copyright>
 
-   <license url="https://www.eclipse.org/legal/epl-2.0/">
-      Eclipse License 2.0
+   <license url="%licenseURL">
+      %license
    </license>
 
    <plugin
