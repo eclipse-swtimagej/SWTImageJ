@@ -41,7 +41,6 @@
     </developer>
   </developers>
   <modules>
-    <module>../org.eclipse.swt.imagej.targetplatform</module>
     <module>../org.eclipse.swt.imagej</module>
     <module>../org.eclipse.swt.imagej.feature</module>
     <module>../org.eclipse.swt.imagej.updatesite</module>
@@ -95,12 +94,8 @@
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho.version}</version>
         <configuration>
-         <target>
-           <artifact>
-             <groupId>org.eclipse.swt.imagej</groupId>
-             <artifactId>org.eclipse.swt.imagej.targetplatform</artifactId>
-             <version>1.5.0</version>
-            </artifact>
+          <target>
+            <file>${maven.multiModuleProjectDirectory}/../org.eclipse.swt.imagej.targetplatform/org.eclipse.swtchart.targetplatform.target</file>
           </target>
           <environments>
             <environment>
