@@ -2,6 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SWTImageJ
 Bundle-SymbolicName: org.eclipse.swt.imagej;singleton:=true
+Bundle-Vendor: Eclipse Foundation
 Bundle-Version: 1.5.0.qualifier
 Export-Package: ij,
  ij.gui,
