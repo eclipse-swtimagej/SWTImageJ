@@ -46,7 +46,7 @@
     <module>../org.eclipse.swt.imagej.updatesite</module>
   </modules>
   <properties>
-    <tycho.version>4.0.12</tycho.version>
+    <tycho.version>4.0.13</tycho.version>
     <tycho.groupid>org.eclipse.tycho</tycho.groupid>
     <maven.groupid>org.apache.maven.plugins</maven.groupid>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
