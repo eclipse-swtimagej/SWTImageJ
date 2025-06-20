@@ -3,9 +3,5 @@
   <feature id="org.eclipse.swt.imagej.feature" version="1.5.0.qualifier">
     <category name="org.eclipse.swt.imagej"/>
   </feature>
-  <feature id="org.eclipse.swt.imagej.feature.source" version="1.5.0.qualifier">
-    <category name="org.eclipse.swt.imagej.source"/>
-  </feature>
   <category-def name="org.eclipse.swt.imagej" label="Eclipse SWTImageJ" />
-  <category-def name="org.eclipse.swt.imagej.source" label="Eclipse SWTImageJ Developer Resources"/>
 </site>
