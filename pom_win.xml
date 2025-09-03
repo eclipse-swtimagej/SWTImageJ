@@ -17,7 +17,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.eclipse.swt.imagej</groupId>
   <artifactId>org.eclipse.swt.imagej.build</artifactId>
-  <version>1.5.0</version>
+  <version>1.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Eclipse SWT ImageJ</name>
   <description>
@@ -41,9 +41,9 @@
     </developer>
   </developers>
   <modules>
-    <module>../org.eclipse.swt.imagej</module>
-    <module>../org.eclipse.swt.imagej.feature</module>
-    <module>../org.eclipse.swt.imagej.updatesite</module>
+    <module>org.eclipse.swt.imagej</module>
+    <module>org.eclipse.swt.imagej.feature</module>
+    <module>org.eclipse.swt.imagej.updatesite</module>
   </modules>
   <properties>
     <tycho.version>5.0.0</tycho.version>
@@ -56,7 +56,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.5.0</version>
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -95,7 +95,7 @@
         <version>${tycho.version}</version>
         <configuration>
           <target>
-            <file>${maven.multiModuleProjectDirectory}/../org.eclipse.swt.imagej.targetplatform/org.eclipse.swtchart.targetplatform.target</file>
+            <file>${maven.multiModuleProjectDirectory}\org.eclipse.swt.imagej.targetplatform\org.eclipse.swtchart.targetplatform.target</file>
           </target>
           <environments>
             <environment>
@@ -232,7 +232,7 @@
                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>3.11.3</version>
+                  <version>3.11.2</version>
                   <executions>
                      <execution>
                         <id>attach-javadocs</id>

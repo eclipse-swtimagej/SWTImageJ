@@ -15,7 +15,7 @@ pipeline {
 	stages {
 		stage('Build') {
 			steps {
-				sh "mvn -f org.eclipse.swt.imagej.cbi/pom.xml -Peclipse-sign clean install"
+				sh "mvn -Peclipse-sign clean install"
 			}
 		}
 		stage('Deploy') {
