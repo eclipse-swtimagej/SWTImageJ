@@ -48,6 +48,7 @@
   <properties>
     <tycho.version>5.0.0</tycho.version>
     <tycho.groupid>org.eclipse.tycho</tycho.groupid>
+    <tycho.scmUrl>scm:git:https://github.com/eclipse-swtimagej/SWTImageJ</tycho.scmUrl>
     <maven.groupid>org.apache.maven.plugins</maven.groupid>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -81,7 +82,17 @@
           <archive>
             <addMavenDescriptor>false</addMavenDescriptor>
           </archive>
+		  <sourceReferences>
+			<generate>true</generate>
+		  </sourceReferences>
         </configuration>
+        <dependencies>
+		  <dependency>
+			<groupId>org.eclipse.tycho.extras</groupId>
+			<artifactId>tycho-sourceref-jgit</artifactId>
+			<version>${tycho.version}</version>
+		  </dependency>
+		</dependencies>
       </plugin>
       <plugin>
         <groupId>${tycho.groupid}</groupId>
