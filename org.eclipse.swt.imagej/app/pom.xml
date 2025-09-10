@@ -6,7 +6,8 @@
 	<artifactId>SWTImageJ</artifactId>
 	<version>1.5.0-SNAPSHOT</version>
 	<name>SWTImageJ</name>
-	<description>SWTImageJ is an open source Java SWT port of ImageJ by Wayne Rasband.</description>
+	<description>SWTImageJ is an open source Java SWT port of ImageJ by Wayne
+		Rasband.</description>
 	<url>https://github.com/eclipse-swtimagej/SWTImageJ</url>
 	<inceptionYear>2024</inceptionYear>
 	<organization>
@@ -16,15 +17,16 @@
 	<licenses>
 		<license>
 			<name>EPL-2.0</name>
-			<url>https://github.com/eclipse-swtimagej/SWTImageJ/blob/develop/LICENSE</url>
+			<url>
+				https://github.com/eclipse-swtimagej/SWTImageJ/blob/develop/LICENSE</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<packaging>jar</packaging>
-	<properties> 
-			<maven.compiler.release>21</maven.compiler.release> 
-		</properties> 
+	<properties>
+		<maven.compiler.release>21</maven.compiler.release>
+	</properties>
 	<dependencies>
 		<!-- Your main project dependency -->
 		<dependency>
@@ -77,11 +79,11 @@
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>org.eclipse.swt</artifactId>
 			<version>3.131.0</version>
-
 		</dependency>
 	</dependencies>
 	<build>
-		<!-- Package all required ImageJ folders and files in the exported *.jar! -->
+		<!-- Package all required ImageJ folders and files in the exported
+		*.jar! -->
 		<sourceDirectory>${project.basedir}</sourceDirectory>
 		<resources>
 			<resource>
@@ -99,15 +101,21 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-						<descriptors>
-            			<!-- you can specify an external descriptor here, e.g. to exclude files! -->
-          				</descriptors>
+							<descriptors>
+								<!-- you can specify an external descriptor
+								here, e.g. to exclude files! -->
+							</descriptors>
 							<archive>
 								<manifest>
 									<mainClass>
 										ij.ImageJ
 									</mainClass>
 								</manifest>
+								<manifestEntries>
+									<SWT-OS>${swt.os}</SWT-OS>
+									<SWT-WS>${swt.ws}</SWT-WS>
+									<SWT-ARCH>${swt.arch}</SWT-ARCH>
+								</manifestEntries>
 							</archive>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -118,5 +126,46 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<profiles>
+		<profile>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+				</os>
+			</activation>
+			<properties>
+				<swt.os>win32</swt.os>
+				<swt.ws>win32</swt.ws>
+				<swt.arch>x86_64</swt.arch>
+			</properties>
+		</profile>
+		<profile>
+			<id>linux</id>
+			<activation>
+				<os>
+					<name>Linux</name>
+				</os>
+			</activation>
+			<properties>
+				<swt.os>linux</swt.os>
+				<swt.ws>gtk</swt.ws>
+				<swt.arch>x86_64</swt.arch>
+			</properties>
+		</profile>
+		<profile>
+			<id>mac-aarch64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>aarch64</arch>
+				</os>
+			</activation>
+			<properties>
+				<swt.os>macosx</swt.os>
+				<swt.ws>cocoa</swt.ws>
+				<swt.arch>aarch64</swt.arch>
+			</properties>
+		</profile>
+	</profiles>
 </project>
