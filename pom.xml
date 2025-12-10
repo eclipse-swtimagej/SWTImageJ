@@ -46,7 +46,7 @@
     <module>org.eclipse.swt.imagej.updatesite</module>
   </modules>
   <properties>
-    <tycho.version>5.0.0</tycho.version>
+    <tycho.version>5.0.1</tycho.version>
     <tycho.groupid>org.eclipse.tycho</tycho.groupid>
     <tycho.scmUrl>scm:git:https://github.com/eclipse-swtimagej/SWTImageJ</tycho.scmUrl>
     <maven.groupid>org.apache.maven.plugins</maven.groupid>
