@@ -182,6 +182,12 @@
           </plugins>
         </build>
       </profile>
+	  <profile>
+	     <id>app</id>
+	     <modules>
+	        <module>app</module>
+	     </modules>
+	  </profile>
     </profiles>
     <pluginRepositories>
       <pluginRepository>
