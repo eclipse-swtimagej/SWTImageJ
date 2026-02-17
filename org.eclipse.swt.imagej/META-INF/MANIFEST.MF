@@ -18,7 +18,6 @@ Export-Package: ij,
  ij.swt,
  ij.text,
  ij.util
-Bundle-Activator: org.eclipse.swt.imagej.editor.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.e4.ui.workbench,
