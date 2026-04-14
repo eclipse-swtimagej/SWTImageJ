@@ -1708,7 +1708,7 @@ public abstract class ImageProcessor implements Cloneable {
 			if (ip.getWidth() == 0 || ip.getHeight() == 0)
 				return;
 			g.drawImage(ip.createSwtImage(), 0, 0);
-			g.setForeground(new org.eclipse.swt.graphics.Color(Display.getCurrent(), drawingColor.getRed(),
+			g.setForeground(new org.eclipse.swt.graphics.Color(drawingColor.getRed(),
 					drawingColor.getGreen(), drawingColor.getBlue())); // drawingColor);
 			g.drawString(s, 0, h - descent);
 			g.dispose();

@@ -619,7 +619,7 @@ public class IJ {
 			if(index2 == -1)
 				index2 = options.length();
 			String hexColor = options.substring(index1, index2);
-			optionalColor = SWTUtils.toSwtColor(Display.getDefault(), Colors.decode(hexColor, null));
+			optionalColor = SWTUtils.toSwtColor(Colors.decode(hexColor, null));
 			options = options.replace(hexColor, "");
 		}
 		if(optionalColor == null) { // "red", "green", etc.
@@ -632,14 +632,14 @@ public class IJ {
 			}
 		}
 		boolean flashImage = options.contains("image");
-		org.eclipse.swt.graphics.Color defaultColor = new org.eclipse.swt.graphics.Color(Display.getCurrent(), 255, 255, 245);
+		org.eclipse.swt.graphics.Color defaultColor = new org.eclipse.swt.graphics.Color(255, 255, 245);
 		// org.eclipse.swt.graphics.Color defaultColor = new Color(255, 255, 245);
 		int defaultDelay = 500;
 		ImagePlus imp = WindowManager.getCurrentImage();
 		if(flashImage) {
 			options = options.replace("image", "");
 			if(imp != null && imp.getWindow() != null) {
-				defaultColor = new org.eclipse.swt.graphics.Color(Display.getCurrent(), 0, 0, 0);
+				defaultColor = new org.eclipse.swt.graphics.Color(0, 0, 0);
 				defaultDelay = 100;
 			} else
 				flashImage = false;

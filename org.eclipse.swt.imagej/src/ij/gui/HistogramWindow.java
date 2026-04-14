@@ -336,13 +336,13 @@ public class HistogramWindow extends ImageWindow
 		value.setText("");
 		// statusLabel = new Label();
 		// statusLabel.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		value.setBackground(new org.eclipse.swt.graphics.Color(Display.getDefault(), 220, 220, 220));
+		value.setBackground(new org.eclipse.swt.graphics.Color(220, 220, 220));
 		count = new Label(buttons, SWT.NONE);
 		count.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 		count.setText("");
 		// statusLabel = new Label();
 		// statusLabel.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		count.setBackground(new org.eclipse.swt.graphics.Color(Display.getDefault(), 220, 220, 220));
+		count.setBackground(new org.eclipse.swt.graphics.Color(220, 220, 220));
 		// bottomPanel.add(statusLabel);
 		// add(bottomPanel);
 		/* install SWT popup menus! */

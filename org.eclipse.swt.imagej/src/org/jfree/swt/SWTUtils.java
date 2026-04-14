@@ -244,13 +244,11 @@ public class SWTUtils {
 	 * paint. For now, this method test if the paint is a color and then return the
 	 * adequate swt color. Otherwise plain black is assumed.
 	 *
-	 * @param device
-	 *            The swt device to draw on (display or gc device).
 	 * @param paint
 	 *            The awt color to match.
 	 * @return a swt color object.
 	 */
-	public static Color toSwtColor(Device device, java.awt.Paint paint) {
+	public static Color toSwtColor(java.awt.Paint paint) {
 
 		java.awt.Color color;
 		if(paint instanceof java.awt.Color) {
@@ -263,7 +261,7 @@ public class SWTUtils {
 				color = new java.awt.Color(0, 0, 0);
 			}
 		}
-		return new org.eclipse.swt.graphics.Color(device, color.getRed(), color.getGreen(), color.getBlue());
+		return new org.eclipse.swt.graphics.Color(color.getRed(), color.getGreen(), color.getBlue());
 	}
 
 	/**
@@ -271,15 +269,13 @@ public class SWTUtils {
 	 * color. alpha channel is not supported. Note that the dispose method will need
 	 * to be called on the returned object.
 	 *
-	 * @param device
-	 *            The swt device to draw on (display or gc device).
 	 * @param color
 	 *            The awt color to match.
 	 * @return a swt color object.
 	 */
-	public static Color toSwtColor(Device device, java.awt.Color color) {
+	public static Color toSwtColor(java.awt.Color color) {
 
-		return new org.eclipse.swt.graphics.Color(device, color.getRed(), color.getGreen(), color.getBlue());
+		return new org.eclipse.swt.graphics.Color(color.getRed(), color.getGreen(), color.getBlue());
 	}
 
 	/**

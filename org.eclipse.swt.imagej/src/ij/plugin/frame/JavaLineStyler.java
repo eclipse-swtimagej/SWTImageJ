@@ -72,20 +72,18 @@ class JavaLineStyler implements LineStyleListener {
 
 	void initializeColors() {
 
-		Display display = Display.getDefault();
-
 		if (Display.isSystemDarkTheme()) {
-			colors = new Color[] { new Color(display, new RGB(209,227,188)), // black
-					new Color(display, new RGB(236,169,169)), // red
-					new Color(display, new RGB(104, 151, 187)), // green
-					new Color(display, new RGB(211,153,231)) // blue
+			colors = new Color[] { new Color(new RGB(209,227,188)), // black
+					new Color(new RGB(236,169,169)), // red
+					new Color(new RGB(104, 151, 187)), // green
+					new Color(new RGB(211,153,231)) // blue
 			};
 
 		} else {
-			colors = new Color[] { new Color(display, new RGB(0, 0, 0)), // black
-					new Color(display, new RGB(63, 127, 95)), // red
-					new Color(display, new RGB(42, 0, 255)), // green
-					new Color(display, new RGB(127, 0, 85)) // blue
+			colors = new Color[] { new Color(new RGB(0, 0, 0)), // black
+					new Color(new RGB(63, 127, 95)), // red
+					new Color(new RGB(42, 0, 255)), // green
+					new Color(new RGB(127, 0, 85)) // blue
 			};
 		}
 		tokenColors = new int[MAXIMUM_TOKEN];
@@ -96,13 +94,6 @@ class JavaLineStyler implements LineStyleListener {
 		tokenColors[STRING] = 2;
 		tokenColors[OTHER] = 0;
 		tokenColors[NUMBER] = 0;
-	}
-
-	void disposeColors() {
-
-		for (int i = 0; i < colors.length; i++) {
-			colors[i].dispose();
-		}
 	}
 
 	/**

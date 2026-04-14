@@ -147,7 +147,7 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 	 */
 	public static final String VERSION = "1.54s";
 	public static final String BUILD = ""; // 14
-	public static org.eclipse.swt.graphics.Color backgroundColor = new org.eclipse.swt.graphics.Color(Display.getCurrent(), 237, 237, 237);
+	public static org.eclipse.swt.graphics.Color backgroundColor = new org.eclipse.swt.graphics.Color(237, 237, 237);
 	/** SansSerif, 12-point, plain font. */
 	public static final Font SansSerif12 = new Font("SansSerif", Font.PLAIN, 12);
 	/** SansSerif, 14-point, plain font. */

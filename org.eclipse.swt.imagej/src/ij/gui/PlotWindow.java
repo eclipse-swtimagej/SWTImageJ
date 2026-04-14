@@ -369,7 +369,7 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		statusLabel.setText("");
 		// statusLabel = new Label();
 		// statusLabel.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		statusLabel.setBackground(new org.eclipse.swt.graphics.Color(Display.getDefault(), 220, 220, 220));
+		statusLabel.setBackground(new org.eclipse.swt.graphics.Color(220, 220, 220));
 		// bottomPanel.add(statusLabel);
 		// add(bottomPanel);
 		/* install SWT popup menus! */

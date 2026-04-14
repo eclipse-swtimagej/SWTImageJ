@@ -4943,7 +4943,7 @@ public class Functions implements MacroConstants, Measurements {
 						String colorName = interp.getString();
 						/* Changed for SWT! */
 						color = Colors.decode(colorName, Color.BLACK);
-						colorSwt = new org.eclipse.swt.graphics.Color(Display.getCurrent(), color.getRed(), color.getGreen(), color.getBlue());
+						colorSwt = new org.eclipse.swt.graphics.Color(color.getRed(), color.getGreen(), color.getBlue());
 					}
 					font = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("SansSerif", fontSize, SWT.NORMAL));
 					// font = new Font("SansSerif", Font.PLAIN, fontSize);

@@ -189,7 +189,7 @@ public class Colors implements PlugIn, SelectionListener {
 
 	public static org.eclipse.swt.graphics.Color getColorSwt(String name, Color defaultColor) {
 
-		return SWTUtils.toSwtColor(Display.getDefault(), getColor(name, defaultColor));
+		return SWTUtils.toSwtColor(getColor(name, defaultColor));
 	}
 
 	/**

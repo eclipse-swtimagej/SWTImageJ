@@ -1822,9 +1822,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			changes = false;
 			if(functionFinder != null)
 				functionFinder.close();
-			if(lineStyler != null) {
-				lineStyler.disposeColors();
-			}
 			// Necessary to dispose the listener for the styling of keywords, etc.?
 			// ta.removeLineStyleListener(lineStyler);
 		}

@@ -676,7 +676,7 @@ public class CompositeImage extends ImagePlus {
 		int b = cm.getBlue(index);
 		// IJ.log(index+" "+r+" "+g+" "+b);
 		if (r < 100 || g < 100 || b < 100)
-			return new org.eclipse.swt.graphics.Color(Display.getCurrent(), r, g, b);
+			return new org.eclipse.swt.graphics.Color(r, g, b);
 		else
 			return ij.swt.Color.black;
 	}

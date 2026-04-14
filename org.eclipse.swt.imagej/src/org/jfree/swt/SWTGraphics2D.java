@@ -1514,7 +1514,7 @@ public class SWTGraphics2D extends Graphics2D {
 		org.eclipse.swt.graphics.Color swtColor = (org.eclipse.swt.graphics.Color) this.colorsPool
 				.get(Integer.valueOf(awtColor.getRGB()));
 		if (swtColor == null) {
-			swtColor = SWTUtils.toSwtColor(this.gc.getDevice(), awtColor);
+			swtColor = SWTUtils.toSwtColor(awtColor);
 			addToResourcePool(swtColor);
 			this.colorsPool.put(Integer.valueOf(awtColor.getRGB()), swtColor);
 		}
