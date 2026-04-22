@@ -4,27 +4,26 @@ import ij.plugin.PlugIn;
 import java.util.stream.IntStream;
 
 /**
- * Fast Parallel Game of Life for ImageJ (ByteProcessor version)
- * - Replaces ShortProcessor/short[] with ByteProcessor/byte[] (0 or 255 values)
- * - One-loop double-buffering approach and parallel per-row processing
+ * Fast Parallel Game of Life for ImageJ
+ * Optimized by removing the second loop via Double Buffering.
  */
-public class ImageJ_FastGameOfLife_Parallel_One_Loop_Byte_ implements PlugIn {
+public class ImageJ_FastGameOfLife_Parallel_One_Loop_ implements PlugIn {
     int WIDTH = 5000, HEIGHT = 5000, n = 1000;
 
     public void run(String arg) {
-        // Initialize the ImageJ Processor and the first buffer (8-bit)
-        ByteProcessor ip = new ByteProcessor(WIDTH, HEIGHT);
-        byte[] pixelsA = (byte[]) ip.getPixels();
+        // Initialize the ImageJ Processor and the first buffer
+        ShortProcessor ip = new ShortProcessor(WIDTH, HEIGHT);
+        short[] pixelsA = (short[]) ip.getPixels();
         
         // Initialize the second buffer (back-buffer)
-        byte[] pixelsB = new byte[WIDTH * HEIGHT];
+        short[] pixelsB = new short[WIDTH * HEIGHT];
         
-        // Randomize initial state in pixelsA (0 or 255)
+        // Randomize initial state in pixelsA
         for (int i = 0; i < pixelsA.length; i++) {
-            pixelsA[i] = (byte)(Math.random() > 0.5 ? 255 : 0);
+            pixelsA[i] = (short)(Math.random() > 0.5 ? 255 : 0);
         }
 
-        ImagePlus imp = new ImagePlus("Turbo Game of Life (Byte)", ip);
+        ImagePlus imp = new ImagePlus("Turbo Game of Life", ip);
         imp.setDisplayRange(0, 255);
         imp.show();
 
@@ -41,14 +40,14 @@ public class ImageJ_FastGameOfLife_Parallel_One_Loop_Byte_ implements PlugIn {
         }
 
         // Put buffers in an array for easy toggling
-        byte[][] buffers = {pixelsA, pixelsB};
+        short[][] buffers = {pixelsA, pixelsB};
 
         for (int it = 0; it < n; it++) {
             if (IJ.escapePressed()) break;
 
             // Identify which buffer is "Current" and which is "Next"
-            final byte[] currentGen = buffers[it % 2];
-            final byte[] nextGen = buffers[(it + 1) % 2];
+            final short[] currentGen = buffers[it % 2];
+            final short[] nextGen = buffers[(it + 1) % 2];
 
             // Parallel Processing: Calculate nextGen based on currentGen
             IntStream.range(0, HEIGHT).parallel().forEach(y -> {
@@ -57,7 +56,7 @@ public class ImageJ_FastGameOfLife_Parallel_One_Loop_Byte_ implements PlugIn {
                 int yp = y_p[y];
                 
                 for (int x = 0; x < WIDTH; x++) {
-                    // Sum neighbors (mask with 0xff to interpret bytes as unsigned)
+                    // Sum neighbors (using 0xff mask to handle signed short issues)
                     int neighbors = (currentGen[x_m[x] + ym] & 0xff) + (currentGen[x + ym] & 0xff) + (currentGen[x_p[x] + ym] & 0xff)
                                   + (currentGen[x_m[x] + y_offset] & 0xff)                         + (currentGen[x_p[x] + y_offset] & 0xff)
                                   + (currentGen[x_m[x] + yp] & 0xff) + (currentGen[x + yp] & 0xff) + (currentGen[x_p[x] + yp] & 0xff);
@@ -68,14 +67,15 @@ public class ImageJ_FastGameOfLife_Parallel_One_Loop_Byte_ implements PlugIn {
                     // 3 neighbors * 255 = 765 (Birth)
                     // 2 neighbors * 255 = 510 (Survival)
                     if (neighbors == 765 || (neighbors == 510 && currentState == 255)) {
-                        nextGen[x + y_offset] = (byte) 255;
+                        nextGen[x + y_offset] = (short) 255;
                     } else {
-                        nextGen[x + y_offset] = (byte) 0;
+                        nextGen[x + y_offset] = (short) 0;
                     }
                 }
             });
 
             // Update the ImageProcessor to point to the newly calculated generation
+            // This replaces the need for a second loop and bit-shifting.
             ip.setPixels(nextGen);
             
             imp.updateAndDraw();

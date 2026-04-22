@@ -171,7 +171,7 @@ public class IP_Demo extends PlugInFrame implements SelectionListener {
 			else if (command.equals("Zoom In"))
 				ip.scale(1.2, 1.2);
 			else if (command.equals("Zoom Out"))
-				ip.scale(.8, .8);
+				ip.scale(0.8, 0.8);
 			else if (command.equals("Threshold"))
 				ip.autoThreshold();
 			else if (command.equals("Smooth"))
