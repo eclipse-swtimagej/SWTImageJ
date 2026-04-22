@@ -182,32 +182,40 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	protected ProjectionAnnotation projectionAnnotation;
 	protected Timer timer;
 	boolean contextMenu = false;
+	boolean embedded = false;
 
 	public Editor() {
 
-		this(24, 80, 0, MENU_BAR, false);
+		this(24, 80, 0, MENU_BAR, false, false);
 	}
 
 	public Editor(String name) {
 
-		this(24, 80, 0, getOptions(name), false);
+		this(24, 80, 0, getOptions(name), false, false);
 	}
 
 	public Editor(String name, boolean contextMenu) {
 
-		this(24, 80, 0, getOptions(name), contextMenu);
+		this(24, 80, 0, getOptions(name), contextMenu, false);
+	}
+
+	/**/
+	public Editor(String name, boolean contextMenu, boolean embedded) {
+
+		this(24, 80, 0, getOptions(name), contextMenu, embedded);
 	}
 
 	public Editor(int rows, int columns, int fontSize, int options) {
 
-		this(rows, columns, fontSize, options, false);
+		this(rows, columns, fontSize, options, false, false);
 	}
 
-	/* New Constructor to set a StyledText context menu! */
-	public Editor(int rows, int columns, int fontSize, int options, boolean contextMenu) {
+	/* New Constructor to set a StyledText context menu and embedded! */
+	public Editor(int rows, int columns, int fontSize, int options, boolean contextMenu, boolean embedded) {
 
 		super("Editor", SWT.DIALOG_TRIM | SWT.RESIZE);
 		this.contextMenu = contextMenu;
+		this.embedded = embedded;
 		Display.getDefault().syncExec(() -> {
 			WindowManager.addWindow(Editor.this);
 			getShell().setLayout(new FillLayout());
@@ -651,6 +659,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				installMacros(text, installInPluginsMenu);
 				if(text.startsWith("//@AutoInstallAndHide"))
 					dontShowWindow = true;
+			}
+			if(IJ.getInstance() != null && embedded == true) {
+				return;
 			}
 			if(IJ.getInstance() != null && !dontShowWindow)
 				// show();

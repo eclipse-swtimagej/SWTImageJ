@@ -70,6 +70,7 @@ import ij.gui.Roi;
 import ij.gui.TextRoi;
 import ij.gui.Toolbar;
 import ij.macro.Interpreter;
+import ij.plugin.ControlPanel;
 import ij.plugin.GelAnalyzer;
 import ij.plugin.JavaProperties;
 import ij.plugin.MacroInstaller;
@@ -79,6 +80,7 @@ import ij.plugin.frame.ContrastAdjuster;
 import ij.plugin.frame.Editor;
 import ij.plugin.frame.RoiManager;
 import ij.plugin.frame.ThresholdAdjuster;
+import ij.plugin.frame.swt.WindowSwt;
 import ij.text.TextWindow;
 import ij.util.Tools;
 
@@ -145,8 +147,8 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 	 * Plugins should call IJ.getVersion() or IJ.getFullVersion() to get the version
 	 * string.
 	 */
-	public static final String VERSION = "1.54s";
-	public static final String BUILD = ""; // 14
+	public static final String VERSION = "1.54t";
+	public static final String BUILD = "4";
 	public static org.eclipse.swt.graphics.Color backgroundColor = new org.eclipse.swt.graphics.Color(237, 237, 237);
 	/** SansSerif, 12-point, plain font. */
 	public static final Font SansSerif12 = new Font("SansSerif", Font.PLAIN, 12);
@@ -796,9 +798,9 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 						cmd = "Next Slice [>]";
 					else if(stackKey && keyCode == SWT.LEFT)
 						cmd = "Previous Slice [<]";
-					else if(zoomKey && keyCode == SWT.DOWN && !ignoreArrowKeys(imp) && Toolbar.getToolId() < Toolbar.SPARE6)
+					else if(zoomKey && keyCode == SWT.DOWN && !ignoreArrowKeys(imp, control) && Toolbar.getToolId() < Toolbar.SPARE6)
 						cmd = "Out [-]";
-					else if(zoomKey && keyCode == SWT.UP && !ignoreArrowKeys(imp) && Toolbar.getToolId() < Toolbar.SPARE6)
+					else if(zoomKey && keyCode == SWT.UP && !ignoreArrowKeys(imp, control) && Toolbar.getToolId() < Toolbar.SPARE6)
 						cmd = "In [+]";
 					else if(roi != null) {
 						if((flags & SWT.ALT) != 0 || (flags & SWT.CTRL) != 0)
@@ -859,22 +861,34 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 		return false;
 	}
 
-	private boolean ignoreArrowKeys(ImagePlus imp) {
+	private boolean ignoreArrowKeys(ImagePlus imp, boolean control) {
 
+		AtomicReference<String> title = new AtomicReference<>();
+		Object frame = WindowManager.getActiveWindow();
+		if(frame instanceof WindowSwt) {
+			Display.getDefault().syncExec(() -> {
+				if(frame != null) {
+					title.set(((WindowSwt)frame).getShell().getText());
+				} else {
+					title.set(null);
+				}
+			});
+		}
+		String stringTitle = title.get();
+		if(stringTitle != null && stringTitle.equals("ROI Manager"))
+			return true;
+		// Control Panel?
+		if(frame instanceof ControlPanel)
+			return true;
 		// Channels dialog?
-		/*
-		 * Window window = WindowManager.getActiveWindow(); title =
-		 * window!=null&&(window instanceof Dialog)?((Dialog)window).getTitle():null; if
-		 * (title!=null && title.equals("Channels")) return true;
-		 */
-		/*
-		 * Frame frame = WindowManager.getFrontWindow(); String title =
-		 * frame!=null?frame.getTitle():null; if (title!=null &&
-		 * title.equals("ROI Manager")) return true; // Control Panel? if (frame!=null
-		 * && frame instanceof javax.swing.JFrame) return true; ImageWindow win =
-		 * imp.getWindow(); // LOCI Data Browser window? if (imp.getStackSize()>1 &&
-		 * win!=null && win.getClass().getName().startsWith("loci")) return true;
-		 */
+		if(stringTitle != null && stringTitle.equals("Channels"))
+			return true;
+		ImageWindow win = imp.getWindow();
+		// LOCI Data Browser window?
+		if(imp.getStackSize() > 1 && win != null && win.getClass().getName().startsWith("loci"))
+			return true;
+		if(Prefs.requireControlKey && !control)
+			return true;
 		return false;
 	}
 
