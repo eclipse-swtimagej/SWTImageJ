@@ -198,28 +198,38 @@ public class ImageMath implements ExtendedPlugInFilter, DialogListener {
 		if(lower == -1.0 && upper == -1.0) {
 			lower = ip.getMinThreshold();
 			upper = ip.getMaxThreshold();
-			if(lower == ImageProcessor.NO_THRESHOLD || !(ip instanceof FloatProcessor)) {
+			boolean isFloatOrDouble = (ip instanceof FloatProcessor) || (ip instanceof ij.process.DoubleProcessor);
+			if(lower == ImageProcessor.NO_THRESHOLD || !isFloatOrDouble) {
 				String title = imp != null ? "\n\"" + imp.getTitle() + "\"" : "";
-				IJ.error("NaN Backround", "Thresholded 32-bit float image required:" + title);
+				IJ.error("NaN Background", "Thresholded 32-bit or 64-bit image required:" + title);
 				canceled = true;
 				return;
 			}
 		}
-		if(!(ip instanceof FloatProcessor))
-			return;
-		float[] pixels = (float[])ip.getPixels();
 		int width = ip.getWidth();
 		int height = ip.getHeight();
-		double v;
-		for(int y = 0; y < height; y++) {
-			for(int x = 0; x < width; x++) {
-				v = pixels[y * width + x];
-				if(v < lower || v > upper)
-					pixels[y * width + x] = Float.NaN;
-			}
+		if(ip instanceof FloatProcessor) {
+			float[] pixels = (float[])ip.getPixels();
+			double v;
+			for(int y = 0; y < height; y++)
+				for(int x = 0; x < width; x++) {
+					v = pixels[y * width + x];
+					if(v < lower || v > upper)
+						pixels[y * width + x] = Float.NaN;
+				}
+		} else if(ip instanceof ij.process.DoubleProcessor) {
+			double[] pixels = (double[])ip.getPixels();
+			double v;
+			for(int y = 0; y < height; y++)
+				for(int x = 0; x < width; x++) {
+					v = pixels[y * width + x];
+					if(v < lower || v > upper)
+						pixels[y * width + x] = Double.NaN;
+				}
+		} else {
+			return;
 		}
 		ip.resetMinAndMax();
-		return;
 	}
 	// first default: v = v+(sin(x/(w/25))+sin(y/(h/25)))*40
 	// a=round(a/10); if (a%2==0) v=0;
