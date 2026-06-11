@@ -67,8 +67,8 @@ public class Menus {
 	private static Menus instance;
 	private static org.eclipse.swt.widgets.Menu mbar;
 	private static org.eclipse.swt.widgets.MenuItem gray8Item, gray16Item,
-			gray32Item, color256Item, colorRGBItem, RGBStackItem, HSBStackItem,
-			LabStackItem, HSB32Item;
+    gray32Item, gray64Item, color256Item, colorRGBItem, RGBStackItem, HSBStackItem,
+    LabStackItem, HSB32Item;
 	private static org.eclipse.swt.widgets.Menu popup;
 	private static ImageJ ij;
 	private Hashtable demoImagesTable = new Hashtable();
@@ -192,6 +192,7 @@ public class Menus {
 		gray8Item = addCheckboxItem(imageType, "8-bit", "ij.plugin.Converter(\"8-bit\")");
 		gray16Item = addCheckboxItem(imageType, "16-bit", "ij.plugin.Converter(\"16-bit\")");
 		gray32Item = addCheckboxItem(imageType, "32-bit", "ij.plugin.Converter(\"32-bit\")");
+		gray64Item = addCheckboxItem(imageType, "64-bit", "ij.plugin.Converter(\"64-bit\")");
 		color256Item = addCheckboxItem(imageType, "8-bit Color", "ij.plugin.Converter(\"8-bit Color\")");
 		colorRGBItem = addCheckboxItem(imageType, "RGB Color", "ij.plugin.Converter(\"RGB Color\")");
 		new org.eclipse.swt.widgets.MenuItem(imageType, SWT.SEPARATOR);
@@ -1502,6 +1503,7 @@ public class Menus {
 			gray8Item.setSelection(false);
 			gray16Item.setSelection(false);
 			gray32Item.setSelection(false);
+			gray64Item.setSelection(false);
 			color256Item.setSelection(false);
 			colorRGBItem.setSelection(false);
 			RGBStackItem.setSelection(false);
@@ -1533,6 +1535,9 @@ public class Menus {
 				case ImagePlus.GRAY32:
 					gray32Item.setSelection(true);
 					break;
+				case ImagePlus.GRAY64:
+				    gray64Item.setSelection(true);
+				    break;
 				case ImagePlus.COLOR_256:
 					color256Item.setSelection(true);
 					break;

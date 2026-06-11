@@ -33,7 +33,7 @@ public class ImageConverter {
 			return;
 		}
 		ImageProcessor ip = imp.getProcessor();
-		if (type==ImagePlus.GRAY16 || type==ImagePlus.GRAY32) {
+		if (type==ImagePlus.GRAY16 || type==ImagePlus.GRAY32|| type == ImagePlus.GRAY64) {
 			if (Prefs.calibrateConversions) {
 				if (type==ImagePlus.GRAY16 && imp.getCalibration().calibrated())
 					convertToGray32();
@@ -64,7 +64,7 @@ public class ImageConverter {
 	public void convertToGray16() {
 		if (type==ImagePlus.GRAY16)
 			return;
-		if (!(type==ImagePlus.GRAY8||type==ImagePlus.GRAY32||type==ImagePlus.COLOR_RGB))
+		if (!(type==ImagePlus.GRAY8||type==ImagePlus.GRAY32|| type == ImagePlus.GRAY64 ||type==ImagePlus.COLOR_RGB))
 			throw new IllegalArgumentException("Unsupported conversion");
 		if (imp.getStackSize()>1) {
 			new StackConverter(imp).convertToGray16();
@@ -177,7 +177,7 @@ public class ImageConverter {
 	public void convertToGray32() {
 		if (type==ImagePlus.GRAY32)
 			return;
-		if (!(type==ImagePlus.GRAY8||type==ImagePlus.GRAY16||type==ImagePlus.COLOR_RGB))
+		if (!(type==ImagePlus.GRAY8||type==ImagePlus.GRAY16|| type == ImagePlus.GRAY64||type==ImagePlus.COLOR_RGB))
 			throw new IllegalArgumentException("Unsupported conversion");
 		Calibration cal = imp.getCalibration();
 		double min = cal.getCValue(imp.getDisplayRangeMin());
@@ -191,6 +191,28 @@ public class ImageConverter {
 		imp.trimProcessor();
 		imp.setProcessor(null, ip.convertToFloat());
 		imp.setCalibration(cal); //update calibration
+		IJ.setMinAndMax(imp, min, max);
+	}
+	
+	/** Converts this ImagePlus to 64-bit (double) grayscale. */
+	public void convertToGray64() {
+		if (type == ImagePlus.GRAY64)
+			return;
+		if (!(type == ImagePlus.GRAY8 || type == ImagePlus.GRAY16
+				|| type == ImagePlus.GRAY32 || type == ImagePlus.COLOR_RGB))
+			throw new IllegalArgumentException("Unsupported conversion");
+		Calibration cal = imp.getCalibration();
+		double min = cal.getCValue(imp.getDisplayRangeMin());
+		double max = cal.getCValue(imp.getDisplayRangeMax());
+		if (imp.getStackSize() > 1) {
+			new StackConverter(imp).convertToGray64();
+			IJ.setMinAndMax(imp, min, max);
+			return;
+		}
+		ImageProcessor ip = imp.getProcessor();
+		imp.trimProcessor();
+		imp.setProcessor(null, ip.convertToDoubleProcessor());
+		imp.setCalibration(cal);
 		IJ.setMinAndMax(imp, min, max);
 	}
 
