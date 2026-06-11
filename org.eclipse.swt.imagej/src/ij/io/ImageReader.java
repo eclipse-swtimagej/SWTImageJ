@@ -321,48 +321,53 @@ public class ImageReader {
 		return pixels;
 	}
 
-	float[] read64bitImage(InputStream in) throws IOException {
-		int pixelsRead;
-		byte[] buffer = new byte[bufferSize];
-		float[] pixels = new float[nPixels];
-		long totalRead = 0L;
-		int base = 0;
-		int count, value;
-		int bufferCount;
-		long tmp;
-		long b1, b2, b3, b4, b5, b6, b7, b8;
-		
-		while (totalRead<byteCount) {
-			if ((totalRead+bufferSize)>byteCount)
-				bufferSize = (int)(byteCount-totalRead);
-			bufferCount = 0;
-			while (bufferCount<bufferSize) { // fill the buffer
-				count = in.read(buffer, bufferCount, bufferSize-bufferCount);
-				if (count==-1) {
-					for (int i=bufferCount; i<bufferSize; i++) buffer[i] = 0;
-					totalRead = byteCount;
-					eofError();
-					break;
-				}
-				bufferCount += count;
-			}
-			totalRead += bufferSize;
-			showProgress(totalRead, byteCount);
-			pixelsRead = bufferSize/bytesPerPixel;
-			int j = 0;
-			for (int i=base; i < (base+pixelsRead); i++) {
-				b1 = buffer[j+7]&0xff;  b2 = buffer[j+6]&0xff;  b3 = buffer[j+5]&0xff;  b4 = buffer[j+4]&0xff; 
-				b5 = buffer[j+3]&0xff;  b6 = buffer[j+2]&0xff;  b7 = buffer[j+1]&0xff;  b8 = buffer[j]&0xff; 
-				if (fi.intelByteOrder)
-					tmp = (long)((b1<<56)|(b2<<48)|(b3<<40)|(b4<<32)|(b5<<24)|(b6<<16)|(b7<<8)|b8);
-				else
-					tmp = (long)((b8<<56)|(b7<<48)|(b6<<40)|(b5<<32)|(b4<<24)|(b3<<16)|(b2<<8)|b1);
-				pixels[i] = (float)Double.longBitsToDouble(tmp);
-				j += 8;
-			}
-			base += pixelsRead;
-		}
-		return pixels;
+	// Replace the entire existing read64bitImage method:
+	double[] read64bitImage(InputStream in) throws IOException {
+	    int pixelsRead;
+	    byte[] buffer = new byte[bufferSize];
+	    double[] pixels = new double[nPixels];
+	    long totalRead = 0L;
+	    int base = 0;
+	    int count;
+	    int bufferCount;
+	    long tmp;
+	    long b1, b2, b3, b4, b5, b6, b7, b8;
+
+	    while (totalRead < byteCount) {
+	        if ((totalRead + bufferSize) > byteCount)
+	            bufferSize = (int) (byteCount - totalRead);
+	        bufferCount = 0;
+	        while (bufferCount < bufferSize) {
+	            count = in.read(buffer, bufferCount, bufferSize - bufferCount);
+	            if (count == -1) {
+	                for (int i = bufferCount; i < bufferSize; i++) buffer[i] = 0;
+	                totalRead = byteCount;
+	                eofError();
+	                break;
+	            }
+	            bufferCount += count;
+	        }
+	        totalRead += bufferSize;
+	        showProgress(totalRead, byteCount);
+	        pixelsRead = bufferSize / bytesPerPixel;
+	        int j = 0;
+	        for (int i = base; i < (base + pixelsRead); i++) {
+	            b1 = buffer[j + 7] & 0xff; b2 = buffer[j + 6] & 0xff;
+	            b3 = buffer[j + 5] & 0xff; b4 = buffer[j + 4] & 0xff;
+	            b5 = buffer[j + 3] & 0xff; b6 = buffer[j + 2] & 0xff;
+	            b7 = buffer[j + 1] & 0xff; b8 = buffer[j]     & 0xff;
+	            if (fi.intelByteOrder)
+	                tmp = (b1 << 56) | (b2 << 48) | (b3 << 40) | (b4 << 32)
+	                    | (b5 << 24) | (b6 << 16) | (b7 << 8) | b8;
+	            else
+	                tmp = (b8 << 56) | (b7 << 48) | (b6 << 40) | (b5 << 32)
+	                    | (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;
+	            pixels[i] = Double.longBitsToDouble(tmp);  // no narrowing
+	            j += 8;
+	        }
+	        base += pixelsRead;
+	    }
+	    return pixels;
 	}
 
 	int[] readChunkyRGB(InputStream in) throws IOException {

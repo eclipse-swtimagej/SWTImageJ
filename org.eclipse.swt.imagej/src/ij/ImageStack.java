@@ -6,6 +6,7 @@ import java.awt.image.ColorModel;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
+import ij.process.DoubleProcessor;
 import ij.process.ImageProcessor;
 import ij.process.IntProcessor;
 import ij.process.ShortProcessor;
@@ -102,6 +103,8 @@ public class ImageStack {
 			this.bitDepth = 32;
 		else if(pixels instanceof int[])
 			this.bitDepth = 24;
+		else if(pixels instanceof double[])
+			this.bitDepth = 64;
 	}
 
 	/**
@@ -169,6 +172,9 @@ public class ImageStack {
 					break;
 				case 32:
 					ip = ip.convertToFloat();
+					break;
+				case 64:
+					ip = ip.convertToDoubleProcessor();
 					break;
 			}
 		}
@@ -373,29 +379,31 @@ public class ImageStack {
 	public ImageProcessor getProcessor(int n) {
 
 		ImageProcessor ip;
-		if(n < 1 || n > nSlices)
+		if (n < 1 || n > nSlices)
 			throw new IllegalArgumentException(outOfRange + n);
-		if(nSlices == 0)
+		if (nSlices == 0)
 			return null;
-		if(stack[n - 1] == null)
+		if (stack[n - 1] == null)
 			throw new IllegalArgumentException("Pixel array is null");
-		if(stack[n - 1] instanceof byte[])
+		if (stack[n - 1] instanceof byte[])
 			ip = new ByteProcessor(width, height, null, cm);
-		else if(stack[n - 1] instanceof short[])
+		else if (stack[n - 1] instanceof short[])
 			ip = new ShortProcessor(width, height, null, cm);
-		else if(stack[n - 1] instanceof int[]) {
-			if(signedInt)
+		else if (stack[n - 1] instanceof int[]) {
+			if (signedInt)
 				ip = new IntProcessor(width, height);
 			else
 				ip = new ColorProcessor(width, height, null);
-		} else if(stack[n - 1] instanceof float[])
+		} else if (stack[n - 1] instanceof float[])
 			ip = new FloatProcessor(width, height, null, cm);
+		else if (stack[n - 1] instanceof double[])
+			ip = new DoubleProcessor(width, height, (double[]) null, cm);
 		else
 			throw new IllegalArgumentException("Unknown stack type");
 		ip.setPixels(stack[n - 1]);
-		if(min != Double.MAX_VALUE && ip != null && !(ip instanceof ColorProcessor))
+		if (min != Double.MAX_VALUE && ip != null && !(ip instanceof ColorProcessor))
 			ip.setMinAndMax(min, max);
-		if(cTable != null)
+		if (cTable != null)
 			ip.setCalibrationTable(cTable);
 		ip.setSliceNumber(n);
 		return ip;
@@ -498,6 +506,9 @@ public class ImageStack {
 				case 32:
 					float[] floats = (float[])stack[z];
 					return floats[y * width + x];
+				case 64:
+				    double[] doubles = (double[]) stack[z];
+				    return doubles[y * width + x];	
 				case 24:
 					int[] ints = (int[])stack[z];
 					return ints[y * width + x] & 0xffffffff;
@@ -533,6 +544,10 @@ public class ImageStack {
 					float[] floats = (float[])stack[z];
 					floats[y * width + x] = (float)value;
 					break;
+				case 64:
+				    double[] doubles = (double[]) stack[z];
+				    doubles[y * width + x] = value;
+				    break;
 				case 24:
 					int[] ints = (int[])stack[z];
 					ints[y * width + x] = (int)value;
@@ -567,11 +582,17 @@ public class ImageStack {
 							for(int x = x0; x < x0 + w; x++)
 								voxels[i++] = floats[y * width + x];
 							break;
+						case 64:
+						    double[] doubles = (double[]) stack[z];
+						    for (int x = x0; x < x0 + w; x++)
+						        voxels[i++] = (float) doubles[y * width + x];
+						    break;
 						case 24:
 							int[] ints = (int[])stack[z];
 							for(int x = x0; x < x0 + w; x++)
 								voxels[i++] = ints[y * width + x] & 0xffffffff;
 							break;
+							
 						default:
 							for(int x = x0; x < x0 + w; x++)
 								voxels[i++] = 0f;
@@ -658,6 +679,13 @@ public class ImageStack {
 								floats[y * width + x] = value;
 							}
 							break;
+						case 64:
+						    double[] doubles = (double[]) stack[z];
+						    for (int x = x0; x < x0 + w; x++) {
+						        value = voxels[i++];
+						        doubles[y * width + x] = value;
+						    }
+						    break;
 						case 24:
 							int[] ints = (int[])stack[z];
 							for(int x = x0; x < x0 + w; x++) {
@@ -745,10 +773,10 @@ public class ImageStack {
 		return this.bitDepth;
 	}
 
-	/** Sets the bit depth (8=byte, 16=short, 24=RGB, 32=float). */
+	/** Sets the bit depth (8=byte, 16=short, 24=RGB, 32=float, 64=double). */
 	public void setBitDepth(int depth) {
 
-		if(size() == 0 && (depth == 8 || depth == 16 || depth == 24 || depth == 32))
+		if (size() == 0 && (depth == 8 || depth == 16 || depth == 24 || depth == 32 || depth == 64))
 			this.bitDepth = depth;
 	}
 

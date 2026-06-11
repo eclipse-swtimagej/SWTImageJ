@@ -3138,6 +3138,30 @@ public abstract class ImageProcessor implements Cloneable {
 			cp = (ColorProcessor) this.convertToRGB();
 		return cp;
 	}
+	
+	/**
+	 * Returns a 64-bit double-precision version of this image as a
+	 * DoubleProcessor. For byte and short images, converts using a calibration
+	 * function if a calibration table has been set using setCalibrationTable().
+	 * For float images, widens each pixel from 32 bits to 64 bits.
+	 */
+	public DoubleProcessor convertToDoubleProcessor() {
+
+		DoubleProcessor dp;
+		if (this instanceof DoubleProcessor) {
+			dp = (DoubleProcessor) this.duplicate();
+		} else {
+			FloatProcessor fp = this.convertToFloatProcessor();
+			float[] fPixels = (float[]) fp.getPixels();
+			double[] dPixels = new double[fPixels.length];
+			for (int i = 0; i < fPixels.length; i++)
+				dPixels[i] = fPixels[i];
+			dp = new DoubleProcessor(fp.getWidth(), fp.getHeight(),
+					dPixels, fp.getColorModel());
+			dp.setMinAndMax(fp.getMin(), fp.getMax());
+		}
+		return dp;
+	}
 
 	/**
 	 * Performs a convolution operation using the specified kernel. KernelWidth and

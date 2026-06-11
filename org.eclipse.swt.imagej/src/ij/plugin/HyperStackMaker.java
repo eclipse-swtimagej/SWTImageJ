@@ -18,7 +18,7 @@ import ij.util.Tools;
 /** This plugin implements the File/New/Hyperstack command. */
 public class HyperStackMaker implements PlugIn {
 	private static String defaults = "8-bit Color 400 300 3 4 5 1";
-	private static String[] types = {"8-bit", "16-bit", "32-bit", "RGB"};
+	private static String[] types = {"8-bit", "16-bit", "32-bit", "64-bit", "RGB"};
 	private static String[] modes = {"Composite", "Color", "Grayscale"};
 	private static String title = "HyperStack";
 	private String type, mode;

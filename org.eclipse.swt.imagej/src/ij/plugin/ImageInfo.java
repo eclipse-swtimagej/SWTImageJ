@@ -165,7 +165,7 @@ public class ImageInfo implements PlugIn {
 		int channels = imp.getNChannels();
 		int slices = imp.getNSlices();
 		int frames = imp.getNFrames();
-		int digits = imp.getBitDepth() == 32 ? 4 : 0;
+		int digits = (imp.getBitDepth() == 32 || imp.getBitDepth() == 64) ? 4 : 0;
 		int dp, dp2;
 		boolean nonUniformUnits = !cal.getXUnit().equals(cal.getYUnit());
 		String xunit = cal.getXUnit();
@@ -234,11 +234,14 @@ public class ImageInfo implements PlugIn {
 				break;
 			case ImagePlus.GRAY16:
 			case ImagePlus.GRAY32:
+			case ImagePlus.GRAY64:
 				if(type == ImagePlus.GRAY16) {
 					String sign = cal.isSigned16Bit() ? "signed, " : "unsigned, ";
 					s += "Bits per pixel: 16 (" + sign + getLutInfo(imp) + ")\n";
-				} else
+				} else if(type == ImagePlus.GRAY32)
 					s += "Bits per pixel: 32 (float, " + getLutInfo(imp) + ")\n";
+				else
+					s += "Bits per pixel: 64 (double, " + getLutInfo(imp) + ")\n";
 				if(imp.getNChannels() > 1)
 					s += getDisplayRanges(imp);
 				else {
@@ -247,9 +250,9 @@ public class ImageInfo implements PlugIn {
 					double min = ip.getMin();
 					double max = ip.getMax();
 					String dash = "-";
-					if(type == ImagePlus.GRAY32 || cal.calibrated())
+					if(type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64 || cal.calibrated())
 						dash = " - ";
-					if(type == ImagePlus.GRAY32)
+					if(type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64)
 						s += d2s(min) + dash + d2s(max) + "\n";
 					else if(cal.calibrated()) {
 						pvrLabel = "Raw pixel value range: ";
@@ -264,7 +267,7 @@ public class ImageInfo implements PlugIn {
 						stats.min -= 32768;
 						stats.max -= 32768;
 					}
-					if(type == ImagePlus.GRAY32)
+					if(type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64)
 						s += pvrLabel + d2s(stats.min) + dash + d2s(stats.max) + "\n";
 					else
 						s += pvrLabel + (int)stats.min + dash + (int)stats.max + "\n";

@@ -433,6 +433,8 @@ public class TiffDecoder {
 								fi.fileType = FileInfo.GRAY16_UNSIGNED;
 							else if (value==32)
 								fi.fileType = FileInfo.GRAY32_INT;
+							else if (value == 64)                                  
+							    fi.fileType = FileInfo.GRAY64_FLOAT;
 							else if (value==12)
 								fi.fileType = FileInfo.GRAY12_UNSIGNED;
 							else if (value==10)

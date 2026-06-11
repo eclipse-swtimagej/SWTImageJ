@@ -223,6 +223,75 @@ public class ImageWriter {
 			IJ.showProgress((double)i/fi.nImages);
 		}
 	}
+	// Add these three methods anywhere in the class:
+
+	void writeDoubleImage(OutputStream out, double[] pixels) throws IOException {
+	    long bytesWritten = 0L;
+	    long size = 8L * fi.width * fi.height;
+	    int count = getCount(size);
+	    if ((count & 7) != 0) count = (count / 8) * 8;
+	    if (count < 8) count = 8;
+	    byte[] buffer = new byte[count];
+	    long tmp;
+
+	    while (bytesWritten < size) {
+	        if ((bytesWritten + count) > size)
+	            count = (int) (size - bytesWritten);
+	        int j = (int) (bytesWritten / 8L);
+	        if (fi.intelByteOrder) {
+	            for (int i = 0; i < count; i += 8) {
+	                tmp = Double.doubleToRawLongBits(pixels[j]);
+	                buffer[i]     = (byte) tmp;
+	                buffer[i + 1] = (byte) (tmp >> 8);
+	                buffer[i + 2] = (byte) (tmp >> 16);
+	                buffer[i + 3] = (byte) (tmp >> 24);
+	                buffer[i + 4] = (byte) (tmp >> 32);
+	                buffer[i + 5] = (byte) (tmp >> 40);
+	                buffer[i + 6] = (byte) (tmp >> 48);
+	                buffer[i + 7] = (byte) (tmp >> 56);
+	                j++;
+	            }
+	        } else {
+	            for (int i = 0; i < count; i += 8) {
+	                tmp = Double.doubleToRawLongBits(pixels[j]);
+	                buffer[i]     = (byte) (tmp >> 56);
+	                buffer[i + 1] = (byte) (tmp >> 48);
+	                buffer[i + 2] = (byte) (tmp >> 40);
+	                buffer[i + 3] = (byte) (tmp >> 32);
+	                buffer[i + 4] = (byte) (tmp >> 24);
+	                buffer[i + 5] = (byte) (tmp >> 16);
+	                buffer[i + 6] = (byte) (tmp >> 8);
+	                buffer[i + 7] = (byte) tmp;
+	                j++;
+	            }
+	        }
+	        out.write(buffer, 0, count);
+	        bytesWritten += count;
+	        showProgress((double) bytesWritten / size);
+	    }
+	}
+
+	void writeDoubleStack(OutputStream out, Object[] stack) throws IOException {
+	    showProgressBar = false;
+	    for (int i = 0; i < fi.nImages; i++) {
+	        IJ.showStatus("Writing: " + (i + 1) + "/" + fi.nImages);
+	        writeDoubleImage(out, (double[]) stack[i]);
+	        IJ.showProgress((double) (i + 1) / fi.nImages);
+	    }
+	}
+
+	void writeDoubleVirtualStack(OutputStream out, VirtualStack virtualStack) throws IOException {
+	    showProgressBar = false;
+	    boolean flip = "FlipTheseImages".equals(fi.fileName);
+	    for (int i = 1; i <= fi.nImages; i++) {
+	        IJ.showStatus("Writing: " + i + "/" + fi.nImages);
+	        ImageProcessor ip = virtualStack.getProcessor(i);
+	        if (flip) ip.flipVertical();
+	        double[] pixels = (double[]) ip.getPixels();
+	        writeDoubleImage(out, pixels);
+	        IJ.showProgress((double) i / fi.nImages);
+	    }
+	}
 
 	void writeRGBImage(OutputStream out, int[] pixels)  throws IOException {
 		long bytesWritten = 0L;
@@ -310,6 +379,14 @@ public class ImageWriter {
 				else
 					writeFloatImage(out, (float[])fi.pixels);
 				break;
+			case FileInfo.GRAY64_FLOAT:
+			    if (fi.nImages > 1 && fi.virtualStack != null)
+			        writeDoubleVirtualStack(out, fi.virtualStack);
+			    else if (fi.nImages > 1)
+			        writeDoubleStack(out, (Object[]) fi.pixels);
+			    else
+			        writeDoubleImage(out, (double[]) fi.pixels);
+			    break;
 			case FileInfo.RGB:
 				if (fi.nImages>1 && fi.virtualStack!=null)
 					writeRGBVirtualStack(out, fi.virtualStack);

@@ -63,6 +63,15 @@ public class TiffEncoder {
 				}
 				bytesPerPixel = 4;
 				break;
+			case FileInfo.GRAY64_FLOAT:                            
+			    bitsPerSample = 64;
+			    photoInterp = fi.whiteIsZero ? 0 : 1;
+			    if (fi.lutSize > 0) {
+			        nEntries++;
+			        colorMapSize = MAP_SIZE * 2;
+			    }
+			    bytesPerPixel = 8;
+			    break;
 			case FileInfo.RGB:
 				photoInterp = 2;
 				samplesPerPixel = 3;
@@ -87,8 +96,8 @@ public class TiffEncoder {
 		}
 		if (fi.unit!=null && fi.pixelWidth!=0 && fi.pixelHeight!=0)
 			nEntries += 3; // XResolution, YResolution and ResolutionUnit
-		if (fi.fileType==fi.GRAY32_FLOAT)
-			nEntries++; // SampleFormat tag
+		if (fi.fileType == fi.GRAY32_FLOAT || fi.fileType == fi.GRAY64_FLOAT)
+		    nEntries++; // SampleFormat tag
 		makeDescriptionString();
 		if (description!=null)
 			nEntries++;  // ImageDescription tag
@@ -312,9 +321,9 @@ public class TiffEncoder {
 				unit = 3;
 			writeEntry(out, TiffDecoder.RESOLUTION_UNIT, 3, 1, unit);
 		}
-		if (fi.fileType==fi.GRAY32_FLOAT) {
-			int format = TiffDecoder.FLOATING_POINT;
-			writeEntry(out, TiffDecoder.SAMPLE_FORMAT, 3, 1, format);
+		if (fi.fileType == fi.GRAY32_FLOAT || fi.fileType == fi.GRAY64_FLOAT) {
+		    int format = TiffDecoder.FLOATING_POINT;
+		    writeEntry(out, TiffDecoder.SAMPLE_FORMAT, 3, 1, format);
 		}
 		if (colorMapSize>0) {
 			writeEntry(out, TiffDecoder.COLOR_MAP, 3, MAP_SIZE, tagDataOffset);
