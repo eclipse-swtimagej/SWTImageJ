@@ -416,6 +416,31 @@ public class ImageMath implements ExtendedPlugInFilter, DialogListener {
 			}
 			if(hasGetPixel)
 				System.arraycopy(pixels2, 0, pixels1, 0, w * h);
+		} else if(bitDepth == 64) {
+			double[] pixels1 = (double[])ip.getPixels();
+			double[] pixels2 = pixels1;
+			if(hasGetPixel)
+				pixels2 = new double[w * h];
+			for(int y = r.y; y < (r.y + r.height); y++) {
+				if(showProgress && y % inc == 0)
+					IJ.showProgress(y - r.y, r.height);
+				interp.setVariable("y", y);
+				for(int x = r.x; x < (r.x + r.width); x++) {
+					index = y * w + x;
+					v = pixels1[index];
+					interp.setVariable("v", v);
+					if(hasX)
+						interp.setVariable("x", x);
+					if(hasA)
+						interp.setVariable("a", getA((h - y - 1) - h2, x - w2));
+					if(hasD)
+						interp.setVariable("d", getD(x - w2, y - h2));
+					interp.run(PCStart);
+					pixels2[index] = interp.getVariable("v");
+				}
+			}
+			if(hasGetPixel)
+				System.arraycopy(pixels2, 0, pixels1, 0, w * h);
 		} else { // 32-bit
 			float[] pixels1 = (float[])ip.getPixels();
 			float[] pixels2 = pixels1;
