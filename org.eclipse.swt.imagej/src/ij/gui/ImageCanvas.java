@@ -1659,10 +1659,17 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				break;
 			}
 			case ImagePlus.GRAY16:
-			case ImagePlus.GRAY32: {
+			case ImagePlus.GRAY32:
+			case ImagePlus.GRAY64: {
 				double min = imp.getProcessor().getMin();
 				double max = imp.getProcessor().getMax();
-				double value = (type == ImagePlus.GRAY32) ? Float.intBitsToFloat(v[0]) : v[0];
+				double value;
+				if(type == ImagePlus.GRAY32)
+					value = Float.intBitsToFloat(v[0]);
+				else if(type == ImagePlus.GRAY64)
+					value = imp.getProcessor().getPixelValue(ox, oy);
+				else
+					value = v[0];
 				int index = (int)(255.0 * ((value - min) / (max - min)));
 				if(index < 0)
 					index = 0;
@@ -1672,15 +1679,6 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 					setBackgroundColor(getColor(index));
 				else
 					setForegroundColor(getColor(index));
-				break;
-			}
-			case ImagePlus.COLOR_RGB:
-			case ImagePlus.COLOR_256: {
-				Color c = new Color(v[0], v[1], v[2]);
-				if(setBackground)
-					setBackgroundColor(c);
-				else
-					setForegroundColor(c);
 				break;
 			}
 		}
