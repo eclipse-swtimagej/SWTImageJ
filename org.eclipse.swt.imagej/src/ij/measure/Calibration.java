@@ -309,10 +309,10 @@ public class Calibration implements Cloneable {
 			coeff[0] = -32768.0;
 			coeff[1] = 1.0;
 			setFunction(Calibration.STRAIGHT_LINE, coeff, DEFAULT_VALUE_UNIT);
-		} else if((newBitDepth != bitDepth && bitDepth != UNKNOWN) || type == ImagePlus.GRAY32 || type == ImagePlus.COLOR_RGB) {
+		} else if((newBitDepth != bitDepth && bitDepth != UNKNOWN) || type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64 || type == ImagePlus.COLOR_RGB) {
 			String saveUnit = valueUnit;
 			disableDensityCalibration();
-			if(type == ImagePlus.GRAY32)
+			if(type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64)
 				valueUnit = saveUnit;
 		}
 		bitDepth = newBitDepth;

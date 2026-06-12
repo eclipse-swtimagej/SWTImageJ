@@ -10,8 +10,8 @@ import ij.Prefs;
 import ij.WindowManager;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
-import ij.process.FloatProcessor;
 import ij.process.DoubleProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.IntProcessor;
 import ij.process.ShortProcessor;
@@ -36,7 +36,7 @@ public class NewImage {
 	private static int staticSlices = Prefs.getInt(SLICES, 1);
 	private static int staticType = Prefs.getInt(TYPE, GRAY8);
 	private static int staticFillWith = Prefs.getInt(FILL, FILL_BLACK);
-	private static String[] types = {"8-bit", "16-bit", "32-bit", "RGB", "64-bit"};
+	private static String[] types = {"8-bit", "16-bit", "32-bit", "64-bit", "RGB"};
 	private static String[] fill = {"White", "Black", "Ramp", "Noise"};
 	private int gwidth, gheight, gslices, gtype, gfill;
 
@@ -111,7 +111,7 @@ public class NewImage {
 					case GRAY64:
 						pixels2 = new double[width * height];
 						if(fill == FILL_NOISE)
-							fillNoiseDouble(new DoubleProcessor(width, height, (double[])pixels2, null));
+							fillNoiseDouble(new DoubleProcessor(width, height, (double[])pixels2));
 						break;
 					case RGB:
 						pixels2 = new int[width * height];
@@ -419,6 +419,7 @@ public class NewImage {
 		ip.noise(1);
 	}
 
+	/** Creates a 64-bit floating-point (double) image. */
 	public static ImagePlus createDoubleImage(String title, int width, int height, int slices, int options) {
 
 		int fill = getFill(options);
@@ -426,7 +427,7 @@ public class NewImage {
 		if(size < 0)
 			return null;
 		double[] pixels = new double[size];
-		ImageProcessor ip = new DoubleProcessor(width, height, pixels, null);
+		ImageProcessor ip = new DoubleProcessor(width, height, pixels);
 		switch(fill) {
 			case FILL_WHITE:
 			case FILL_BLACK:
@@ -455,7 +456,7 @@ public class NewImage {
 				imp = null;
 		}
 		if(fill != FILL_NOISE)
-			imp.getProcessor().setMinAndMax(0.0, 1.0);
+			imp.getProcessor().setMinAndMax(0.0, 1.0); // default display range
 		return imp;
 	}
 
@@ -524,7 +525,7 @@ public class NewImage {
 
 	boolean showDialog() {
 
-		if(staticType < GRAY8 || staticType > RGB)
+		if(staticType < GRAY8 || staticType > GRAY64)
 			staticType = GRAY8;
 		if(staticFillWith < OLD_FILL_WHITE || staticFillWith > FILL_NOISE)
 			staticFillWith = FILL_WHITE;

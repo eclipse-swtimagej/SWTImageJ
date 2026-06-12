@@ -138,7 +138,7 @@ public class StackConverter {
 			return;
 		if(!(type == ImagePlus.GRAY8 || type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64))
 			throw new IllegalArgumentException("Unsupported conversion");
-		if(Prefs.calibrateConversions && imp.getNChannels() == 1 && type == ImagePlus.GRAY32) {
+		if(Prefs.calibrateConversions && imp.getNChannels() == 1 && (type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64)) {
 			ImageConverter.convertAndCalibrate(imp, "16-bit");
 			return;
 		}
@@ -155,7 +155,7 @@ public class StackConverter {
 		int inc = nSlices / 20;
 		if(inc < 1)
 			inc = 1;
-		boolean scale = type == ImagePlus.GRAY32 && ImageConverter.getDoScaling();
+		boolean scale = (type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64) && ImageConverter.getDoScaling();
 		ImageProcessor ip1, ip2;
 		for(int i = 1; i <= nSlices; i++) {
 			label = stack1.getSliceLabel(1);
@@ -194,7 +194,7 @@ public class StackConverter {
 
 		if(type == ImagePlus.GRAY32)
 			return;
-		if(!(type == ImagePlus.GRAY8 || type == ImagePlus.GRAY16 || type == ImagePlus.GRAY64 || type == ImagePlus.COLOR_RGB))
+		if(!(type == ImagePlus.GRAY8 || type == ImagePlus.GRAY16 || type == ImagePlus.COLOR_RGB || type == ImagePlus.GRAY64))
 			throw new IllegalArgumentException("Unsupported conversion");
 		ImageStack stack1 = imp.getStack();
 		ImageStack stack2 = new ImageStack(width, height);
@@ -234,50 +234,50 @@ public class StackConverter {
 		else if(!cal.calibrated())
 			imp.setDisplayRange(min, max);
 	}
-	
+
 	/** Converts this Stack to 64-bit (double) grayscale. */
 	public void convertToGray64() {
 
-		if (type == ImagePlus.GRAY64)
+		if(type == ImagePlus.GRAY64)
 			return;
-		if (!(type == ImagePlus.GRAY8 || type == ImagePlus.GRAY16
-				|| type == ImagePlus.GRAY32 || type == ImagePlus.COLOR_RGB))
+		if(!(type == ImagePlus.GRAY8 || type == ImagePlus.GRAY16 || type == ImagePlus.GRAY32 || type == ImagePlus.COLOR_RGB))
 			throw new IllegalArgumentException("Unsupported conversion");
 		ImageStack stack1 = imp.getStack();
 		ImageStack stack2 = new ImageStack(width, height);
 		String label;
 		int inc = nSlices / 20;
-		if (inc < 1) inc = 1;
+		if(inc < 1)
+			inc = 1;
 		ImageProcessor ip1, ip2;
 		Calibration cal = imp.getCalibration();
 		double min = imp.getDisplayRangeMin();
 		double max = imp.getDisplayRangeMax();
 		int channels = imp.getNChannels();
 		LUT[] luts = imp.getLuts();
-		if ((luts != null && luts.length != channels) || cal.calibrated())
+		if((luts != null && luts.length != channels) || cal.calibrated())
 			luts = null;
-		for (int i = 1; i <= nSlices; i++) {
+		for(int i = 1; i <= nSlices; i++) {
 			label = stack1.getSliceLabel(1);
 			ip1 = stack1.getProcessor(1);
 			ip1.setCalibrationTable(cal.getCTable());
 			ip2 = ip1.convertToDoubleProcessor();
 			stack1.deleteSlice(1);
 			stack2.addSlice(label, ip2);
-			if ((i % inc) == 0) {
-				IJ.showProgress((double) i / nSlices);
+			if((i % inc) == 0) {
+				IJ.showProgress((double)i / nSlices);
 				IJ.showStatus("Converting to 64-bits: " + i + "/" + nSlices);
 			}
 		}
 		IJ.showProgress(1.0);
 		imp.setStack(null, stack2);
 		imp.setCalibration(imp.getCalibration());
-		if (type == ImagePlus.COLOR_RGB) {
+		if(type == ImagePlus.COLOR_RGB) {
 			imp.resetDisplayRange();
 			imp.updateAndDraw();
 		}
-		if (imp.isHyperStack() && luts != null)
-			((CompositeImage) imp).setLuts(luts);
-		else if (!cal.calibrated())
+		if(imp.isHyperStack() && luts != null)
+			((CompositeImage)imp).setLuts(luts);
+		else if(!cal.calibrated())
 			imp.setDisplayRange(min, max);
 	}
 

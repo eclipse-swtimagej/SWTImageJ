@@ -73,9 +73,9 @@ import ij.plugin.frame.Recorder;
 import ij.plugin.frame.RoiManager;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
+import ij.process.DoubleProcessor;
 import ij.process.FloatPolygon;
 import ij.process.FloatProcessor;
-import ij.process.DoubleProcessor;
 import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
@@ -1658,11 +1658,11 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			case ImagePlus.GRAY32:
 				size *= 4.0;
 				break;
-			case ImagePlus.COLOR_RGB:
-				size *= 4.0;
-				break;
 			case ImagePlus.GRAY64:
 				size *= 8.0;
+				break;
+			case ImagePlus.COLOR_RGB:
+				size *= 4.0;
 				break;
 		}
 		return size;
@@ -1881,10 +1881,10 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			return 16;
 		else if(ip2 instanceof ColorProcessor)
 			return 24;
-		else if(ip2 instanceof DoubleProcessor)
-			return 64;
 		else if(ip2 instanceof FloatProcessor)
 			return 32;
+		else if(ip2 instanceof DoubleProcessor)
+			return 64;
 		return 0;
 	}
 
@@ -3762,6 +3762,10 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			case ImagePlus.GRAY32:
 			case ImagePlus.COLOR_RGB:
 				bytesPerPixel = 4;
+				break;
+			case ImagePlus.GRAY64:
+				bytesPerPixel = 8;
+				break;
 		}
 		if(!batchMode) {
 			msg = (cut) ? "Cut" : "Copy";

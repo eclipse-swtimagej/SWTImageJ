@@ -925,6 +925,9 @@ public class ImageWindow implements MouseWheelListener {
 			case ImagePlus.GRAY32:
 				s += "32-bit";
 				break;
+			case ImagePlus.GRAY64:
+				s += "64-bit";
+				break;
 			case ImagePlus.COLOR_RGB:
 				s += imp.isRGB() ? "RGB" : "32-bit (int)";
 				break;

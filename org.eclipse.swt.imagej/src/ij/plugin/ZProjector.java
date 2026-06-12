@@ -13,6 +13,7 @@ import ij.gui.Overlay;
 import ij.gui.Roi;
 import ij.plugin.frame.Recorder;
 import ij.process.ByteProcessor;
+import ij.process.DoubleProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
@@ -37,6 +38,7 @@ public class ZProjector implements PlugIn {
 	private static final int BYTE_TYPE = 0;
 	private static final int SHORT_TYPE = 1;
 	private static final int FLOAT_TYPE = 2;
+	private static final int DOUBLE_TYPE = 3;
 	public static final String lutMessage = "Stacks with inverting LUTs may not project correctly.\n" + "To create a standard LUT, invert the stack (Edit/Invert)\n" + "and invert the LUT (Image/Lookup Tables/Invert LUT).";
 	/** Image to hold z-projection. */
 	private ImagePlus projImage = null;
@@ -388,6 +390,8 @@ public class ZProjector implements PlugIn {
 			ptype = SHORT_TYPE;
 		else if(stack.getProcessor(1) instanceof FloatProcessor)
 			ptype = FLOAT_TYPE;
+		else if(stack.getProcessor(1) instanceof DoubleProcessor)
+			ptype = DOUBLE_TYPE;
 		else {
 			IJ.error("Z Project", "Non-RGB stack required");
 			return;
@@ -611,7 +615,6 @@ public class ZProjector implements PlugIn {
 		int height = imp.getHeight();
 		float[] pixels = (float[])fp.getPixels();
 		ImageProcessor oip = null;
-		// Create output image consistent w/ type of input image.
 		int size = pixels.length;
 		switch(ptype) {
 			case BYTE_TYPE:
@@ -629,15 +632,15 @@ public class ZProjector implements PlugIn {
 			case FLOAT_TYPE:
 				oip = new FloatProcessor(width, height, pixels, null);
 				break;
+			case DOUBLE_TYPE: {
+				double[] pixels64 = new double[size];
+				for(int i = 0; i < size; i++)
+					pixels64[i] = pixels[i];
+				oip = new DoubleProcessor(width, height, pixels64);
+				break;
+			}
 		}
-		// Adjust for display.
-		// Calling this on non-ByteProcessors ensures image
-		// processor is set up to correctly display image.
 		oip.resetMinAndMax();
-		// Create new image plus object. Don't use
-		// ImagePlus.createImagePlus here because there may be
-		// attributes of input image that are not appropriate for
-		// projection.
 		return new ImagePlus(makeTitle(), oip);
 	}
 
@@ -658,6 +661,9 @@ public class ZProjector implements PlugIn {
 				break;
 			case FLOAT_TYPE:
 				rayFunc.projectSlice((float[])pixelArray);
+				break;
+			case DOUBLE_TYPE:
+				rayFunc.projectSlice((double[])pixelArray);
 				break;
 		}
 	}
@@ -761,17 +767,14 @@ public class ZProjector implements PlugIn {
 	 */
 	abstract class RayFunction {
 
-		/** Do actual slice projection for specific data types. */
 		public abstract void projectSlice(byte[] pixels);
 
 		public abstract void projectSlice(short[] pixels);
 
 		public abstract void projectSlice(float[] pixels);
 
-		/**
-		 * Perform any necessary post processing operations, e.g.
-		 * averging values.
-		 */
+		public abstract void projectSlice(double[] pixels);
+
 		public void postProcess() {
 
 		}
@@ -811,6 +814,12 @@ public class ZProjector implements PlugIn {
 
 			for(int i = 0; i < len; i++)
 				fpixels[i] += pixels[i];
+		}
+
+		public void projectSlice(double[] pixels) {
+
+			for(int i = 0; i < len; i++)
+				fpixels[i] += (float)pixels[i];
 		}
 
 		public void postProcess() {
@@ -859,6 +868,14 @@ public class ZProjector implements PlugIn {
 					fpixels[i] = pixels[i];
 			}
 		}
+
+		public void projectSlice(double[] pixels) {
+
+			for(int i = 0; i < len; i++) {
+				if(!Double.isNaN(pixels[i]) && pixels[i] > fpixels[i])
+					fpixels[i] = (float)pixels[i];
+			}
+		}
 	} // end MaxIntensity
 
 	/** Compute min intensity projection. */
@@ -897,6 +914,14 @@ public class ZProjector implements PlugIn {
 			for(int i = 0; i < len; i++) {
 				if(pixels[i] < fpixels[i])
 					fpixels[i] = pixels[i];
+			}
+		}
+
+		public void projectSlice(double[] pixels) {
+
+			for(int i = 0; i < len; i++) {
+				if(!Double.isNaN(pixels[i]) && pixels[i] < fpixels[i])
+					fpixels[i] = (float)pixels[i];
 			}
 		}
 	} // end MaxIntensity
@@ -938,6 +963,16 @@ public class ZProjector implements PlugIn {
 		}
 
 		public void projectSlice(float[] pixels) {
+
+			double v;
+			for(int i = 0; i < len; i++) {
+				v = pixels[i];
+				sum[i] += v;
+				sum2[i] += v * v;
+			}
+		}
+
+		public void projectSlice(double[] pixels) {
 
 			double v;
 			for(int i = 0; i < len; i++) {

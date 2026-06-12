@@ -159,9 +159,13 @@ public class Fast_Filters implements ExtendedPlugInFilter, DialogListener {
      *            sources for details.
      */
     public int setup(String arg, ImagePlus imp) {
-        if (IJ.versionLessThan("1.38x"))        // generates an error message for older versions
+        if (imp != null && imp.getBitDepth() == 64) {
+            IJ.error("Fast Filters",
+                "This plugin does not yet support 64-bit images.\n" +
+                "Please convert to 32-bit (Image > Type > 32-bit) first.");
             return DONE;
-        return flags;
+        }
+        // ...existing setup code...
     }
 
     // Called by ImageJ after setup.
