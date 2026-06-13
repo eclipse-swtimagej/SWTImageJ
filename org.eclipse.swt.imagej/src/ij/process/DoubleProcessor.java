@@ -1399,16 +1399,24 @@ public class DoubleProcessor extends ImageProcessor {
 		filter(MEDIAN_FILTER);
 	}
 
-	/** 3x3 grayscale erosion (minimum filter). */
+	/**
+	 * Not supported for 64-bit images, consistent with FloatProcessor and
+	 * ShortProcessor. Convert to 8-bit (Image &gt; Type) to use morphological
+	 * erosion.
+	 */
 	public void erode() {
 
-		filter(MIN);
+		ij.IJ.error("64-bit Image", "Erode is not supported for 64-bit images.\n" + "Please convert to 8-bit first (Image > Type).");
 	}
 
-	/** 3x3 grayscale dilation (maximum filter). */
+	/**
+	 * Not supported for 64-bit images, consistent with FloatProcessor and
+	 * ShortProcessor. Convert to 8-bit (Image &gt; Type) to use morphological
+	 * dilation.
+	 */
 	public void dilate() {
 
-		filter(MAX);
+		ij.IJ.error("64-bit Image", "Dilate is not supported for 64-bit images.\n" + "Please convert to 8-bit first (Image > Type).");
 	}
 
 	/** Returns a FloatProcessor view/copy of this DoubleProcessor. */
