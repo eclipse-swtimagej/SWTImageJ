@@ -2744,8 +2744,11 @@ public class IJ {
 		if(type.contains("24") || type.contains("rgb") || signedInt)
 			bitDepth = 24;
 		int options = NewImage.FILL_WHITE;
+		// audit-ok: numeric grayscale types (short/float/double) default to zero-filled
+		// pixels; only 8-bit and RGB fall through to FILL_WHITE for legacy parity.
 		if(bitDepth == 16 || bitDepth == 32 || bitDepth == 64)
 			options = NewImage.FILL_BLACK;
+		options = NewImage.FILL_BLACK;
 		if(type.contains("white"))
 			options = NewImage.FILL_WHITE;
 		else if(type.contains("black"))
