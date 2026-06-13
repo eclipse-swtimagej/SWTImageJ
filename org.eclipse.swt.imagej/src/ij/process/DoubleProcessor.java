@@ -476,12 +476,22 @@ public class DoubleProcessor extends ImageProcessor {
 	}
 
 	/** Returns the value of the pixel at (x,y) as a float for API compatibility. */
+	@Override
 	public float getPixelValue(int x, int y) {
 
 		if(x >= 0 && x < width && y >= 0 && y < height)
 			return (float)pixels[y * width + x];
 		else
-			return Float.NaN;
+			return 0f;
+	}
+
+	/** Full-precision 64-bit accessor; preserves double values exactly. */
+	public double getPixelValueDouble(int x, int y) {
+
+		if(x >= 0 && x < width && y >= 0 && y < height)
+			return pixels[y * width + x];
+		else
+			return 0.0;
 	}
 
 	/** Draws a pixel in the current foreground color. */

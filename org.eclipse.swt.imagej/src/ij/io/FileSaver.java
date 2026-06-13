@@ -467,7 +467,7 @@ public class FileSaver {
 	public boolean saveAsJpeg(String path) {
 
 		String err = JpegWriter.save(imp, path, jpegQuality);
-		if(err == null && !(imp.getType() == ImagePlus.GRAY16 || imp.getType() == ImagePlus.GRAY32))
+		if(err == null && !(imp.getType() == ImagePlus.GRAY16 || imp.getType() == ImagePlus.GRAY32 || imp.getType() == ImagePlus.GRAY64))
 			updateImp(fi, FileInfo.GIF_OR_JPG);
 		return true;
 	}
@@ -572,8 +572,8 @@ public class FileSaver {
 		if(imp.getBitDepth() == 24) {
 			IJ.error("FITS Writer", "Grayscale image required");
 			return false;
-		} else
-			return true;
+		}
+		return true;
 	}
 
 	/**
@@ -866,8 +866,9 @@ public class FileSaver {
 		if(fi.unit != null)
 			appendEscapedLine(sb, "unit=" + fi.unit);
 		int bitDepth = imp.getBitDepth();
-		if(fi.valueUnit != null && (fi.calibrationFunction != Calibration.CUSTOM || bitDepth == 32 || bitDepth == 64)) {
-			if(bitDepth != 32 && bitDepth != 64) {
+		boolean isFloatLike = (bitDepth == 32 || bitDepth == 64);
+		if(fi.valueUnit != null && (fi.calibrationFunction != Calibration.CUSTOM || isFloatLike)) {
+			if(!isFloatLike) {
 				sb.append("cf=" + fi.calibrationFunction + "\n");
 				if(fi.coefficients != null) {
 					for(int i = 0; i < fi.coefficients.length; i++)
@@ -875,7 +876,7 @@ public class FileSaver {
 				}
 			}
 			appendEscapedLine(sb, "vunit=" + fi.valueUnit);
-			if(cal.zeroClip() && bitDepth != 32 && bitDepth != 64)
+			if(cal.zeroClip() && !isFloatLike)
 				sb.append("zeroclip=true\n");
 		}
 		// get stack z-spacing, more units and fps
