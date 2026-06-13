@@ -527,8 +527,30 @@ public class DoubleProcessor extends ImageProcessor {
 		new DoubleBlitter(this).copyBits(ip, xloc, yloc, mode);
 	}
 
+	/**
+	 * Transforms the image or ROI using an 8-bit (256 entry) lookup table.
+	 * Real pixel values are mapped to 0-255 via the current display range,
+	 * passed through the table, then mapped back into the display range.
+	 */
 	public void applyTable(int[] lut) {
 
+		if(lut == null || lut.length < 256)
+			return;
+		double min2 = getMin();
+		double range = getMax() - min2;
+		if(range == 0.0)
+			return;
+		for(int y = roiY; y < (roiY + roiHeight); y++) {
+			int i = y * width + roiX;
+			for(int x = roiX; x < (roiX + roiWidth); x++, i++) {
+				int index = (int)((pixels[i] - min2) / range * 255.0 + 0.5);
+				if(index < 0)
+					index = 0;
+				if(index > 255)
+					index = 255;
+				pixels[i] = min2 + (lut[index] / 255.0) * range;
+			}
+		}
 	}
 
 	private void process(int op, double value) {
@@ -629,16 +651,34 @@ public class DoubleProcessor extends ImageProcessor {
 		process(MULT, value);
 	}
 
+	/** Bitwise AND of the long-bit pattern of each pixel with 'value'. */
 	public void and(int value) {
 
+		for(int y = roiY; y < (roiY + roiHeight); y++) {
+			int i = y * width + roiX;
+			for(int x = roiX; x < (roiX + roiWidth); x++, i++)
+				pixels[i] = (double)((long)pixels[i] & value);
+		}
 	}
 
+	/** Bitwise OR of the long-bit pattern of each pixel with 'value'. */
 	public void or(int value) {
 
+		for(int y = roiY; y < (roiY + roiHeight); y++) {
+			int i = y * width + roiX;
+			for(int x = roiX; x < (roiX + roiWidth); x++, i++)
+				pixels[i] = (double)((long)pixels[i] | value);
+		}
 	}
 
+	/** Bitwise XOR of the long-bit pattern of each pixel with 'value'. */
 	public void xor(int value) {
 
+		for(int y = roiY; y < (roiY + roiHeight); y++) {
+			int i = y * width + roiX;
+			for(int x = roiX; x < (roiX + roiWidth); x++, i++)
+				pixels[i] = (double)((long)pixels[i] ^ value);
+		}
 	}
 
 	public void gamma(double value) {
@@ -828,8 +868,116 @@ public class DoubleProcessor extends ImageProcessor {
 						pixels[p] = sum;
 					}
 					break;
+				case MIN:
+					for(int x = roiX; x < xEnd; x++, p++) {
+						if(x < width - 1) {
+							p3++;
+							p6++;
+							p9++;
+						}
+						v1 = v2;
+						v2 = v3;
+						v3 = pixels2[p3];
+						v4 = v5;
+						v5 = v6;
+						v6 = pixels2[p6];
+						v7 = v8;
+						v8 = v9;
+						v9 = pixels2[p9];
+						double min = v1;
+						if(v2 < min)
+							min = v2;
+						if(v3 < min)
+							min = v3;
+						if(v4 < min)
+							min = v4;
+						if(v5 < min)
+							min = v5;
+						if(v6 < min)
+							min = v6;
+						if(v7 < min)
+							min = v7;
+						if(v8 < min)
+							min = v8;
+						if(v9 < min)
+							min = v9;
+						pixels[p] = min;
+					}
+					break;
+				case MAX:
+					for(int x = roiX; x < xEnd; x++, p++) {
+						if(x < width - 1) {
+							p3++;
+							p6++;
+							p9++;
+						}
+						v1 = v2;
+						v2 = v3;
+						v3 = pixels2[p3];
+						v4 = v5;
+						v5 = v6;
+						v6 = pixels2[p6];
+						v7 = v8;
+						v8 = v9;
+						v9 = pixels2[p9];
+						double max = v1;
+						if(v2 > max)
+							max = v2;
+						if(v3 > max)
+							max = v3;
+						if(v4 > max)
+							max = v4;
+						if(v5 > max)
+							max = v5;
+						if(v6 > max)
+							max = v6;
+						if(v7 > max)
+							max = v7;
+						if(v8 > max)
+							max = v8;
+						if(v9 > max)
+							max = v9;
+						pixels[p] = max;
+					}
+					break;
+				case MEDIAN_FILTER:
+					for(int x = roiX; x < xEnd; x++, p++) {
+						if(x < width - 1) {
+							p3++;
+							p6++;
+							p9++;
+						}
+						v1 = v2;
+						v2 = v3;
+						v3 = pixels2[p3];
+						v4 = v5;
+						v5 = v6;
+						v6 = pixels2[p6];
+						v7 = v8;
+						v8 = v9;
+						v9 = pixels2[p9];
+						pixels[p] = median9(v1, v2, v3, v4, v5, v6, v7, v8, v9);
+					}
+					break;
 			}
 		}
+	}
+
+	/** Returns the median of 9 values (used by the 3x3 median filter). */
+	private double median9(double v1, double v2, double v3, double v4, double v5, double v6, double v7, double v8, double v9) {
+
+		double[] a = {v1, v2, v3, v4, v5, v6, v7, v8, v9};
+		// simple insertion sort of 9 elements
+		for(int i = 1; i < 9; i++) {
+			double tmp = a[i];
+			int j = i - 1;
+			while(j >= 0 && a[j] > tmp) {
+				a[j + 1] = a[j];
+				j--;
+			}
+			a[j + 1] = tmp;
+		}
+		return a[4];
 	}
 
 	/** Rotates the image or ROI 'angle' degrees clockwise. */
@@ -1221,29 +1369,46 @@ public class DoubleProcessor extends ImageProcessor {
 		return getStatistics().histogram;
 	}
 
-	/** Not implemented. */
+	/**
+	 * Sets pixels &le; the scaled threshold to the display min and the rest
+	 * to the display max. 'level' is a 0-255 value mapped to the display range.
+	 */
 	public void threshold(int level) {
 
+		double min2 = getMin();
+		double max2 = getMax();
+		double range = max2 - min2;
+		double cut = min2 + (level / 255.0) * range;
+		int size = width * height;
+		for(int i = 0; i < size; i++)
+			pixels[i] = (pixels[i] <= cut) ? min2 : max2;
 	}
 
-	/** Not implemented. */
+	/**
+	 * Auto-thresholding requires an integer histogram, which is not available
+	 * for 64-bit float images. Convert to 8/16-bit first (Image &gt; Type).
+	 */
 	public void autoThreshold() {
 
+		ij.IJ.error("64-bit Image", "Auto-thresholding is not supported for 64-bit images.\n" + "Please convert to 8-bit or 16-bit first (Image > Type).");
 	}
 
-	/** Not implemented. */
+	/** 3x3 median filter. */
 	public void medianFilter() {
 
+		filter(MEDIAN_FILTER);
 	}
 
-	/** Not implemented. */
+	/** 3x3 grayscale erosion (minimum filter). */
 	public void erode() {
 
+		filter(MIN);
 	}
 
-	/** Not implemented. */
+	/** 3x3 grayscale dilation (maximum filter). */
 	public void dilate() {
 
+		filter(MAX);
 	}
 
 	/** Returns a FloatProcessor view/copy of this DoubleProcessor. */

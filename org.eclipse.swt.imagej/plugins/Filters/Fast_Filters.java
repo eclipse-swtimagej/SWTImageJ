@@ -165,7 +165,9 @@ public class Fast_Filters implements ExtendedPlugInFilter, DialogListener {
                 "Please convert to 32-bit (Image > Type > 32-bit) first.");
             return DONE;
         }
-        // ...existing setup code...
+        if (IJ.versionLessThan("1.38x"))
+            return DONE;
+        return flags;
     }
 
     // Called by ImageJ after setup.
