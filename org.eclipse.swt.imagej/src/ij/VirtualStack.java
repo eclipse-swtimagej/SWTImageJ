@@ -10,6 +10,7 @@ import ij.io.Opener;
 import ij.plugin.FolderOpener;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
+import ij.process.DoubleProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
@@ -90,6 +91,8 @@ public class VirtualStack extends ImageStack {
 			depth = 24;
 		if(options.contains("32-bit"))
 			depth = 32;
+		if(options.contains("64-bit"))
+			depth = 64;
 		if(options.contains("delay"))
 			delay = 250;
 		this.generateData = options.contains("fill");
@@ -224,6 +227,9 @@ public class VirtualStack extends ImageStack {
 				case 32:
 					ip = new FloatProcessor(w, h);
 					break;
+				case 64:
+					ip = new DoubleProcessor(w, h);
+					break;
 			}
 			String hlabel = null;
 			if(generateData) {
@@ -233,7 +239,7 @@ public class VirtualStack extends ImageStack {
 					value = img.getCurrentSlice() - 1;
 				if(bitDepth == 16)
 					value *= 256;
-				if(bitDepth != 32) {
+				if(bitDepth != 32 && bitDepth != 64) {
 					for(int i = 0; i < ip.getPixelCount(); i++)
 						ip.set(i, value++);
 				}
@@ -295,6 +301,12 @@ public class VirtualStack extends ImageStack {
 				case 32:
 					ip = ip.convertToFloat();
 					break;
+				case 64:
+					// Lossless promotion to double; uses the helper above
+					// (you can copy convertProcessorToDouble into VirtualStack
+					// or call ImageStack.convertProcessorToDouble if you make it package-public).
+					ip = convertProcessorToDouble(ip);
+					break;
 			}
 		}
 		if(ip.getWidth() != getWidth() || ip.getHeight() != getHeight()) {
@@ -306,6 +318,17 @@ public class VirtualStack extends ImageStack {
 			ip.setCalibrationTable(cTable);
 		ip.setSliceNumber(n);
 		return ip;
+	}
+
+	private static DoubleProcessor convertProcessorToDouble(ImageProcessor src) {
+
+		int w = src.getWidth();
+		int h = src.getHeight();
+		double[] out = new double[w * h];
+		for(int y = 0, i = 0; y < h; y++)
+			for(int x = 0; x < w; x++, i++)
+				out[i] = src.getPixelValue(x, y);
+		return new DoubleProcessor(w, h, out);
 	}
 
 	/** Draw label for Help>Examples>JavaScript>Terabyte VirtualStack */

@@ -34,8 +34,8 @@ import ij.measure.Calibration;
 import ij.plugin.frame.Recorder;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
-import ij.process.FloatProcessor;
 import ij.process.DoubleProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
@@ -256,7 +256,7 @@ public class FileOpener {
 					return null;
 				ip = new FloatProcessor(width, height, (float[])pixels, cm);
 				break;
-			case FileInfo.GRAY64_FLOAT: // NEW
+			case FileInfo.GRAY64_FLOAT:
 				pixels = readPixels(fi);
 				if(pixels == null)
 					return null;
@@ -435,8 +435,8 @@ public class FileOpener {
 					ip = new FloatProcessor(width, height, (float[])pixels, cm);
 					imp.setProcessor(null, ip);
 					break;
-				case FileInfo.GRAY64_FLOAT: // NEW
-					ip = new DoubleProcessor(width, height, (double[])pixels, cm);
+				case FileInfo.GRAY64_FLOAT:
+					ip = new DoubleProcessor(width, height, (double[])pixels);
 					imp.setProcessor(null, ip);
 					break;
 				case FileInfo.RGB:
@@ -483,8 +483,9 @@ public class FileOpener {
 			cal.setUnit(fi.unit);
 			calibrated = true;
 		}
+		int bd = imp.getBitDepth();
 		if(fi.valueUnit != null) {
-			if(imp.getBitDepth() == 32)
+			if(bd == 32 || bd == 64)
 				cal.setValueUnit(fi.valueUnit);
 			else {
 				int f = fi.calibrationFunction;
