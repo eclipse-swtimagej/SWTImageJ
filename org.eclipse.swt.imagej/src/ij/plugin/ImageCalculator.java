@@ -170,7 +170,10 @@ public class ImageCalculator implements PlugIn {
 		ImagePlus img3 = null;
 		if(img1.getCalibration().isSigned16Bit() || img2.getCalibration().isSigned16Bit())
 			floatResult = true;
-		if(floatResult && !(img1.getBitDepth() == 32 && img2.getBitDepth() == 32))
+		int bd1_ = img1.getBitDepth();
+		int bd2_ = img2.getBitDepth();
+		boolean bothFloatLike = (bd1_ == 32 || bd1_ == 64) && (bd2_ == 32 || bd2_ == 64);
+		if(floatResult && !bothFloatLike)
 			createWindow = true;
 		int size1 = img1.getStackSize();
 		int size2 = img2.getStackSize();

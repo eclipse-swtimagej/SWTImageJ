@@ -448,7 +448,7 @@ public class HistogramWindow extends ImageWindow
 				ipRamp.setColorModel(LUT.createLutFromColor(Color.green));
 			else if (rgbMode == BLUE)
 				ipRamp.setColorModel(LUT.createLutFromColor(Color.blue));
-			pixels = (float[]) ipRamp.getPixels();
+			pixels = (float[]) ipRamp.getPixels(); // audit-ok: ipRamp is locally constructed as FloatProcessor
 		} else
 			pixels = new float[width * height];
 		for (int j = 0; j < height; j++) {

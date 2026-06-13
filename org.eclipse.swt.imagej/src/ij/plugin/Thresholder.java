@@ -308,7 +308,7 @@ public class Thresholder implements PlugIn, Measurements, SelectionListener {
 		int width = imp.getWidth();
 		int height = imp.getHeight();
 		int size = width * height;
-		boolean isFloat = imp.getType() == ImagePlus.GRAY32;
+		boolean isFloat = imp.getType() == ImagePlus.GRAY32 || imp.getType() == ImagePlus.GRAY64;
 		int currentSlice = imp.getCurrentSlice();
 		int nSlices = imp.getStackSize();
 		ImageStack stack1 = imp.getStack();
@@ -401,7 +401,7 @@ public class Thresholder implements PlugIn, Measurements, SelectionListener {
 					t1 = minValues[i - 1] + (t1 / 255.0) * (maxValues[i - 1] - minValues[i - 1]);
 					t2 = minValues[i - 1] + (t2 / 255.0) * (maxValues[i - 1] - minValues[i - 1]);
 				}
-				int digits = bitDepth == 32 ? 2 : 0;
+				int digits = (bitDepth == 32 || bitDepth == 64) ? 2 : 0;
 				IJ.log("  " + i + ": " + IJ.d2s(t1, digits) + "-" + IJ.d2s(t2, digits));
 			}
 			int[] lut = new int[256];
