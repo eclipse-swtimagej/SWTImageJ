@@ -31,7 +31,7 @@ import ij.io.SaveDialog;
 import ij.plugin.TextReader;
 import ij.plugin.frame.Recorder;
 import ij.process.ByteProcessor;
-import ij.process.ColorProcessor;
+import ij.process.DoubleProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.util.Tools;
@@ -65,13 +65,14 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	private boolean dialogItemChangedCalled;
 
 	public int setup(String arg, ImagePlus imp) {
+
 		this.imp = imp;
 		mainThread = Thread.currentThread();
-		if (imp == null) {
+		if(imp == null) {
 			IJ.noImage();
 			return DONE;
 		}
-		if (arg.equals("final") && imp.getRoi() == null) {
+		if(arg.equals("final") && imp.getRoi() == null) {
 			imp.getProcessor().resetMinAndMax();
 			imp.updateAndDraw();
 			return DONE;
@@ -80,7 +81,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		Roi roi = imp.getRoi();
 		isLineRoi = roi != null && roi.isLine();
 		nSlices = imp.getStackSize();
-		if (imp.getStackSize() == 1)
+		if(imp.getStackSize() == 1)
 			flags |= PARALLELIZE_IMAGES;
 		else
 			flags |= PARALLELIZE_STACKS;
@@ -89,32 +90,33 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	}
 
 	public void run(ImageProcessor ip) {
-		if (canceled)
+
+		if(canceled)
 			return;
-		if (isLineRoi)
+		if(isLineRoi)
 			ip.resetRoi();
-		if (!kernelError)
+		if(!kernelError)
 			convolve(ip, kernel, kw, kh);
 	}
 
 	public int showDialog(ImagePlus imp, String command, PlugInFilterRunner pfr) {
+
 		boolean interactive = Macro.getOptions() == null;
-		if (interactive) {
+		if(interactive) {
 			kernelText = lastKernelText;
 			normalizeFlag = lastNormalizeFlag;
 		}
 		gd = GUI.newNonBlockingDialog("Convolver...", imp);
 		gd.setInsets(5, 20, 0);
 		gd.addMessage(" \nKernel:"); // reserve two lines
-		messageLabel = (org.eclipse.swt.widgets.Label) gd.getMessage();
+		messageLabel = (org.eclipse.swt.widgets.Label)gd.getMessage();
 		gd.setInsets(5, 20, 0);
 		gd.addTextAreas(kernelText, null, 10, 30);
 		Composite makeButtonPanel;
-		if (!GraphicsEnvironment.isHeadless()) {
+		if(!GraphicsEnvironment.isHeadless()) {
 			AtomicReference<Composite> comp = new AtomicReference<Composite>();
 			Display.getDefault().syncExec(() -> {
 				comp.set(makeButtonPanel(gd));
-
 			});
 			gd.addPanel(comp.get());
 		}
@@ -122,10 +124,10 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		gd.addPreviewCheckbox(pfr);
 		gd.addDialogListener(this);
 		gd.showDialog();
-		if (gd.wasCanceled())
+		if(gd.wasCanceled())
 			return DONE;
 		this.pfr = pfr;
-		if (interactive) {
+		if(interactive) {
 			lastKernelText = kernelText;
 			lastNormalizeFlag = normalizeFlag;
 		}
@@ -133,12 +135,13 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	}
 
 	public boolean dialogItemChanged(GenericDialog gd, TypedEvent e) {
+
 		kernelText = gd.getNextText();
 		normalizeFlag = gd.getNextBoolean();
 		normalize = normalizeFlag;
 		kernelError = !decodeKernel(kernelText);
 		dialogItemChangedCalled = true;
-		if (!kernelError) {
+		if(!kernelError) {
 			IJ.showStatus("Convolve: " + kw + "x" + kh + " kernel");
 			return true;
 		} else
@@ -146,11 +149,12 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	}
 
 	boolean decodeKernel(String text) {
-		if (Macro.getOptions() != null && !hasNewLine(text))
+
+		if(Macro.getOptions() != null && !hasNewLine(text))
 			return decodeSquareKernel(text);
 		String[] rows = Tools.split(text.trim(), "\n");
 		kh = rows.length;
-		if (kh == 0)
+		if(kh == 0)
 			return false;
 		String[] values = Tools.split(rows[0].trim());
 		kw = values.length;
@@ -158,20 +162,20 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		boolean done = gd.wasOKed();
 		int i = 0;
 		String err = null;
-		for (int y = 0; y < kh; y++) {
+		for(int y = 0; y < kh; y++) {
 			values = Tools.split(rows[y]);
-			if (values.length != kw)
+			if(values.length != kw)
 				err = "Row " + (y + 1) + " is not the same length\nas the first row";
 			else
-				for (int x = 0; x < kw; x++)
-					kernel[i++] = (float) Tools.parseDouble(values[x], 0.0);
+				for(int x = 0; x < kw; x++)
+					kernel[i++] = (float)Tools.parseDouble(values[x], 0.0);
 		}
-		if ((kw & 1) != 1 || (kh & 1) != 1)
+		if((kw & 1) != 1 || (kh & 1) != 1)
 			err = "Kernel must have odd width and height.\nThis one is " + kw + "x" + kh + ".";
-		if (err == null) {
+		if(err == null) {
 			messageLabel.setText(kw + "x" + kh + " kernel");
 		} else {
-			if (done)
+			if(done)
 				IJ.error("Convolver", err);
 			else
 				messageLabel.setText(err);
@@ -181,29 +185,31 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	}
 
 	boolean hasNewLine(String text) {
-		for (int i = 0; i < text.length(); i++) {
-			if (text.charAt(i) == '\n')
+
+		for(int i = 0; i < text.length(); i++) {
+			if(text.charAt(i) == '\n')
 				return true;
 		}
 		return false;
 	}
 
 	boolean decodeSquareKernel(String text) {
+
 		String[] values = Tools.split(text);
 		int n = values.length;
-		kw = (int) Math.sqrt(n);
+		kw = (int)Math.sqrt(n);
 		kh = kw;
 		n = kw * kh;
 		kernel = new float[n];
-		for (int i = 0; i < n; i++)
-			kernel[i] = (float) Tools.parseDouble(values[i]);
-		if (kw >= 3 && (kw & 1) == 1) {
+		for(int i = 0; i < n; i++)
+			kernel[i] = (float)Tools.parseDouble(values[i]);
+		if(kw >= 3 && (kw & 1) == 1) {
 			StringBuffer sb = new StringBuffer();
 			int i = 0;
-			for (int y = 0; y < kh; y++) {
-				for (int x = 0; x < kw; x++) {
+			for(int y = 0; y < kh; y++) {
+				for(int x = 0; x < kw; x++) {
 					sb.append("" + kernel[i++]);
-					if (x < kw - 1)
+					if(x < kw - 1)
 						sb.append(" ");
 				}
 				sb.append("\n");
@@ -219,6 +225,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 
 	/** Creates a panel containing "Save...", "Save..." and "Preview" buttons. */
 	Composite makeButtonPanel(GenericDialog gd) {
+
 		// Panel buttons = new Panel();
 		// buttons.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
 		Composite buttons = new Composite(gd.getShell(), SWT.NONE);
@@ -231,6 +238,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		;
 		// open.addActionListener(this);
 		open.addSelectionListener(new SelectionAdapter() {
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
@@ -243,6 +251,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		save.setText("Save...");
 		// save.addActionListener(this);
 		save.addSelectionListener(new SelectionAdapter() {
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
@@ -258,23 +267,23 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	 * <code>kh</code>. Returns false if the user cancels the operation.
 	 */
 	public boolean convolve(ImageProcessor ip, float[] kernel, int kw, int kh) {
-		if (canceled || kernel == null || kw * kh != kernel.length)
-			return false;
-		if ((kw & 1) != 1 || (kh & 1) != 1)
+
+		if((kw & 1) != 1 || (kh & 1) != 1)
 			throw new IllegalArgumentException("Kernel width or height not odd (" + kw + "x" + kh + ")");
 		boolean notFloat = !(ip instanceof FloatProcessor);
+		boolean isDouble = ip instanceof DoubleProcessor; // NEW
 		ImageProcessor ip2 = ip;
-		if (notFloat) {
-			if (ip2 instanceof ColorProcessor)
-				throw new IllegalArgumentException("RGB images not supported");
-			ip2 = ip2.convertToFloat();
+		if(isDouble) { // NEW: keep full precision, no float detour
+			return convolveDouble(ip2, kernel, kw, kh);
 		}
-		if (kw == 1 || kh == 1)
-			convolveFloat1D((FloatProcessor) ip2, kernel, kw, kh, normalize ? getScale(kernel) : 1.0);
-		else
-			convolveFloat(ip2, kernel, kw, kh);
-		if (notFloat) {
-			if (ip instanceof ByteProcessor)
+		if(notFloat) {
+			ip2 = ip2.convertToFloat();
+			if(kernel.length == 1)
+				return true;
+		}
+		boolean ok = convolveFloat(ip2, kernel, kw, kh);
+		if(notFloat && ok) {
+			if(ip instanceof ByteProcessor)
 				ip2 = ip2.convertToByte(false);
 			else
 				ip2 = ip2.convertToShort(false);
@@ -289,6 +298,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	 * by the sum of the coefficients, preserving image brightness.
 	 */
 	public void setNormalize(boolean normalizeKernel) {
+
 		normalize = normalizeKernel;
 	}
 
@@ -298,9 +308,10 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	 * the operation by pressing 'Esc'.
 	 */
 	public boolean convolveFloat(ImageProcessor ip, float[] kernel, int kw, int kh) {
-		if (!(ip instanceof FloatProcessor))
+
+		if(!(ip instanceof FloatProcessor))
 			throw new IllegalArgumentException("FloatProcessor required");
-		if (canceled)
+		if(canceled)
 			return false;
 		int width = ip.getWidth();
 		int height = ip.getHeight();
@@ -311,14 +322,14 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		int y2 = y1 + r.height;
 		int uc = kw / 2;
 		int vc = kh / 2;
-		float[] pixels = (float[]) ip.getPixels();
-		float[] pixels2 = (float[]) ip.getSnapshotPixels();
-		if (pixels2 == null)
-			pixels2 = (float[]) ip.getPixelsCopy();
+		float[] pixels = (float[])ip.getPixels();
+		float[] pixels2 = (float[])ip.getSnapshotPixels();
+		if(pixels2 == null)
+			pixels2 = (float[])ip.getPixelsCopy();
 		double scale = normalize ? getScale(kernel) : 1.0;
 		Thread thread = Thread.currentThread();
 		boolean isMainThread = thread == mainThread || thread.getName().indexOf("Preview") != -1;
-		if (isMainThread)
+		if(isMainThread)
 			pass++;
 		double sum;
 		int offset, i;
@@ -326,44 +337,104 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		int xedge = width - uc;
 		int yedge = height - vc;
 		long lastTime = System.currentTimeMillis();
-		for (int y = y1; y < y2; y++) {
+		for(int y = y1; y < y2; y++) {
 			long time = System.currentTimeMillis();
-			if (time - lastTime > 100) {
+			if(time - lastTime > 100) {
 				lastTime = time;
-				if (thread.isInterrupted())
+				if(thread.isInterrupted())
 					return false;
-				if (isMainThread) {
-					if (IJ.escapePressed()) {
+				if(isMainThread) {
+					if(IJ.escapePressed()) {
 						canceled = true;
 						ip.reset();
 						ImageProcessor originalIp = imp.getProcessor();
-						if (originalIp.getNChannels() > 1)
+						if(originalIp.getNChannels() > 1)
 							originalIp.reset();
 						return false;
 					}
-					showProgress((y - y1) / (double) (y2 - y1));
+					showProgress((y - y1) / (double)(y2 - y1));
 				}
 			}
-			for (int x = x1; x < x2; x++) {
-				if (canceled)
+			for(int x = x1; x < x2; x++) {
+				if(canceled)
 					return false;
 				sum = 0.0;
 				i = 0;
 				edgePixel = y < vc || y >= yedge || x < uc || x >= xedge;
-				for (int v = -vc; v <= vc; v++) {
+				for(int v = -vc; v <= vc; v++) {
 					offset = x + (y + v) * width;
-					for (int u = -uc; u <= uc; u++) {
-						if (edgePixel) {
-							if (i >= kernel.length) // work around for JIT compiler bug on Linux
+					for(int u = -uc; u <= uc; u++) {
+						if(edgePixel) {
+							if(i >= kernel.length) // work around for JIT compiler bug on Linux
 								IJ.log("kernel index error: " + i);
 							sum += getPixel(x + u, y + v, pixels2, width, height) * kernel[i++];
 						} else
 							sum += pixels2[offset + u] * kernel[i++];
 					}
 				}
-				pixels[x + y * width] = (float) (sum * scale);
+				pixels[x + y * width] = (float)(sum * scale);
 			}
 		}
+		return true;
+	}
+
+	/** 64-bit double-precision convolution (no narrowing to float). */
+	public boolean convolveDouble(ImageProcessor ip, float[] kernel, int kw, int kh) {
+
+		if(canceled)
+			return false;
+		int width = ip.getWidth();
+		int height = ip.getHeight();
+		Rectangle r = ip.getRoi();
+		double[] pixels = (double[])ip.getPixels();
+		double[] pixels2 = (double[])ip.getSnapshotPixels();
+		if(pixels2 == null) {
+			ip.snapshot();
+			pixels2 = (double[])ip.getSnapshotPixels();
+		}
+		int x1 = r.x, y1 = r.y, x2 = x1 + r.width, y2 = y1 + r.height;
+		int uc = kw / 2, vc = kh / 2;
+		double scale = 0.0;
+		if(normalize) {
+			for(int i = 0; i < kernel.length; i++)
+				scale += kernel[i];
+			if(scale == 0.0)
+				scale = 1.0;
+			scale = 1.0 / scale;
+		} else {
+			scale = 1.0;
+		}
+		double[] dkernel = new double[kernel.length];
+		for(int i = 0; i < kernel.length; i++)
+			dkernel[i] = kernel[i];
+		for(int y = y1; y < y2; y++) {
+			if(canceled)
+				return false;
+			for(int x = x1; x < x2; x++) {
+				double sum = 0.0;
+				int ki = 0;
+				for(int v = -vc; v <= vc; v++) {
+					int yy = y + v;
+					if(yy < 0)
+						yy = 0;
+					if(yy >= height)
+						yy = height - 1;
+					int offset = yy * width;
+					for(int u = -uc; u <= uc; u++) {
+						int xx = x + u;
+						if(xx < 0)
+							xx = 0;
+						if(xx >= width)
+							xx = width - 1;
+						sum += pixels2[offset + xx] * dkernel[ki++];
+					}
+				}
+				pixels[y * width + x] = sum * scale;
+			}
+			if((y % 25) == 0)
+				showProgress((double)(y - y1) / r.height);
+		}
+		showProgress(1.0);
 		return true;
 	}
 
@@ -372,6 +443,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	 * and height <code>kh</code>.
 	 */
 	public void convolveFloat1D(FloatProcessor ip, float[] kernel, int kw, int kh) {
+
 		convolveFloat1D(ip, kernel, kw, kh, normalize ? getScale(kernel) : 1.0);
 	}
 
@@ -380,6 +452,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	 * and height <code>kh</code>.
 	 */
 	public void convolveFloat1D(FloatProcessor ip, float[] kernel, int kw, int kh, double scale) {
+
 		int width = ip.getWidth();
 		int height = ip.getHeight();
 		Rectangle r = ip.getRoi();
@@ -389,26 +462,25 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 		int y2 = y1 + r.height;
 		int uc = kw / 2;
 		int vc = kh / 2;
-		float[] pixels = (float[]) ip.getPixels();
-		float[] pixels2 = (float[]) ip.getSnapshotPixels();
-		if (pixels2 == null)
-			pixels2 = (float[]) ip.getPixelsCopy();
+		float[] pixels = (float[])ip.getPixels();
+		float[] pixels2 = (float[])ip.getSnapshotPixels();
+		if(pixels2 == null)
+			pixels2 = (float[])ip.getPixelsCopy();
 		boolean vertical = kw == 1;
-
 		double sum;
 		int offset, i;
 		boolean edgePixel;
 		int xedge = width - uc;
 		int yedge = height - vc;
-		for (int y = y1; y < y2; y++) {
-			for (int x = x1; x < x2; x++) {
+		for(int y = y1; y < y2; y++) {
+			for(int x = x1; x < x2; x++) {
 				sum = 0.0;
 				i = 0;
-				if (vertical) {
+				if(vertical) {
 					edgePixel = y < vc || y >= yedge;
 					offset = x + (y - vc) * width;
-					for (int v = -vc; v <= vc; v++) {
-						if (edgePixel)
+					for(int v = -vc; v <= vc; v++) {
+						if(edgePixel)
 							sum += getPixel(x + uc, y + v, pixels2, width, height) * kernel[i++];
 						else
 							sum += pixels2[offset + uc] * kernel[i++];
@@ -417,51 +489,54 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 				} else {
 					edgePixel = x < uc || x >= xedge;
 					offset = x + (y - vc) * width;
-					for (int u = -uc; u <= uc; u++) {
-						if (edgePixel)
+					for(int u = -uc; u <= uc; u++) {
+						if(edgePixel)
 							sum += getPixel(x + u, y + vc, pixels2, width, height) * kernel[i++];
 						else
 							sum += pixels2[offset + u] * kernel[i++];
 					}
 				}
-				pixels[x + y * width] = (float) (sum * scale);
+				pixels[x + y * width] = (float)(sum * scale);
 			}
 		}
 	}
 
 	public static double getScale(float[] kernel) {
+
 		double scale = 1.0;
 		double sum = 0.0;
-		for (int i = 0; i < kernel.length; i++)
+		for(int i = 0; i < kernel.length; i++)
 			sum += kernel[i];
-		if (sum != 0.0)
+		if(sum != 0.0)
 			scale = 1.0 / sum;
 		return scale;
 	}
 
 	private float getPixel(int x, int y, float[] pixels, int width, int height) {
-		if (x <= 0)
+
+		if(x <= 0)
 			x = 0;
-		if (x >= width)
+		if(x >= width)
 			x = width - 1;
-		if (y <= 0)
+		if(y <= 0)
 			y = 0;
-		if (y >= height)
+		if(y >= height)
 			y = height - 1;
 		return pixels[x + y * width];
 	}
 
 	void save() {
+
 		org.eclipse.swt.widgets.Text ta1 = gd.getTextArea1();
 		ta1.selectAll();
 		String text = ta1.getText();
 		ta1.setSelection(0, 0);
-		if (text == null || text.length() == 0)
+		if(text == null || text.length() == 0)
 			return;
 		text += "\n";
 		SaveDialog sd = new SaveDialog("Save as Text...", "kernel", ".txt");
 		String name = sd.getFileName();
-		if (name == null)
+		if(name == null)
 			return;
 		String directory = sd.getDirectory();
 		PrintWriter pw = null;
@@ -469,7 +544,7 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 			FileOutputStream fos = new FileOutputStream(directory + name);
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 			pw = new PrintWriter(bos);
-		} catch (IOException e) {
+		} catch(IOException e) {
 			IJ.error("" + e);
 			return;
 		}
@@ -479,64 +554,67 @@ public class Convolver implements ExtendedPlugInFilter, DialogListener, ActionLi
 	}
 
 	void open() {
+
 		OpenDialog od = new OpenDialog("Open Kernel...", "");
 		String directory = od.getDirectory();
 		String name = od.getFileName();
-		if (name == null)
+		if(name == null)
 			return;
 		String path = directory + name;
 		TextReader tr = new TextReader();
 		ImageProcessor ip = tr.open(path);
-		if (ip == null)
+		if(ip == null)
 			return;
 		int width = ip.getWidth();
 		int height = ip.getHeight();
-		if ((width & 1) != 1 || (height & 1) != 1) {
+		if((width & 1) != 1 || (height & 1) != 1) {
 			IJ.error("Convolver", "Kernel must be have odd width and height");
 			return;
 		}
 		StringBuffer sb = new StringBuffer();
 		boolean integers = true;
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
 				double v = ip.getPixelValue(x, y);
-				if ((int) v != v)
+				if((int)v != v)
 					integers = false;
 			}
 		}
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				if (x != 0)
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
+				if(x != 0)
 					sb.append(" ");
 				double v = ip.getPixelValue(x, y);
-				if (integers)
+				if(integers)
 					sb.append(IJ.d2s(ip.getPixelValue(x, y), 0));
 				else
 					sb.append("" + ip.getPixelValue(x, y));
 			}
-			if (y != height - 1)
+			if(y != height - 1)
 				sb.append("\n");
 		}
 		gd.getTextArea1().setText(new String(sb));
 	}
 
 	public void setNPasses(int nPasses) {
+
 		this.nPasses = nPasses;
 		pass = 0;
 	}
 
 	private void showProgress(double percent) {
-		percent = (double) (pass - 1) / nPasses + percent / nPasses;
+
+		percent = (double)(pass - 1) / nPasses + percent / nPasses;
 		IJ.showProgress(percent);
 	}
 
 	public void actionPerformed(ActionEvent e) {
+
 		Object source = e.getSource();
 		Recorder.disablePathRecording();
-		if (source == save)
+		if(source == save)
 			save();
-		else if (source == open)
+		else if(source == open)
 			open();
 	}
-
 }
