@@ -748,9 +748,9 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 				applyRGB(imp, ip);
 			return;
 		}
-		if(bitDepth == 32) {
+		if(bitDepth == 32 || bitDepth == 64) {
 			IJ.beep();
-			IJ.error("\"Apply\" does not work with 32-bit images");
+			IJ.error("\"Apply\" does not work with 32-bit or 64-bit images");
 			imp.unlock();
 			return;
 		}
