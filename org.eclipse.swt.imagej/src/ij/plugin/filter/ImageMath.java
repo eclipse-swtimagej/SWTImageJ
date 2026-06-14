@@ -142,7 +142,7 @@ public class ImageMath implements ExtendedPlugInFilter, DialogListener {
 		} else if(arg.equals("nan")) {
 			setBackgroundToNaN(ip);
 		} else if(arg.equals("abs")) {
-			if((ip instanceof FloatProcessor) || imp.getCalibration().isSigned16Bit()) {
+			if((ip instanceof FloatProcessor) || (ip instanceof ij.process.DoubleProcessor) || imp.getCalibration().isSigned16Bit()) {
 				ip.abs();
 				ip.resetMinAndMax();
 			} else
