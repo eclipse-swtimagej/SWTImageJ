@@ -11,6 +11,7 @@ import ij.gui.GUI;
 import ij.gui.GenericDialog;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
+import ij.process.DoubleProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
@@ -153,11 +154,15 @@ public class BackgroundSubtracter implements ExtendedPlugInFilter, DialogListene
 	/** Background for any image type */
 	public void run(ImageProcessor ip) {
 
+		// 64-bit: keep the original double pixels so the subtraction can be done at full precision
+		// (the float working copy's snapshot is only float[]).
+		if((ip instanceof DoubleProcessor) && !createBackground)
+			ip.snapshot();
 		if(isRGB && !separateColors)
 			rollingBallBrightnessBackground((ColorProcessor)ip, radius, createBackground, lightBackground, useParaboloid, doPresmooth, true);
 		else
 			rollingBallBackground(ip, radius, createBackground, lightBackground, useParaboloid, doPresmooth, true);
-		if(previewing && (ip instanceof FloatProcessor || ip instanceof ShortProcessor)) {
+		if(previewing && (ip instanceof FloatProcessor || ip instanceof ShortProcessor || ip instanceof DoubleProcessor)) {
 			ip.resetMinAndMax();
 		}
 	}
@@ -294,6 +299,20 @@ public class BackgroundSubtracter implements ExtendedPlugInFilter, DialogListene
 						if(value > 255f)
 							value = 255f;
 						pixels[p] = (pxl & resetMask) | ((int)value << shift);
+					}
+				} else if(ip instanceof DoubleProcessor) {
+					// 64-bit: subtract the (float) background from the original double values.
+					// No clamping and no rounding offset - double keeps full range and precision.
+					double[] pixels = (double[])ip.getPixels();
+					double[] snapshotPixels = (double[])ip.getSnapshotPixels(); // original doubles (snapshot taken in run())
+					if(snapshotPixels != null) {
+						for(int p = 0; p < bgPixels.length; p++)
+							pixels[p] = snapshotPixels[p] - bgPixels[p];
+					} else {
+						// fallback when no snapshot is available (e.g. deprecated subtractBackround entry point):
+						// subtract in place; the current pixels are the original data.
+						for(int p = 0; p < bgPixels.length; p++)
+							pixels[p] = pixels[p] - bgPixels[p];
 					}
 				}
 			}
