@@ -3685,11 +3685,8 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 				String s = (int)value == value ? IJ.d2s(value, 0) + ".0" : IJ.d2s(value, 4, 7);
 				return (", value=" + s);
 			case GRAY64:
-				double dval = ip.getPixelValue(x, y); // full precision read
-				// If DoubleProcessor exposes a double getter, prefer it to avoid the float API:
-				if(ip instanceof ij.process.DoubleProcessor)
-					dval = ((ij.process.DoubleProcessor)ip).getPixelValueDouble(x, y);
-				String ds = (long)dval == dval ? IJ.d2s(dval, 0) + ".0" : IJ.d2s(dval, 4, 17);
+				double d = (ip instanceof DoubleProcessor) ? ((DoubleProcessor)ip).getPixelValueDouble(x, y) : ip.getPixelValue(x, y);
+				String ds = (int)d == d ? IJ.d2s(d, 0) + ".0" : IJ.d2s(d, 4, 17);
 				return ", value=" + ds;
 			case COLOR_RGB:
 				if(ip != null && ip.getNChannels() == 1)
