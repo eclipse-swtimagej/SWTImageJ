@@ -415,6 +415,43 @@ public class DoubleProcessor extends ImageProcessor {
 		pixels[index] = value;
 	}
 
+	/**
+	 * Returns the value of the pixel at (x,y) as a double, without narrowing to
+	 * float. Use this instead of getPixelValue() or getf() when full 64-bit
+	 * precision is required. Does no bounds checking.
+	 */
+	public final double getd(int x, int y) {
+
+		return pixels[y * width + x];
+	}
+
+	/**
+	 * Returns the value of the pixel at the given index as a double, without
+	 * narrowing to float. Does no bounds checking.
+	 */
+	public final double getd(int index) {
+
+		return pixels[index];
+	}
+
+	/**
+	 * Sets the value of the pixel at (x,y) to a double, without narrowing to
+	 * float. Does no bounds checking.
+	 */
+	public final void setd(int x, int y, double value) {
+
+		pixels[y * width + x] = value;
+	}
+
+	/**
+	 * Sets the value of the pixel at the given index to a double, without
+	 * narrowing to float. Does no bounds checking.
+	 */
+	public final void setd(int index, double value) {
+
+		pixels[index] = value;
+	}
+
 	/** Returns the value of the pixel at (x,y) in a one element int array. */
 	public int[] getPixel(int x, int y, int[] iArray) {
 
