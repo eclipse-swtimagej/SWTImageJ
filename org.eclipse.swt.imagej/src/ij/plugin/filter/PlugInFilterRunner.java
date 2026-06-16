@@ -497,7 +497,11 @@ public class PlugInFilterRunner implements Runnable, DialogListener {
 					}
 					break;
 				case ImagePlus.GRAY64:
-					if((flags & PlugInFilter.DOES_ALL) == 0) {
+					// A filter handles 64-bit images if it declares DOES_64 directly.
+					// DOES_ALL intentionally does NOT include DOES_64, so legacy
+					// filters that say "I handle every type" are not silently
+					// offered a DoubleProcessor they were never designed for.
+					if((flags & PlugInFilter.DOES_64) == 0) {
 						wrongType(flags, cmd);
 						return false;
 					}
@@ -516,7 +520,7 @@ public class PlugInFilterRunner implements Runnable, DialogListener {
 	}
 
 	/**
-	 * Display an error message, telling the allowed image types
+	 * Display an error message, telling the allowed image types.
 	 */
 	static void wrongType(int flags, String cmd) {
 
@@ -531,8 +535,9 @@ public class PlugInFilterRunner implements Runnable, DialogListener {
 			s += "	32-bit (float) grayscale\n";
 		if((flags & PlugInFilter.DOES_RGB) != 0)
 			s += "	RGB color\n";
-		if((flags & PlugInFilter.DOES_ALL) != 0)
-			s += "	any (including 64-bit grayscale)\n";
+		if((flags & PlugInFilter.DOES_64) != 0)
+			s += "	64-bit (double) grayscale\n";
+		// DOES_ALL only adds the legacy 5; never implies 64-bit.
 		IJ.error(s);
 	}
 

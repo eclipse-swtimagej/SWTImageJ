@@ -308,23 +308,27 @@ public class Thresholder implements PlugIn, Measurements, SelectionListener {
 		int width = imp.getWidth();
 		int height = imp.getHeight();
 		int size = width * height;
-		boolean isFloat = imp.getType() == ImagePlus.GRAY32 || imp.getType() == ImagePlus.GRAY64;
+		// 32-bit (float) and 64-bit (double) both go through the value-based mask path.
+		boolean isFloatOrDouble = imp.getType() == ImagePlus.GRAY32 || imp.getType() == ImagePlus.GRAY64;
+		boolean isDouble = imp.getType() == ImagePlus.GRAY64;
 		int currentSlice = imp.getCurrentSlice();
 		int nSlices = imp.getStackSize();
 		ImageStack stack1 = imp.getStack();
 		ImageStack stack2 = new ImageStack(width, height);
 		ImageProcessor ip = imp.getProcessor();
-		float t1 = (float)ip.getMinThreshold();
-		float t2 = (float)ip.getMaxThreshold();
-		if(t1 == ImageProcessor.NO_THRESHOLD) {
+		// Keep thresholds in double precision; cast to float only for the 32-bit path.
+		double t1d = ip.getMinThreshold();
+		double t2d = ip.getMaxThreshold();
+		if(t1d == ImageProcessor.NO_THRESHOLD) {
 			double min = ip.getMin();
 			double max = ip.getMax();
 			ip = ip.convertToByte(true);
 			autoThreshold(ip);
-			t1 = (float)(min + (max - min) * (minThreshold / 255.0));
-			t2 = (float)(min + (max - min) * (maxThreshold / 255.0));
+			t1d = min + (max - min) * (minThreshold / 255.0);
+			t2d = min + (max - min) * (maxThreshold / 255.0);
 		}
-		float value;
+		float t1f = (float)t1d;
+		float t2f = (float)t2d;
 		ImageProcessor ip1, ip2;
 		IJ.showStatus("Converting to mask");
 		for(int i = 1; i <= nSlices; i++) {
@@ -332,12 +336,19 @@ public class Thresholder implements PlugIn, Measurements, SelectionListener {
 			String label = stack1.getSliceLabel(i);
 			ip1 = stack1.getProcessor(i);
 			ip2 = new ByteProcessor(width, height);
-			for(int j = 0; j < size; j++) {
-				value = ip1.getf(j);
-				if(value >= t1 && value <= t2)
-					ip2.set(j, 255);
-				else
-					ip2.set(j, 0);
+			if(isDouble && ip1 instanceof ij.process.DoubleProcessor) {
+				// Lossless 64-bit thresholding: compare double pixels directly to double thresholds.
+				double[] pixels = (double[])ip1.getPixels();
+				for(int j = 0; j < size; j++) {
+					double v = pixels[j];
+					ip2.set(j, (v >= t1d && v <= t2d) ? 255 : 0);
+				}
+			} else {
+				// 32-bit (float) path, unchanged behaviour.
+				for(int j = 0; j < size; j++) {
+					float value = ip1.getf(j);
+					ip2.set(j, (value >= t1f && value <= t2f) ? 255 : 0);
+				}
 			}
 			stack2.addSlice(label, ip2);
 		}

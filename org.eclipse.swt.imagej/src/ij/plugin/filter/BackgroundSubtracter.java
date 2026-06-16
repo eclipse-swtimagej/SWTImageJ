@@ -80,7 +80,7 @@ public class BackgroundSubtracter implements ExtendedPlugInFilter, DialogListene
 	private final static int DIRECTION_PASSES = 9; // number of passes for different directions
 	private int nPasses = DIRECTION_PASSES;
 	private int pass;
-	private int flags = DOES_ALL | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
+	private int flags = DOES_ALL | DOES_64 | FINAL_PROCESSING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 	private boolean calledAsPlugin;
 
 	public int setup(String arg, ImagePlus imp) {

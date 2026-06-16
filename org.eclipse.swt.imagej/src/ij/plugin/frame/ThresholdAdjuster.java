@@ -455,7 +455,7 @@ public class ThresholdAdjuster extends PlugInDialog implements PlugIn, Measureme
 			return null;
 		ip = imp.getProcessor();
 		boolean minMaxChange = false;
-		boolean not8Bits = type == ImagePlus.GRAY16 || type == ImagePlus.GRAY32;
+		boolean not8Bits = type == ImagePlus.GRAY16 || type == ImagePlus.GRAY32 || type == ImagePlus.GRAY64;
 		int slice = imp.getCurrentSlice();
 		if(not8Bits) {
 			if(ip.getMin() == plot.stackMin && ip.getMax() == plot.stackMax && !imageWasUpdated)
@@ -538,7 +538,7 @@ public class ThresholdAdjuster extends PlugInDialog implements PlugIn, Measureme
 		int bitDepth = imp.getBitDepth();
 		boolean darkb = darkBackgroundCheckbox != null && darkBackgroundCheckbox.getSelection();
 		boolean stack = entireStack(imp);
-		boolean hist16 = sixteenBit && bitDepth != 32;
+		boolean hist16 = sixteenBit && bitDepth != 32 && bitDepth != 64;
 		String methodAndOptions = method + (darkb ? " dark" : "") + (hist16 ? " 16-bit" : "") + (stack ? " stack" : "") + (noReset ? " no-reset" : "");
 		imp.setAutoThreshold(methodAndOptions);
 		ImageProcessor ip = imp.getProcessor();
@@ -922,7 +922,8 @@ public class ThresholdAdjuster extends PlugInDialog implements PlugIn, Measureme
 			return;
 		}
 		try {
-			if(imp.getBitDepth() == 32) {
+			int bd = imp.getBitDepth();
+			if(bd == 32 || bd == 64) {
 				YesNoCancelDialog d = new YesNoCancelDialog("Thresholder", "Convert to 8-bit mask or set background pixels to NaN?", "Convert to Mask", "Set to NaN");
 				if(d.cancelPressed())
 					return;

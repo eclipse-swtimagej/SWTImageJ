@@ -104,8 +104,8 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 	private boolean oldMacro = false; // till 1.52m, "strict" was the same as "excludeOnEdges" and "prominence" was
 										// called "noise tolerance"
 	private ImagePlus imp; // the ImagePlus of the setup call
-	private int flags = DOES_ALL | NO_CHANGES | NO_UNDO;// the flags (see interfaces PlugInFilter &
-														// ExtendedPlugInFilter)
+	private int flags = DOES_ALL | DOES_64 | NO_CHANGES | NO_UNDO;// the flags (see interfaces PlugInFilter &
+	// ExtendedPlugInFilter)
 	private boolean thresholded; // whether the input image has a threshold
 	private boolean roiSaved; // whether the filter has changed the roi and saved the original roi
 	private boolean previewing; // true while dialog is displayed (processing for preview)
@@ -170,7 +170,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 		}
 		GenericDialog gd = new GenericDialog(command);
 		String unit = (imp.getCalibration() != null) ? imp.getCalibration().getValueUnit() : null;
-		int digits = (ip instanceof FloatProcessor || unit != null) ? 2 : 0;
+		int digits = (ip instanceof FloatProcessor || ip instanceof ij.process.DoubleProcessor || unit != null) ? 2 : 0;
 		if(unit.equals("Gray Value"))
 			unit = null;
 		gd.addNumericField("Prominence >", tolerance, digits, 6, unit);

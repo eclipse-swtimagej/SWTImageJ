@@ -24,7 +24,7 @@ import ij.process.ImageProcessor;
 public class ImageMath implements ExtendedPlugInFilter, DialogListener {
 
 	public static final String MACRO_KEY = "math.macro";
-	private int flags = DOES_ALL | SUPPORTS_MASKING | KEEP_PREVIEW | PARALLELIZE_STACKS;
+	private int flags = DOES_ALL | DOES_64 | SUPPORTS_MASKING | KEEP_PREVIEW | PARALLELIZE_STACKS;
 	private String arg;
 	private ImagePlus imp;
 	private boolean canceled;
