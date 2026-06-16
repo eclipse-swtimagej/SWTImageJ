@@ -299,7 +299,6 @@ public class ImageCalculator implements PlugIn {
 		}
 		if(floatResult && rgb)
 			ip1 = ip1.convertToFloat();
-		ip1 = ip1.convertToFloat();
 		if(!(ip1 instanceof ByteProcessor))
 			ip1.resetMinAndMax();
 		if(createWindow) {
@@ -314,12 +313,27 @@ public class ImageCalculator implements PlugIn {
 
 		int width = Math.min(ip1.getWidth(), ip2.getWidth());
 		int height = Math.min(ip1.getHeight(), ip2.getHeight());
-		ImageProcessor ip3 = ip1.createProcessor(width, height);
-		// Mirror the "don't narrow to float32 if either is double" rule from doOperation().
+		// If either input is 64-bit, build the result as a DoubleProcessor explicitly.
+		// DoubleProcessor.createProcessor() currently inherits from FloatProcessor
+		// and returns a FloatProcessor, which would silently narrow the result.
 		boolean keepDouble = (ip1 instanceof ij.process.DoubleProcessor) || (ip2 instanceof ij.process.DoubleProcessor);
-		if(floatResult && !(ip1 instanceof ColorProcessor) && !keepDouble) {
-			ip1 = ip1.convertToFloat();
-			ip3 = ip3.convertToFloat();
+		ImageProcessor ip3;
+		if(keepDouble) {
+			ip3 = new ij.process.DoubleProcessor(width, height);
+			// Widen ip1 to double if it isn't already, so insert() preserves precision.
+			if(!(ip1 instanceof ij.process.DoubleProcessor)) {
+				ij.process.DoubleProcessor dp = new ij.process.DoubleProcessor(ip1.getWidth(), ip1.getHeight());
+				int n = ip1.getWidth() * ip1.getHeight();
+				for(int i = 0; i < n; i++)
+					dp.setd(i, ip1.getf(i)); // byte/short/float widen losslessly into double
+				ip1 = dp;
+			}
+		} else {
+			ip3 = ip1.createProcessor(width, height);
+			if(floatResult && !(ip1 instanceof ColorProcessor)) {
+				ip1 = ip1.convertToFloat();
+				ip3 = ip3.convertToFloat();
+			}
 		}
 		ip3.insert(ip1, 0, 0);
 		return ip3;
