@@ -286,7 +286,10 @@ public class ImageCalculator implements PlugIn {
 			Undo.setup(Undo.FILTER, img1);
 		}
 		boolean rgb = ip2 instanceof ColorProcessor;
-		if(floatResult && !rgb)
+		// Don't narrow a 64-bit operand to float32. If either side is a DoubleProcessor,
+		// the blitter will keep the destination at full 64-bit precision.
+		boolean keepDouble = (ip1 instanceof ij.process.DoubleProcessor) || (ip2 instanceof ij.process.DoubleProcessor);
+		if(floatResult && !rgb && !keepDouble)
 			ip2 = ip2.convertToFloat();
 		try {
 			ip1.copyBits(ip2, 0, 0, mode);
@@ -296,6 +299,7 @@ public class ImageCalculator implements PlugIn {
 		}
 		if(floatResult && rgb)
 			ip1 = ip1.convertToFloat();
+		ip1 = ip1.convertToFloat();
 		if(!(ip1 instanceof ByteProcessor))
 			ip1.resetMinAndMax();
 		if(createWindow) {
@@ -311,7 +315,9 @@ public class ImageCalculator implements PlugIn {
 		int width = Math.min(ip1.getWidth(), ip2.getWidth());
 		int height = Math.min(ip1.getHeight(), ip2.getHeight());
 		ImageProcessor ip3 = ip1.createProcessor(width, height);
-		if(floatResult && !(ip1 instanceof ColorProcessor)) {
+		// Mirror the "don't narrow to float32 if either is double" rule from doOperation().
+		boolean keepDouble = (ip1 instanceof ij.process.DoubleProcessor) || (ip2 instanceof ij.process.DoubleProcessor);
+		if(floatResult && !(ip1 instanceof ColorProcessor) && !keepDouble) {
 			ip1 = ip1.convertToFloat();
 			ip3 = ip3.convertToFloat();
 		}
@@ -379,7 +385,7 @@ public class ImageCalculator implements PlugIn {
 				ImageProcessor ip1 = stack1.getProcessor(i);
 				ip1.resetRoi();
 				ImageProcessor ip2 = ip1.crop();
-				if(floatResult) {
+				if(floatResult && !(ip2 instanceof ij.process.DoubleProcessor)) {
 					ip2.setCalibrationTable(cal.getCTable());
 					ip2 = ip2.convertToFloat();
 				}

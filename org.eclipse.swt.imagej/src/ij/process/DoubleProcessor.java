@@ -473,13 +473,17 @@ public class DoubleProcessor extends ImageProcessor {
 		if(interpolationMethod == BICUBIC)
 			return getBicubicInterpolatedPixel(x, y, this);
 		else {
+			// Edge-clamp: only nudge a coordinate inside [0, width-1) when it
+			// is genuinely past the edge, NOT when it lies exactly on the
+			// last column / last row. The exact-integer case is handled
+			// losslessly by getInterpolatedPixel(x, y, pixels[]) below.
 			if(x < 0.0)
 				x = 0.0;
-			if(x >= width - 1.0)
+			else if(x > width - 1.0) // strictly >, not >=
 				x = width - 1.001;
 			if(y < 0.0)
 				y = 0.0;
-			if(y >= height - 1.0)
+			else if(y > height - 1.0) // strictly >, not >=
 				y = height - 1.001;
 			return getInterpolatedPixel(x, y, pixels);
 		}
@@ -1069,13 +1073,16 @@ public class DoubleProcessor extends ImageProcessor {
 					ys = x * sa + tmp4;
 					if((xs >= -0.01) && (xs < dwidth) && (ys >= -0.01) && (ys < dheight)) {
 						if(interpolationMethod == BILINEAR) {
+							// Edge-clamp: keep an exact-integer xs/ys at the
+							// last column/row instead of nudging it down by
+							// 0.001 (which blends the last two pixels).
 							if(xs < 0.0)
 								xs = 0.0;
-							if(xs >= xlimit)
+							else if(xs > xlimit) // strictly > xlimit, not >=
 								xs = xlimit2;
 							if(ys < 0.0)
 								ys = 0.0;
-							if(ys >= ylimit)
+							else if(ys > ylimit) // strictly > ylimit, not >=
 								ys = ylimit2;
 							pixels[index++] = getInterpolatedPixel(xs, ys, pixels2);
 						} else {
@@ -1156,11 +1163,34 @@ public class DoubleProcessor extends ImageProcessor {
 		int ybase = (int)y;
 		double xFraction = x - xbase;
 		double yFraction = y - ybase;
+		// Right- and bottom-edge guards: when the requested coordinate lies
+		// exactly on the last column or last row (fraction == 0) the
+		// neighbours pixels[offset+1] / pixels[offset+width] would index
+		// off the array. Since their weight is zero anyway, just clamp the
+		// neighbour index back to the edge pixel.
+		boolean atRightEdge = (xbase >= width - 1);
+		boolean atBottomEdge = (ybase >= height - 1);
+		if(atRightEdge) {
+			xbase = width - 1;
+			xFraction = 0.0;
+		}
+		if(atBottomEdge) {
+			ybase = height - 1;
+			yFraction = 0.0;
+		}
 		int offset = ybase * width + xbase;
 		double lowerLeft = pixels[offset];
-		double lowerRight = pixels[offset + 1];
-		double upperRight = pixels[offset + width + 1];
-		double upperLeft = pixels[offset + width];
+		double lowerRight = atRightEdge ? lowerLeft : pixels[offset + 1];
+		double upperLeft = atBottomEdge ? lowerLeft : pixels[offset + width];
+		double upperRight;
+		if(atRightEdge && atBottomEdge)
+			upperRight = lowerLeft;
+		else if(atRightEdge)
+			upperRight = upperLeft;
+		else if(atBottomEdge)
+			upperRight = lowerRight;
+		else
+			upperRight = pixels[offset + width + 1];
 		double upperAverage;
 		if(Double.isNaN(upperLeft) && xFraction >= 0.5)
 			upperAverage = upperRight;
@@ -1228,7 +1258,7 @@ public class DoubleProcessor extends ImageProcessor {
 				if(interpolationMethod == BILINEAR) {
 					if(ys < 0.0)
 						ys = 0.0;
-					if(ys >= ylimit)
+					else if(ys > ylimit) // strictly >, not >=
 						ys = ylimit2;
 				}
 				index1 = width * (int)ys;
@@ -1238,7 +1268,7 @@ public class DoubleProcessor extends ImageProcessor {
 					if(interpolationMethod == BILINEAR) {
 						if(xs < 0.0)
 							xs = 0.0;
-						if(xs >= xlimit)
+						else if(xs > xlimit) // strictly >, not >=
 							xs = xlimit2;
 						pixels2[index2++] = getInterpolatedPixel(xs, ys, pixels);
 					} else
@@ -1295,22 +1325,46 @@ public class DoubleProcessor extends ImageProcessor {
 		return ip2;
 	}
 
-	/** Bicubic interpolation based on the implementation used by FloatProcessor. */
+	/**
+	 * Bicubic interpolation. When the source processor is also a DoubleProcessor,
+	 * neighbour fetches go through getd(...) so the entire kernel sum stays in
+	 * double precision. Falls back to ip2.getf(...) for legacy / mixed-type
+	 * sources, matching the pre-patch behaviour bit-for-bit.
+	 *
+	 * Implementation based on Chapter 16 of "Digital Image Processing: An
+	 * Algorithmic Introduction Using Java" (Burger & Burge).
+	 */
 	public double getBicubicInterpolatedPixel(double x0, double y0, ImageProcessor ip2) {
 
 		int u0 = (int)Math.floor(x0);
 		int v0 = (int)Math.floor(y0);
 		if(u0 <= 0 || u0 >= width - 2 || v0 <= 0 || v0 >= height - 2)
 			return ip2.getBilinearInterpolatedPixel(x0, y0);
-		double q = 0;
+		// Fast, lossless path: avoid the float hop when ip2 is a DoubleProcessor.
+		if(ip2 instanceof DoubleProcessor) {
+			DoubleProcessor d2 = (DoubleProcessor)ip2;
+			double q = 0.0;
+			for(int j = 0; j <= 3; j++) {
+				int v = v0 - 1 + j;
+				double p = 0.0;
+				for(int i = 0; i <= 3; i++) {
+					int u = u0 - 1 + i;
+					p += d2.getd(u, v) * cubic(x0 - u);
+				}
+				q += p * cubic(y0 - v);
+			}
+			return q;
+		}
+		// Legacy / mixed-type fallback (unchanged from prior behaviour).
+		double q = 0.0;
 		for(int j = 0; j <= 3; j++) {
 			int v = v0 - 1 + j;
-			double p = 0;
+			double p = 0.0;
 			for(int i = 0; i <= 3; i++) {
 				int u = u0 - 1 + i;
-				p = p + ip2.getf(u, v) * cubic(x0 - u);
+				p += ip2.getf(u, v) * cubic(x0 - u);
 			}
-			q = q + p * cubic(y0 - v);
+			q += p * cubic(y0 - v);
 		}
 		return q;
 	}
@@ -1408,6 +1462,108 @@ public class DoubleProcessor extends ImageProcessor {
 
 		snapshot();
 		new ij.plugin.filter.Convolver().convolve(this, kernel, kernelWidth, kernelHeight);
+	}
+
+	/**
+	 * Performs a convolution with a kernel given as double[] coefficients,
+	 * preserving full 64-bit precision in BOTH the pixel data and the kernel.
+	 *
+	 * <p>
+	 * Differs from {@link #convolve(float[], int, int)} in that the kernel
+	 * is double-typed, so coefficients with more than ~7 significant digits
+	 * (e.g. precisely-tuned Gaussians, derivative-of-Gaussian filters,
+	 * analytically-computed PSFs) are not silently narrowed to float32.
+	 *
+	 * <p>
+	 * Boundary handling: mirror reflection at the four edges, matching the
+	 * convention used by {@link ij.plugin.filter.Convolver#convolveFloat}.
+	 *
+	 * <p>
+	 * ROI/mask aware: only pixels inside the current rectangular ROI are
+	 * written, and if a non-rectangular mask is set, only the masked-in
+	 * pixels are updated. Snapshot semantics are preserved: a snapshot()
+	 * is taken so that reset()/reset(mask) work as usual.
+	 *
+	 * @param kernel
+	 *            flattened kernel of length kernelWidth*kernelHeight,
+	 *            row-major; passed as double[] to avoid a float cast
+	 * @param kernelWidth
+	 *            odd integer >= 1
+	 * @param kernelHeight
+	 *            odd integer >= 1
+	 * @throws IllegalArgumentException
+	 *             if dimensions are invalid
+	 */
+	public void convolve(double[] kernel, int kernelWidth, int kernelHeight) {
+
+		if(kernel == null)
+			throw new IllegalArgumentException("kernel is null");
+		if(kernelWidth < 1 || kernelHeight < 1 || (kernelWidth & 1) == 0 || (kernelHeight & 1) == 0)
+			throw new IllegalArgumentException("kernel dimensions must be odd, got " + kernelWidth + "x" + kernelHeight);
+		if(kernel.length != kernelWidth * kernelHeight)
+			throw new IllegalArgumentException("kernel length " + kernel.length + " does not match " + kernelWidth + "x" + kernelHeight);
+		// Snapshot for reset() / reset(mask) compatibility.
+		snapshot();
+		final int kw = kernelWidth;
+		final int kh = kernelHeight;
+		final int kxRadius = kw / 2;
+		final int kyRadius = kh / 2;
+		// Source: the snapshot we just took. Destination: the live pixels[].
+		// Reading from a separate source guarantees correctness when kernel
+		// support overlaps already-written destination pixels.
+		final double[] src = (double[])snapshotPixels;
+		final double[] dst = pixels;
+		final int w = width;
+		final int h = height;
+		// Honour the current rectangular ROI and (optionally) a non-rectangular mask.
+		final int x0 = roiX, y0 = roiY;
+		final int x1 = roiX + roiWidth;
+		final int y1 = roiY + roiHeight;
+		final byte[] mask = getMaskArray(); // null if no mask
+		for(int y = y0; y < y1; y++) {
+			int rowOut = y * w;
+			int maskRow = (mask != null) ? (y - y0) * roiWidth : 0;
+			for(int x = x0; x < x1; x++) {
+				if(mask != null && mask[maskRow + (x - x0)] == 0)
+					continue;
+				double sum = 0.0;
+				int kIdx = 0;
+				for(int j = 0; j < kh; j++) {
+					int sy = y + j - kyRadius;
+					// mirror reflection at top/bottom
+					if(sy < 0)
+						sy = -sy - 1;
+					else if(sy >= h)
+						sy = 2 * h - sy - 1;
+					int rowIn = sy * w;
+					for(int i = 0; i < kw; i++) {
+						int sx = x + i - kxRadius;
+						// mirror reflection at left/right
+						if(sx < 0)
+							sx = -sx - 1;
+						else if(sx >= w)
+							sx = 2 * w - sx - 1;
+						sum += src[rowIn + sx] * kernel[kIdx++];
+					}
+				}
+				dst[rowOut + x] = sum;
+			}
+		}
+	}
+
+	/**
+	 * Convenience overload for a 3x3 double-precision kernel. Equivalent to
+	 * {@code convolve(kernel, 3, 3)}; provided for API symmetry with
+	 * {@link #convolve3x3(int[])}.
+	 *
+	 * @param kernel
+	 *            a length-9 row-major 3x3 kernel
+	 */
+	public void convolve3x3(double[] kernel) {
+
+		if(kernel == null || kernel.length != 9)
+			throw new IllegalArgumentException("3x3 kernel must have length 9");
+		convolve(kernel, 3, 3);
 	}
 
 	/** Returns a 256 bin histogram of the current ROI or of the entire image if there is no ROI. */
@@ -1577,7 +1733,7 @@ public class DoubleProcessor extends ImageProcessor {
 				ysi = (int)ys;
 				if(ys < 0.0)
 					ys = 0.0;
-				if(ys >= ylimit)
+				else if(ys > ylimit) // strictly >, not >=
 					ys = ylimit2;
 				index1 = y * width + xmin;
 				index2 = width * (int)ys;
@@ -1590,7 +1746,7 @@ public class DoubleProcessor extends ImageProcessor {
 						if(interpolationMethod == BILINEAR) {
 							if(xs < 0.0)
 								xs = 0.0;
-							if(xs >= xlimit)
+							else if(xs > xlimit) // strictly >, not >=
 								xs = xlimit2;
 							pixels[index1++] = getInterpolatedPixel(xs, ys, pixels2);
 						} else

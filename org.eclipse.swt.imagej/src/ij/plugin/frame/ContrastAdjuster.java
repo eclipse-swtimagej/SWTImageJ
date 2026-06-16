@@ -1019,7 +1019,7 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 				if(propagate)
 					propagate(imp);
 				if(IJ.recording()) {
-					if(imp.getBitDepth() == 32)
+					if(imp.getBitDepth() == 32 || imp.getBitDepth() == 64)
 						recordSetMinAndMax(min, max);
 					else {
 						int imin = (int)min;
@@ -1170,7 +1170,7 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 			if(propagate)
 				propagate(imp);
 			if(IJ.recording()) {
-				if(imp.getBitDepth() == 32)
+				if(imp.getBitDepth() == 32 || imp.getBitDepth() == 64)
 					recordSetMinAndMax(min, max);
 				else {
 					int imin = (int)min;
@@ -1195,11 +1195,15 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 			} else
 				Recorder.record("setMinAndMax", imin, imax);
 		} else {
+			// Use 16-digit precision so 64-bit display ranges round-trip losslessly
+			// through the recorded macro. d2s with `-16` returns the value in
+			// scientific notation when needed and keeps 16 significant digits.
+			int digits = -16;
 			if(Recorder.scriptMode()) {
-				Recorder.recordCall("imp.setDisplayRange(" + ResultsTable.d2s(min, 2) + ", " + ResultsTable.d2s(max, 2) + ");");
+				Recorder.recordCall("imp.setDisplayRange(" + IJ.d2s(min, digits) + ", " + IJ.d2s(max, digits) + ");");
 				Recorder.recordCall("imp.updateAndDraw();");
 			} else
-				Recorder.recordString("setMinAndMax(" + ResultsTable.d2s(min, 2) + ", " + ResultsTable.d2s(max, 2) + ");");
+				Recorder.recordString("setMinAndMax(" + IJ.d2s(min, digits) + ", " + IJ.d2s(max, digits) + ");");
 		}
 	}
 
@@ -1481,10 +1485,9 @@ class ContrastPlot extends org.eclipse.swt.widgets.Canvas implements org.eclipse
 			hColors[i] = new Color(110, 110, 150);
 		}
 		int impType = imp.getType();
-		if((impType == ImagePlus.GRAY8) || (impType == ImagePlus.GRAY16) || (impType == ImagePlus.GRAY32)) { // if
-																												// image
-																												// has
-																												// LUT
+		if((impType == ImagePlus.GRAY8) || (impType == ImagePlus.GRAY16) || (impType == ImagePlus.GRAY32) || (impType == ImagePlus.GRAY64)) { // image
+			// has
+			// LUT
 			ImageProcessor ip = imp.getProcessor();
 			ColorModel cm = ip.getColorModel();
 			IndexColorModel icm = (IndexColorModel)cm;

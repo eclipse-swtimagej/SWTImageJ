@@ -59,7 +59,10 @@ public class RankFilters implements ExtendedPlugInFilter, DialogListener {
 	private static boolean lastDontSubtract = false;
 	//
 	// F u r t h e r c l a s s v a r i a b l e s
-	int flags = DOES_ALL | SUPPORTS_MASKING | KEEP_PREVIEW;
+	// DOES_ALL covers 8G/8C/16/32/RGB by design; DOES_64 is added explicitly
+	// because rank filters operate via a float[] cache (lossy on 64-bit input
+	// but correct -- see readLineToCache/writeLineToPixels double[] arms).
+	int flags = DOES_ALL | DOES_64 | SUPPORTS_MASKING | KEEP_PREVIEW;
 	private ImagePlus imp;
 	private int nPasses = 1; // The number of passes (color channels * stack slices)
 	private PlugInFilterRunner pfr;
@@ -113,8 +116,8 @@ public class RankFilters implements ExtendedPlugInFilter, DialogListener {
 			filterType = TOP_HAT;
 		else if(arg.equals("nan")) {
 			filterType = REMOVE_NAN;
-			if(imp != null && imp.getBitDepth() != 32) {
-				IJ.error("RankFilters", "\"Remove NaNs\" requires a 32-bit image");
+			if(imp != null && imp.getBitDepth() != 32 && imp.getBitDepth() != 64) {
+				IJ.error("RankFilters", "\"Remove NaNs\" requires a 32-bit or 64-bit image");
 				return DONE;
 			}
 		} else if(arg.equals("final")) { // after variance && tophat filter, adjust brightness&contrast
@@ -146,7 +149,7 @@ public class RankFilters implements ExtendedPlugInFilter, DialogListener {
 			if(filterType != OUTLIERS)
 				gd.addNumericField("Radius", radius, 1, 6, "pixels");
 			if(filterType == OUTLIERS) {
-				int digits = imp.getType() == ImagePlus.GRAY32 ? 2 : 0;
+				int digits = (imp.getType() == ImagePlus.GRAY32 || imp.getType() == ImagePlus.GRAY64) ? 2 : 0;
 				gd.addSlider("Radius:", 0.5, 25, radius, 0.5);
 				double maxValue = lastThreshold * 2;
 				ImageStatistics stats = imp.getRawStatistics();
@@ -663,7 +666,11 @@ public class RankFilters implements ExtendedPlugInFilter, DialogListener {
 				cache[cp] = sPixels[pp] & 0xffff;
 		} else if(pixels instanceof float[]) {
 			System.arraycopy(pixels, pixelLineP + xminInside, cache, cacheLineP + padLeft, widthInside);
-		} else if(pixels instanceof double[]) { // 64-bit: narrow to the float cache
+		} else if(pixels instanceof double[]) {
+			// Lossy: rank filters are intrinsically float-cached. This narrows the
+			// 64-bit source to float for ranking. The result is still a float[]
+			// cache; the *output* will be written back narrowed unless writeLineToPixels
+			// is also extended (see below).
 			double[] dPixels = (double[])pixels;
 			for(int pp = pixelLineP + xminInside,
 					cp = cacheLineP + padLeft; pp < pixelLineP + xminInside + widthInside; pp++, cp++)
@@ -696,7 +703,12 @@ public class RankFilters implements ExtendedPlugInFilter, DialogListener {
 			short[] sPixels = (short[])pixels;
 			for(int i = 0, p = pixelP; i < length; i++, p++)
 				sPixels[p] = (short)(((int)(values[i] + 0.5f)) & 0xffff);
-		} else if(pixels instanceof double[]) { // 64-bit: widen the filtered float result back to double
+		} else if(pixels instanceof float[]) {
+			float[] fPixels = (float[])pixels;
+			for(int i = 0, p = pixelP; i < length; i++, p++)
+				fPixels[p] = values[i];
+		} else if(pixels instanceof double[]) {
+			// Float cache value gets widened back to double (exact widen).
 			double[] dPixels = (double[])pixels;
 			for(int i = 0, p = pixelP; i < length; i++, p++)
 				dPixels[p] = values[i];
@@ -705,7 +717,7 @@ public class RankFilters implements ExtendedPlugInFilter, DialogListener {
 			int shift = 16 - 8 * colorChannel;
 			int resetMask = 0xffffffff ^ (0xff << shift);
 			for(int i = 0, p = pixelP; i < length; i++, p++)
-				cPixels[p] = (cPixels[p] & resetMask) | (((int)(values[i] + 0.5f)) << shift);
+				cPixels[p] = (cPixels[p] & resetMask) | (((int)(values[i] + 0.5f)) & 0xff) << shift;
 		}
 	}
 
