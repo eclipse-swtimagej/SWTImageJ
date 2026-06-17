@@ -467,6 +467,7 @@ new FileSaver(imp).saveAsTiff("demo64.tif");
 - `plugins/64bitTests/Precision_Path_Probe_.java` — diagnostic measuring float-floor paths.
 ```
 
+
 # Why 64-bit (Double-Precision) Image Support Is Useful
 
 Most image processing works fine in 8-bit, 16-bit, or 32-bit float. **64-bit
