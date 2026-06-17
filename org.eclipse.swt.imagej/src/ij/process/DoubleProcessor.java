@@ -1684,6 +1684,59 @@ public class DoubleProcessor extends ImageProcessor {
 		return this;
 	}
 
+	/**
+	 * Returns a 32-bit FloatProcessor copy of this image (narrowing).
+	 *
+	 * <p>
+	 * Overrides the inherited ImageProcessor implementation so the
+	 * narrowing is explicit and the precision contract is clear:
+	 *
+	 * <ul>
+	 * <li>Every double pixel is cast to float (loses 24-29 bits of mantissa
+	 * precision relative to the source double).</li>
+	 * <li>The current display range (min/max) is preserved.</li>
+	 * <li>The color model is preserved.</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * <b>Callers that need to keep 64-bit precision must NOT use this
+	 * method.</b> Instead:
+	 *
+	 * <ul>
+	 * <li>Prefer {@link #convertToDoubleProcessor()} (returns {@code this}).</li>
+	 * <li>Or keep operating on the {@code DoubleProcessor} directly via
+	 * {@link #getd(int)} / {@link #setd(int, double)}.</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * The {@code FloatProcessor} return type is mandated by the
+	 * {@code ImageProcessor} API and cannot be widened without an API break;
+	 * callers like {@code UnsharpMask.run} and the {@code CONVERT_TO_FLOAT}
+	 * machinery in {@link ij.plugin.filter.PlugInFilterRunner} hard-cast the
+	 * result to {@code FloatProcessor}.
+	 *
+	 * <p>
+	 * Historical note (June 2026): until this override was added,
+	 * {@code DoubleProcessor.convertToFloat()} inherited the default
+	 * {@code ImageProcessor} implementation, which silently narrowed 64-bit
+	 * pixels to float32 with no warning. The {@code Image Calculator}
+	 * "32-bit (float) result" path was bitten by exactly that. Even though
+	 * the behaviour of this override matches the inherited behaviour
+	 * bit-for-bit, it now lives next to {@link #convertToDoubleProcessor()}
+	 * with a comment so the precision contract is obvious to the next reader.
+	 */
+	@Override
+	public FloatProcessor convertToFloat() {
+
+		int n = width * height;
+		float[] fp = new float[n];
+		for(int i = 0; i < n; i++)
+			fp[i] = (float)pixels[i];
+		FloatProcessor out = new FloatProcessor(width, height, fp, cm);
+		out.setMinAndMax(getMin(), getMax());
+		return out;
+	}
+
 	public void scale(double xScale, double yScale) {
 
 		double xCenter = roiX + roiWidth / 2.0;

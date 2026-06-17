@@ -3042,6 +3042,15 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 	 * @see #getOriginalFileInfo
 	 * @see #setFileInfo
 	 */
+	/**
+	 * Returns a FileInfo object containing information, including the pixel array,
+	 * needed to save this image. Use getOriginalFileInfo() to get a copy of the
+	 * FileInfo object used to open the image.
+	 *
+	 * @see ij.io.FileInfo
+	 * @see #getOriginalFileInfo
+	 * @see #setFileInfo
+	 */
 	public FileInfo getFileInfo() {
 
 		FileInfo fi = new FileInfo();
@@ -3105,6 +3114,22 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 				}
 				break;
 			case GRAY64:
+				// 64-bit double-precision floating-point.
+				//
+				// Without this arm, the switch fell through to default and
+				// fi.fileType stayed at its constructor default of GRAY8 (=0).
+				// FileSaver then asked TiffEncoder to emit an 8-bit TIFF using
+				// the actual double[] pixel buffer, which failed downstream.
+				// File > Save As > Tiff... produced an error claiming a
+				// 32-bit image was required, even though the loaded file
+				// was already a valid 64-bit DoubleProcessor image.
+				//
+				// FileInfo.GRAY64_FLOAT exists, TiffEncoder.GRAY64_FLOAT is
+				// fully wired (bitsPerSample=64, FLOATING_POINT sample format,
+				// emits the 8-byte IEEE-754 stream via writeDouble), and
+				// FileOpener already opens GRAY64_FLOAT back into a
+				// DoubleProcessor (FileOpener line 137+). So a round-trip
+				// Save -> Open now preserves full 64-bit precision.
 				fi.fileType = fi.GRAY64_FLOAT;
 				if(!compositeImage) {
 					lut = createLut();

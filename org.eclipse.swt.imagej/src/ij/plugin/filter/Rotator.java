@@ -22,7 +22,7 @@ import ij.process.ImageProcessor;
 public class Rotator implements ExtendedPlugInFilter, DialogListener {
 
 	public static final String GRID = "|GRID|";
-	private int flags = DOES_ALL | SUPPORTS_MASKING;
+	private int flags = DOES_ALL | DOES_64 | SUPPORTS_MASKING;
 	private static double angle = 15.0;
 	private static boolean fillWithBackground;
 	private static boolean enlarge;
