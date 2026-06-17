@@ -465,7 +465,6 @@ new FileSaver(imp).saveAsTiff("demo64.tif");
 - `ij/plugin/filter/ImageMath.java`, `ParticleAnalyzer.java`, `RankFilters.java`,
   `Convolver.java` — plugins with explicit 64-bit handling.
 - `plugins/64bitTests/Precision_Path_Probe_.java` — diagnostic measuring float-floor paths.
-```
 
 
 # Why 64-bit (Double-Precision) Image Support Is Useful
