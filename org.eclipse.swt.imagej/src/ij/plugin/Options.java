@@ -140,7 +140,6 @@ public class Options implements PlugIn {
 	}
 
 	// Input/Output options
-	// Input/Output options
 	void io() {
 
 		GenericDialog gd = new GenericDialog("I/O Options");
