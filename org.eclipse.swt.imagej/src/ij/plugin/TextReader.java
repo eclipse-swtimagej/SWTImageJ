@@ -115,7 +115,6 @@ public class TextReader implements PlugIn {
 	 * Opens the specified text file as a 32-bit float image, or as a
 	 * 64-bit double image when {@link #setOpenAsDouble(boolean)} is enabled.
 	 */
-	/** Opens the specified text file as a 32-bit float image (legacy behavior). */
 	public ImageProcessor open(String path) {
 
 		return open(path, false);
