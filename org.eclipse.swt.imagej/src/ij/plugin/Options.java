@@ -140,6 +140,7 @@ public class Options implements PlugIn {
 	}
 
 	// Input/Output options
+	// Input/Output options
 	void io() {
 
 		GenericDialog gd = new GenericDialog("I/O Options");
@@ -151,6 +152,7 @@ public class Options implements PlugIn {
 			gd.addCheckbox("Use_file chooser to import sequences", Prefs.useFileChooser);
 		gd.addCheckbox("Save TIFF and raw in Intel byte order", Prefs.intelByteOrder);
 		gd.addCheckbox("Skip dialog when opening .raw files", Prefs.skipRawDialog);
+		gd.addCheckbox("Open text images as 64-bit (double)", TextReader.isOpenAsDouble()); // ADDED
 		gd.setInsets(15, 20, 0);
 		gd.addMessage("Results Table Options");
 		gd.setInsets(3, 40, 0);
@@ -184,6 +186,7 @@ public class Options implements PlugIn {
 			Prefs.useFileChooser = gd.getNextBoolean();
 		Prefs.intelByteOrder = gd.getNextBoolean();
 		Prefs.skipRawDialog = gd.getNextBoolean();
+		TextReader.setOpenAsDouble(gd.getNextBoolean()); // ADDED (same position as the checkbox)
 		Prefs.copyColumnHeaders = gd.getNextBoolean();
 		Prefs.noRowNumbers = !gd.getNextBoolean();
 		Prefs.dontSaveHeaders = !gd.getNextBoolean();
