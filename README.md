@@ -8,6 +8,16 @@ The SWTImageJ documentation is available here:
 
 [SWTImageJ Wiki](https://github.com/eclipse-swtimagej/SWTImageJ/wiki)
 
+## Eclipse SWTImageJ
+
+Eclipse SWTImageJ is a port of AWT [ImageJ](https://github.com/imagej/ImageJ) to [SWT](https://www.eclipse.org/swt/) to enhance its performance, usability, and possible integration within SWT based[...]
+providing users with a more responsive and intuitive interface.
+This project was made possible with the financial support of [Lablicate GmbH](https://lablicate.com/) and his owner Philip Wenig.
+
+The SWTImageJ documentation is available here: 
+
+[SWTImageJ Wiki](https://github.com/eclipse-swtimagej/SWTImageJ/wiki)
+
 # 64-bit (Double-Precision) Image Support
 
 SWTImageJ supports **64-bit double-precision floating-point images** in addition to the
@@ -102,17 +112,20 @@ the result back — see [Plugin/Filter Support](#pluginfilter-support).
 64-bit images **round-trip losslessly** through SWTImageJ's native TIFF format as well as
 FITS. For TIFF, saving maps the image to `FileInfo.GRAY64_FLOAT`; the encoder writes
 `bitsPerSample = 64` with the IEEE-754 *floating-point* sample format (8 bytes/pixel), and
-`FileOpener` reads `GRAY64_FLOAT` straight back into a `DoubleProcessor`.
+`FileOpener` reads `GRAY64_FLOAT` straight back into a `DoubleProcessor`. Plain **text**
+(Text Image) export/import is also lossless for 64-bit data — see
+[64-bit Text Image](#64-bit-text-image-lossless-text-round-trip) below.
 
 | Operation | Support |
 | --- | --- |
 | **File ▸ Save As ▸ Tiff…** | ✅ Full 64-bit (8-byte IEEE-754 samples). |
 | **File ▸ Save As ▸ ZIP…** | ✅ (zipped TIFF, full 64-bit). |
 | **File ▸ Save As ▸ Raw…** | ✅ Raw `double` stream. |
-| **File ▸ Save As ▸ Text Image…** | ✅ Text values. |
+| **File ▸ Save As ▸ Text Image…** | ✅ Full 64-bit — shortest round-trip-exact decimals (`Double.toString`). |
 | **File ▸ Save As ▸ FITS…** | ✅ Full 64-bit — writes `BITPIX = -64` (8-byte IEEE-754 doubles). |
 | **File ▸ Open** (TIFF/ZIP) | ✅ Reopens as a 64-bit `DoubleProcessor`. |
 | **File ▸ Open ▸ FITS** (`BITPIX = -64`) | ✅ Opens a 64-bit FITS file as a `DoubleProcessor`. |
+| **File ▸ Import ▸ Text Image…** (64-bit opt-in) | ✅ Reads as a 64-bit `DoubleProcessor` when enabled; 32-bit float otherwise. |
 | **Save ROI / XY Coordinates** | ✅ ROI and coordinate writers accept 64-bit images. |
 | JPEG / GIF / BMP / PNG / PGM | ❌ Format-specific writers reject 64-bit with a clear, format-specific message (these formats have no 64-bit float representation). |
 
@@ -125,6 +138,64 @@ FITS. For TIFF, saving maps the image to `FileInfo.GRAY64_FLOAT`; the encoder wr
 > implies 64-bit. Plugins that support 64-bit therefore OR in the explicit `DOES_64` flag.
 > Before this was added, **File ▸ Save As ▸ Tiff…** on a 64-bit image raised a blocking
 > "32-bit image required" dialog even though the pixel pipeline already supported it.
+
+### 64-bit Text Image (lossless text round-trip)
+
+A 64-bit image can be saved to a tab/comma-delimited text file and re-imported at full
+precision, giving a **byte-exact** save → import → save round-trip.
+
+**Saving** (`ij.io.TextEncoder`) writes each `DoubleProcessor` pixel via `getd(x, y)`
+(no float narrowing) and formats it with `Double.toString(value)` — the shortest decimal
+string that re-parses to the *exact* same `double`. Calibrated 64-bit images apply the
+calibration table at double precision. Byte/Short uncalibrated images keep integer
+formatting; all other types keep the legacy `IJ.d2s(value, precision)` formatting.
+
+**Importing** (`ij.plugin.TextReader`) builds a 64-bit `DoubleProcessor` instead of the
+legacy 32-bit `FloatProcessor` when 64-bit mode is enabled. There are **two** ways to
+enable it:
+
+1. **Persistent option (interactive menu).**
+   **Edit ▸ Options ▸ Input/Output ▸ "Open text images as 64-bit (double)"**. When
+   checked, **File ▸ Import ▸ Text Image…** opens text images as 64-bit. The state is
+   persisted via `TextReader.setOpenAsDouble(...)`.
+
+2. **Macro keyword (scripted).** Pass `use` in the options string:
+
+   ```javascript
+   run("Text Image... ", "open=[" + path + "] use");   // 64-bit (DoubleProcessor)
+   run("Text Image... ", "open=[" + path + "]");        // 32-bit float (legacy)
+   ```
+
+> ⚠️ **The import command name has a trailing space:** `"Text Image... "` (note the space
+> before the closing quote). Without it, `run("Text Image...", ...)` resolves to the
+> **Save As** writer, not the importer. The two menu labels (File ▸ Import ▸ Text Image…
+> and File ▸ Save As ▸ Text Image…) are intentionally distinct — one carries an extra
+> space — because ImageJ requires every command label to be unique.
+>
+> The `use` keyword is matched as a **whole token**, so a path that merely contains the
+> letters `use` (e.g. `/Users/me/data.txt`) does **not** accidentally trigger 64-bit mode.
+
+**Round-trip example:**
+
+```javascript
+// Lossless 64-bit Text Image round-trip
+dir   = getDirectory("temp");
+src   = dir + "rt64_a.txt";
+reimp = dir + "rt64_b.txt";
+
+run("Text Image... ", "open=[" + src + "] use");   // import as 64-bit
+print("bitDepth = " + bitDepth());                  // -> 64
+saveAs("Text Image", reimp);                         // re-save
+close();
+
+a = File.openAsString(src);
+b = File.openAsString(reimp);
+print(a == b ? "ROUND-TRIP EXACT" : "DIFFERENCE");   // -> ROUND-TRIP EXACT
+```
+
+> **Related fix:** A `NullPointerException` in `ij.text.TextCanvas` (missing SWT font
+> data) was fixed by falling back to the display's system font when no font is set, so
+> text/table windows paint reliably.
 
 ---
 
@@ -283,7 +354,7 @@ float32 floor (~1e-7 relative error). A bundled diagnostic,
 | Image Calculator "32-bit (float) result" | float | Narrows operands via `convertToFloat()` by design. |
 
 > **Rule of thumb:** point math, bitwise ops, native 3×3 filters, compositing
-> (`DoubleBlitter`), statistics, and **file save/open** (TIFF/ZIP/Raw/FITS) are full
+> (`DoubleBlitter`), statistics, and **file save/open** (TIFF/ZIP/Raw/Text/FITS) are full
 > 64-bit. Interpolated geometry, FFT, and the shared kernel/rank filters operate at float
 > precision.
 
@@ -302,7 +373,8 @@ float32 floor (~1e-7 relative error). A bundled diagnostic,
 | **Analyze Particles** (`ParticleAnalyzer`) | `DoubleProcessor` classified as the FLOAT type; statistics dispatched to `DoubleStatistics`. | Full 64-bit stats |
 | **Image ▸ Transform ▸ Rotate / Translate** (`Rotator`, `Translator`) | `DOES_64`; bilinear exact, bicubic at float floor. | Mixed |
 | **Image ▸ Properties** (`ImageProperties`) | `DOES_64`; edits metadata only. | N/A (no pixel change) |
-| **File ▸ Save As** (`Writer`) | `DOES_64`; Tiff/Zip/Raw/Text save 64-bit. | Full 64-bit (Tiff/Zip/Raw) |
+| **File ▸ Save As** (`Writer`) | `DOES_64`; Tiff/Zip/Raw/Text save 64-bit. | Full 64-bit (Tiff/Zip/Raw/Text) |
+| **File ▸ Import ▸ Text Image** (`TextReader`) | Opt-in 64-bit `DoubleProcessor` via the `use` keyword or the Input/Output option; 32-bit float otherwise. | Full 64-bit (opt-in) |
 | **File ▸ Save As ▸ FITS / Open FITS** (`FITS_Writer` / `FITS_Reader`) | Writes/reads `BITPIX -64` ↔ `DoubleProcessor`. | Full 64-bit |
 
 > **Why "Float compute" for some filters?** Kernel-based and rank filters share their
@@ -366,9 +438,11 @@ run("Multiply...", "value=2");   // each pixel * 2, no overflow/rounding loss
 run("Add...", "value=0.5");
 resetMinAndMax();                // rescale display
 
-// --- Save and reopen at full 64-bit precision (TIFF or FITS) ---------------
+// --- Save and reopen at full 64-bit precision (TIFF, FITS, or Text) ---------
 saveAs("Tiff", getDirectory("temp") + "demo64.tif");
 // saveAs("FITS", getDirectory("temp") + "demo64.fits");  // BITPIX -64, also lossless
+// saveAs("Text Image", getDirectory("temp") + "demo64.txt");  // full-precision text
+// run("Text Image... ", "open=[" + getDirectory("temp") + "demo64.txt] use");  // 64-bit import
 ```
 
 > **Macro tips**
@@ -379,8 +453,10 @@ saveAs("Tiff", getDirectory("temp") + "demo64.tif");
 > - Call `updateDisplay()` after a batch of `setPixel()` writes so the canvas refreshes.
 > - For display scaling after large value changes, run `resetMinAndMax()` (or
 >   `setMinAndMax(min, max)`).
-> - `saveAs("Tiff", path)` and `saveAs("FITS", path)` both preserve full 64-bit precision;
->   reopening restores a `DoubleProcessor`. Avoid JPEG/PNG/GIF/BMP/PGM for 64-bit data.
+> - `saveAs("Tiff", path)`, `saveAs("FITS", path)`, and `saveAs("Text Image", path)` all
+>   preserve full 64-bit precision; reopening restores a `DoubleProcessor`. For text,
+>   re-import with `run("Text Image... ", "open=[path] use")` (note the trailing space in
+>   the command name and the `use` keyword). Avoid JPEG/PNG/GIF/BMP/PGM for 64-bit data.
 > - When formatting big/fractional values for `print()`/logs, `d2s(value, decimals)`
 >   avoids scientific-notation surprises.
 
@@ -446,7 +522,7 @@ new FileSaver(imp).saveAsTiff("demo64.tif");
   `ImagePlus.updateAndDraw()` to refresh the display.
 - To stay 64-bit, prefer `convertToDoubleProcessor()`; `convertToFloat()` **narrows** to
   float (used by Unsharp Mask, Image Calculator's float-result path, and CONVERT_TO_FLOAT).
-- Save as **TIFF/ZIP/Raw/FITS** for lossless 64-bit; convert to 8-/16-bit
+- Save as **TIFF/ZIP/Raw/Text/FITS** for lossless 64-bit; convert to 8-/16-bit
   (**Image ▸ Type**) before thresholding/morphology/FFT that needs integers or float.
 
 ---
@@ -458,6 +534,16 @@ new FileSaver(imp).saveAsTiff("demo64.tif");
 - `ij/process/DoubleStatistics.java` — statistics for 64-bit images.
 - `ij/process/DoubleBlitter.java` — `copyBits` / compositing for 64-bit images.
 - `ij/ImagePlus.java` — `getFileInfo()` `GRAY64 → GRAY64_FLOAT` (enables Save As).
+- `ij/io/TextEncoder.java` — writes 64-bit images as full-precision text using
+  `DoubleProcessor.getd` + `Double.toString` (shortest round-trip-exact decimals).
+- `ij/plugin/TextReader.java` — imports text images, with opt-in 64-bit (`DoubleProcessor`)
+  via the `use` keyword or the Input/Output option; whole-token `use` match avoids paths
+  that merely contain "use".
+- `ij/plugin/Options.java` — adds the **Edit ▸ Options ▸ Input/Output** checkbox
+  "Open text images as 64-bit (double)" (`TextReader.isOpenAsDouble()` /
+  `TextReader.setOpenAsDouble(...)`).
+- `ij/text/TextCanvas.java` — system-font fallback fixing a paint-time
+  `NullPointerException` when no SWT font is set.
 - `ij/plugin/FITS_Writer.java` — writes 64-bit FITS (`BITPIX -64`, 8-byte `writeDouble`).
 - `ij/plugin/FITS_Reader.java` — opens 64-bit FITS (`BITPIX -64`) into a `DoubleProcessor`.
 - `ij/plugin/filter/Writer.java`, `Filters.java`, `Rotator.java`, `Translator.java`,
@@ -465,6 +551,8 @@ new FileSaver(imp).saveAsTiff("demo64.tif");
 - `ij/plugin/filter/ImageMath.java`, `ParticleAnalyzer.java`, `RankFilters.java`,
   `Convolver.java` — plugins with explicit 64-bit handling.
 - `plugins/64bitTests/Precision_Path_Probe_.java` — diagnostic measuring float-floor paths.
+- `plugins/64bitTests/Raw_Macro_Export_Import_Test.ijm` — raw/text 64-bit round-trip
+  regression macro.
 
 
 # Why 64-bit (Double-Precision) Image Support Is Useful
