@@ -53,11 +53,15 @@ public class TextReader implements PlugIn {
 		// run("Text Image... ", "open=[/path/file.txt] use");
 		// 'use' (or the persisted Prefs flag) selects 64-bit (DoubleProcessor).
 		String options = ij.Macro.getOptions();
-		boolean asDouble = ij.Prefs.get("textreader.double", false);
+		// Start from the persisted checkbox state (Edit>Options>Input/Output).
+		boolean asDouble = openAsDouble;
 		if(options != null) {
 			String p = ij.Macro.getValue(options, "open", "");
-			// Accept "use" as a bare keyword (… use) or "use=true".
-			if(options.contains("use"))
+			// Match the bare 'use' keyword as a whole token, NOT a substring:
+			// otherwise a path such as "open=[/Users/me/data.txt]" (which
+			// contains the letters "use") would wrongly force 64-bit mode.
+			String optLower = (" " + options.toLowerCase() + " ").replace('\t', ' ');
+			if(optLower.contains(" use ") || optLower.contains(" use="))
 				asDouble = true;
 			if(p != null && p.length() > 0) {
 				path = p;
