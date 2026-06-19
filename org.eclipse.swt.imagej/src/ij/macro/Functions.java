@@ -1563,7 +1563,9 @@ public class Functions implements MacroConstants, Measurements {
 		if(interp.token == ',') {
 			double a3 = interp.getExpression();
 			interp.getRightParen();
-			if(ip instanceof FloatProcessor)
+			if(ip instanceof ij.process.DoubleProcessor)
+				((ij.process.DoubleProcessor)ip).setd(a1, (int)a2, a3);
+			else if(ip instanceof FloatProcessor)
 				ip.putPixelValue(a1, (int)a2, a3);
 			else
 				ip.putPixel(a1, (int)a2, (int)a3);
@@ -1572,6 +1574,8 @@ public class Functions implements MacroConstants, Measurements {
 				interp.error("')' expected");
 			if(ip instanceof ColorProcessor)
 				ip.set(a1, (int)a2);
+			else if(ip instanceof ij.process.DoubleProcessor)
+				((ij.process.DoubleProcessor)ip).setd(a1, a2);
 			else
 				ip.setf(a1, (float)a2);
 		}
@@ -1591,7 +1595,9 @@ public class Functions implements MacroConstants, Measurements {
 			int ia1 = (int)a1;
 			int ia2 = (int)a2;
 			if(a1 == ia1 && a2 == ia2) {
-				if(ip instanceof FloatProcessor)
+				if(ip instanceof ij.process.DoubleProcessor)
+					value = ((ij.process.DoubleProcessor)ip).getPixelValueDouble(ia1, ia2);
+				else if(ip instanceof FloatProcessor)
 					value = ip.getPixelValue(ia1, ia2);
 				else
 					value = ip.getPixel(ia1, ia2);
@@ -1612,6 +1618,8 @@ public class Functions implements MacroConstants, Measurements {
 				interp.error("')' expected");
 			if(ip instanceof ColorProcessor)
 				value = ip.get((int)a1);
+			else if(ip instanceof ij.process.DoubleProcessor)
+				value = ((ij.process.DoubleProcessor)ip).getd((int)a1);
 			else
 				value = ip.getf((int)a1);
 		}
@@ -6156,9 +6164,12 @@ public class Functions implements MacroConstants, Measurements {
 			double y = getLastArg();
 			int ix = (int)x;
 			int iy = (int)y;
-			if(x == ix && y == iy)
-				return getProcessor().getPixelValue(ix, iy);
-			else
+			if(x == ix && y == iy) {
+				ImageProcessor ip = getProcessor();
+				if(ip instanceof ij.process.DoubleProcessor)
+					return ((ij.process.DoubleProcessor)ip).getPixelValueDouble(ix, iy);
+				return ip.getPixelValue(ix, iy);
+			} else
 				return getProcessor().getInterpolatedValue(x, y);
 		}
 		String key = getString();
