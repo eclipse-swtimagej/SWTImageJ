@@ -117,7 +117,7 @@ FITS. For TIFF, saving maps the image to `FileInfo.GRAY64_FLOAT`; the encoder wr
 | **File ▸ Open ▸ FITS** (`BITPIX = -64`) | ✅ Opens a 64-bit FITS file as a `DoubleProcessor`. |
 | **File ▸ Import ▸ Text Image…** (64-bit opt-in) | ✅ Reads as a 64-bit `DoubleProcessor` when enabled; 32-bit float otherwise. |
 | **Save ROI / XY Coordinates** | ✅ ROI and coordinate writers accept 64-bit images. |
-| JPEG / GIF / BMP / PNG / PGM | ❌ Format-specific writers reject 64-bit with a clear, format-specific message (these formats have no 64-bit float representation). |
+| JPEG / GIF / BMP / PNG / PGM | ❌ Format-specific writers - not handled - this formats do not support 64-bit). |
 
 > **FITS round-trip:** The FITS writer emits `BITPIX -64` and an 8-byte `writeDouble`
 > pixel stream for a `DoubleProcessor`; the FITS reader maps `BITPIX -64` back to
