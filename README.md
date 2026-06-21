@@ -25,7 +25,7 @@ This is useful when:
 
 > **Reported bit depth:** `ImageProcessor.getBitDepth()` returns `64` for these images.
 > For *why* and *when* to use 64-bit (including scientific domain examples), see
-> [`64-bit-use-cases.md`](./64-bit-use-cases.md).
+> 64-bit-use-cases below.
 
 ---
 
