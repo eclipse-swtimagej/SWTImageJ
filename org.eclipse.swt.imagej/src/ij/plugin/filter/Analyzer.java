@@ -128,7 +128,10 @@ public class Analyzer implements PlugInFilter, Measurements {
 			resetCounter();
 			return DONE;
 		} else
-			return DOES_ALL + NO_CHANGES;
+			// Include DOES_64: measurements route through ImageStatistics
+			// (which handles DoubleProcessor) and, for point ROIs, through
+			// the DoubleProcessor branch in savePoints() at ~L864.
+			return DOES_ALL + DOES_64 + NO_CHANGES;
 	}
 
 	public void run(ImageProcessor ip) {

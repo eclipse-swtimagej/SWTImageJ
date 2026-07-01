@@ -54,6 +54,7 @@ import ij.plugin.WandToolOptions;
 import ij.plugin.frame.Recorder;
 import ij.plugin.frame.RoiManager;
 import ij.plugin.tool.PlugInTool;
+import ij.process.Blitter;
 import ij.process.FloatPolygon;
 import ij.swt.SwtToAwtLegacy;
 import ij.util.Tools;
@@ -139,6 +140,12 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	private Image screenImage;
 	private Menu embeddedPopupMenu;
 	public Rectangle zoomRectangle;
+	private org.eclipse.swt.graphics.Image cachedPasteSwtImage;
+	private ij.process.ImageProcessor cachedPasteProcessor;
+	private org.eclipse.swt.graphics.Image cachedBlendedSwtImage;
+	private int cachedBlendX = Integer.MIN_VALUE,
+			cachedBlendY = Integer.MIN_VALUE;
+	private int cachedBlendMode = -1;
 
 	public Menu getEmbeddedPopupMenu() {
 
@@ -445,9 +452,36 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		painted = true;
 		Roi roi = imp.getRoi();
 		Overlay overlay = imp.getOverlay();
-		if(roi != null || overlay != null || showAllOverlay != null || Prefs.paintDoubleBuffered || (IJ.isLinux() && magnification < 0.25)) {
-			if(roi != null)
-				roi.updatePaste();
+		boolean pastePreviewMode = roi != null && roi.clipboard != null;
+		if(!pastePreviewMode) {
+			if(cachedPasteSwtImage != null || cachedBlendedSwtImage != null) {
+				// Paste just ended — dispose all caches and schedule a full repaint to
+				// clear any ghost yellow-rect artifacts left outside the clipped region.
+				if(cachedPasteSwtImage != null && !cachedPasteSwtImage.isDisposed())
+					cachedPasteSwtImage.dispose();
+				cachedPasteSwtImage = null;
+				if(cachedBlendedSwtImage != null && !cachedBlendedSwtImage.isDisposed())
+					cachedBlendedSwtImage.dispose();
+				cachedBlendedSwtImage = null;
+				cachedPasteProcessor = null;
+				cachedBlendX = Integer.MIN_VALUE;
+				cachedBlendY = Integer.MIN_VALUE;
+				cachedBlendMode = -1;
+				final ImageCanvas self = this;
+				Display.getDefault().asyncExec(() -> {
+					if(!self.isDisposed())
+						self.redraw();
+				});
+			}
+			if(roi != null || overlay != null || showAllOverlay != null || Prefs.paintDoubleBuffered || (IJ.isLinux() && magnification < 0.25)) {
+				if(roi != null)
+					roi.updatePaste();
+			}
+		} else if(cachedPasteSwtImage != null && cachedPasteProcessor != roi.clipboard.getProcessor()) {
+			if(!cachedPasteSwtImage.isDisposed())
+				cachedPasteSwtImage.dispose();
+			cachedPasteSwtImage = null;
+			cachedPasteProcessor = null;
 		}
 		try {
 			if(imageUpdated) {
@@ -481,7 +515,10 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				drawOverlay(overlay, g);
 			if(showAllOverlay != null)
 				drawOverlay(showAllOverlay, g);
-			if(roi != null)
+			if(pastePreviewMode) {
+				drawPastePreview(gc, roi);
+				drawRoi(roi, g);
+			} else if(roi != null)
 				drawRoi(roi, g);
 			if(fitToParent == false) {
 				if(srcRect.width < imageWidth || srcRect.height < imageHeight) {
@@ -498,6 +535,74 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		if(IJ.isMacOSX()) {
 			// DPIUtil.setDeviceZoom(200);
 		}
+	}
+
+	private void drawPastePreview(GC gc, Roi roi) {
+
+		ij.process.ImageProcessor clipIp = roi.clipboard.getProcessor();
+		// Invalidate all caches when the clipboard content itself changes.
+		if(cachedPasteProcessor != clipIp) {
+			if(cachedPasteSwtImage != null && !cachedPasteSwtImage.isDisposed())
+				cachedPasteSwtImage.dispose();
+			cachedPasteSwtImage = null;
+			if(cachedBlendedSwtImage != null && !cachedBlendedSwtImage.isDisposed())
+				cachedBlendedSwtImage.dispose();
+			cachedBlendedSwtImage = null;
+			cachedBlendX = Integer.MIN_VALUE;
+			cachedBlendY = Integer.MIN_VALUE;
+			cachedBlendMode = -1;
+			cachedPasteProcessor = clipIp;
+		}
+		calculateAspectRatio();
+		java.awt.Rectangle r = roi.getBounds();
+		int sx = (int)(screenX(r.x) * aspectRatioX);
+		int sy = (int)(screenY(r.y) * aspectRatioY);
+		int dw = Math.max(1, (int)(r.width * magnification * aspectRatioX));
+		int dh = Math.max(1, (int)(r.height * magnification * aspectRatioY));
+		int clipW = clipIp.getWidth(), clipH = clipIp.getHeight();
+		int pasteMode = Roi.pasteMode;
+		if(pasteMode == Blitter.COPY) {
+			// COPY: result is position-independent — cache once per clipboard change.
+			if(cachedPasteSwtImage == null) {
+				cachedPasteSwtImage = clipIp.createSwtImage();
+			}
+			if(cachedPasteSwtImage != null && !cachedPasteSwtImage.isDisposed())
+				gc.drawImage(cachedPasteSwtImage, 0, 0, clipW, clipH, sx, sy, dw, dh);
+		} else {
+			// Non-COPY: blended result depends on the background at the current position.
+			// Recompute whenever position or mode changes; cache for held positions.
+			if(cachedBlendedSwtImage == null || cachedBlendX != r.x || cachedBlendY != r.y || cachedBlendMode != pasteMode) {
+				if(cachedBlendedSwtImage != null && !cachedBlendedSwtImage.isDisposed())
+					cachedBlendedSwtImage.dispose();
+				cachedBlendedSwtImage = computeBlendedPreview(clipIp, r, pasteMode);
+				cachedBlendX = r.x;
+				cachedBlendY = r.y;
+				cachedBlendMode = pasteMode;
+			}
+			org.eclipse.swt.graphics.Image toDraw = cachedBlendedSwtImage != null ? cachedBlendedSwtImage : cachedPasteSwtImage;
+			if(toDraw != null && !toDraw.isDisposed())
+				gc.drawImage(toDraw, 0, 0, clipW, clipH, sx, sy, dw, dh);
+		}
+	}
+
+	private org.eclipse.swt.graphics.Image computeBlendedPreview(ij.process.ImageProcessor clipIp, java.awt.Rectangle r, int pasteMode) {
+
+		ij.process.ImageProcessor bgIp = imp.getProcessor();
+		int imgW = imp.getWidth(), imgH = imp.getHeight();
+		int clipW = clipIp.getWidth(), clipH = clipIp.getHeight();
+		// Create a clipboard-sized processor filled from the background, handling
+		// out-of-bounds paste positions by leaving those pixels as zero.
+		ij.process.ImageProcessor region = bgIp.createProcessor(clipW, clipH);
+		int x1 = Math.max(0, r.x), y1 = Math.max(0, r.y);
+		int x2 = Math.min(imgW, r.x + clipW), y2 = Math.min(imgH, r.y + clipH);
+		if(x2 > x1 && y2 > y1) {
+			bgIp.setRoi(x1, y1, x2 - x1, y2 - y1);
+			ij.process.ImageProcessor chunk = bgIp.crop();
+			bgIp.resetRoi();
+			region.insert(chunk, x1 - r.x, y1 - r.y);
+		}
+		region.copyBits(clipIp, 0, 0, pasteMode);
+		return region.createSwtImage();
 	}
 
 	/* Paint function with intermediate image */
@@ -2685,6 +2790,12 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		crosshairCursor.dispose();
 		if(img != null && !img.isDisposed()) {
 			img.dispose();
+		}
+		if(cachedPasteSwtImage != null && !cachedPasteSwtImage.isDisposed()) {
+			cachedPasteSwtImage.dispose();
+		}
+		if(cachedBlendedSwtImage != null && !cachedBlendedSwtImage.isDisposed()) {
+			cachedBlendedSwtImage.dispose();
 		}
 	}
 
