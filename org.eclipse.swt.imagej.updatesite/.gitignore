@@ -1,2 +1,7 @@
 /bin
 /target
+
+# Tycho
+.polyglot.*
+*.tycho
+.tycho-consumer-pom.xml
