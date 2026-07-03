@@ -7,4 +7,4 @@ Automatic-Module-Name: IJPluginWindowBuilderExample
 Bundle-ClassPath: .
 Export-Package: .
 Require-Bundle: org.eclipse.swt;bundle-version="3.129.0",
- org.eclipse.swt.imagej;bundle-version="1.5.0"
+ org.eclipse.swt.imagej;bundle-version="0.7.0"
