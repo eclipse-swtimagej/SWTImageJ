@@ -1980,7 +1980,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable, Iter
 			size = ", w=" + width + ", h=" + height;
 		IJ.showStatus(imp.getLocationAsString(this.x, this.y) + size + value);
 		/* Extra method to display the status on the canvas when enabled! */
-		imp.showOnCanvasStatus(this.x, this.y, "" + size + value);
+		imp.showOnCanvasStatus(this.x, this.y, imp.getLocationAsString(this.x, this.y) + size + value);
 	}
 
 	/** Always returns null for rectangular Roi's */

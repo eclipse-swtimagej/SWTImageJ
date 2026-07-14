@@ -525,6 +525,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 					drawZoomIndicator(gc);
 				}
 			}
+			if(imp.isTooltipVisible())
+				drawTooltipOverlay(gc, imp.getTooltipX(), imp.getTooltipY(), imp.getTooltipText());
 			// if (IJ.debugMode) showFrameRate(g);
 			g.dispose();
 		} catch(OutOfMemoryError e) {
@@ -1005,6 +1007,24 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		g.setColor(labelColor);
 		g.drawString(label, x - 1 + xoffset, y - 3 + yoffset);
 		g.setColor(defaultColor);
+	}
+
+	private void drawTooltipOverlay(GC gc, int x, int y, String text) {
+
+		if(text == null || text.isEmpty())
+			return;
+		calculateAspectRatio();
+		int sx = (int)(screenX(x) * aspectRatioX);
+		int sy = (int)(screenY(y) * aspectRatioY);
+		org.eclipse.swt.graphics.Point extent = gc.textExtent(text);
+		int boxX = sx + 10;
+		int boxY = sy + 10;
+		Display display = getDisplay();
+		gc.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+		gc.fillRectangle(boxX, boxY, extent.x + 6, extent.y + 4);
+		gc.drawRectangle(boxX, boxY, extent.x + 6, extent.y + 4);
+		gc.drawText(text, boxX + 3, boxY + 2, true);
 	}
 
 	/* Converted to SWT! */
@@ -2504,7 +2524,7 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		/* SWT mouse events! */
 		calculateAspectRatio();
 		int ox = offScreenX((int)(e.x / aspectRatioX));
-		int oy = offScreenY((int)(e.x / aspectRatioX));
+		int oy = offScreenY((int)(e.y / aspectRatioY));
 		Overlay overlay = imp.getOverlay();
 		if((overlay != null || showAllOverlay != null) && ox == mousePressedX && oy == mousePressedY) {
 			boolean cmdDown = IJ.isMacOSX() && evt.isMetaDown();

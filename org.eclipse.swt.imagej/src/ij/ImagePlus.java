@@ -24,10 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.jfree.swt.SWTUtils;
 
 import ij.gui.Arrow;
@@ -171,7 +168,9 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 	private org.eclipse.swt.widgets.Composite editorParent;
 	private boolean temporary;
 	private double defaultMin, defaultMax;
-	private Shell canvasTooltip;
+	private String tooltipText;
+	private int tooltipX, tooltipY;
+	private boolean tooltipVisible;
 	private boolean isToolTipEnabled = false;
 
 	/** Constructs an uninitialized ImagePlus. */
@@ -2229,7 +2228,6 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 	private int[] pvalue = new int[4];
 	protected ImagePlus imp3;
-	private Label label;
 
 	/**
 	 * Returns the pixel value at (x,y) as a 4 element array. Grayscale values are
@@ -3565,10 +3563,9 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			ij.showStatus(getLocationAsString(x, y) + getValueAsString(x, y) + title);
 			/* If we want to display on canvas tooltip information! */
 			if(isToolTipEnabled) {
-				displayToolTipShell(x, y, title);
+				showTooltipOverlay(x, y, getLocationAsString(x, y) + getValueAsString(x, y) + title);
 			} else {
-				if(canvasTooltip != null && !canvasTooltip.isDisposed())
-					canvasTooltip.dispose();
+				hideTooltipOverlay();
 			}
 		}
 	}
@@ -3581,10 +3578,9 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 		/* If we want to display on canvas tooltip information! */
 		if(isToolTipEnabled) {
-			displayToolTipShell(x, y, s);
+			showTooltipOverlay(x, y, s);
 		} else {
-			if(canvasTooltip != null && !canvasTooltip.isDisposed())
-				canvasTooltip.dispose();
+			hideTooltipOverlay();
 		}
 	}
 
@@ -3594,33 +3590,53 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 	 */
 	public void mouseExited() {
 
-		if(canvasTooltip != null && !canvasTooltip.isDisposed())
-			canvasTooltip.dispose();
+		hideTooltipOverlay();
 	}
 
-	/* Displays an SWT tooltip shell under the cursor if enabled! */
-	public void displayToolTipShell(int x, int y, String title) {
+	/*
+	 * Stores the tooltip text/position and asks the canvas to repaint itself so it
+	 * can draw the overlay directly - this avoids opening a native Shell (and the
+	 * OS-level window activation that comes with it) just to show a hover tooltip.
+	 */
+	private void showTooltipOverlay(int x, int y, String text) {
 
-		ImageCanvas canvas = this.getCanvas();
-		if(canvasTooltip != null && !canvasTooltip.isDisposed()) {
-			label.setText(getLocationAsString(x, y) + getValueAsString(x, y) + " " + title);
-			org.eclipse.swt.graphics.Point size = canvasTooltip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			canvas.calculateAspectRatio();
-			// Calculate the screen coordinates with space for the shell so we do not select
-			// the shell!
-			int xc = (int)((canvas.screenX(x)) * canvas.aspectRatioX);
-			int yc = (int)((canvas.screenY(y)) * canvas.aspectRatioY);
-			org.eclipse.swt.graphics.Point pt = canvas.toDisplay(xc, yc);
-			canvasTooltip.setBounds(pt.x + 10, pt.y + 10, size.x, size.y);
-			canvasTooltip.setVisible(true);
-		} else {
-			canvasTooltip = new Shell(canvas.getShell(), SWT.ON_TOP | SWT.TOOL);
-			canvasTooltip.setLayout(new FillLayout());
-			label = new org.eclipse.swt.widgets.Label(canvasTooltip, SWT.NONE);
-			Display display = Display.getDefault();
-			label.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-			label.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		tooltipText = text;
+		tooltipX = x;
+		tooltipY = y;
+		tooltipVisible = true;
+		ImageCanvas canvas = getCanvas();
+		if(canvas != null && !canvas.isDisposed())
+			canvas.redraw();
+	}
+
+	private void hideTooltipOverlay() {
+
+		if(tooltipVisible) {
+			tooltipVisible = false;
+			ImageCanvas canvas = getCanvas();
+			if(canvas != null && !canvas.isDisposed())
+				canvas.redraw();
 		}
+	}
+
+	public boolean isTooltipVisible() {
+
+		return tooltipVisible;
+	}
+
+	public String getTooltipText() {
+
+		return tooltipText;
+	}
+
+	public int getTooltipX() {
+
+		return tooltipX;
+	}
+
+	public int getTooltipY() {
+
+		return tooltipY;
 	}
 
 	/**
@@ -3706,7 +3722,7 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 				else
 					return (", value=" + IJ.d2s(cValue) + " (" + v[0] + ")");
 			case GRAY32:
-				double value = Float.intBitsToFloat(v[0]);
+				double value = ip.getPixelValue(x, y);
 				String s = (int)value == value ? IJ.d2s(value, 0) + ".0" : IJ.d2s(value, 4, 7);
 				return (", value=" + s);
 			case GRAY64:
