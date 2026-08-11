@@ -1021,10 +1021,14 @@ public class Menus {
 
 	private static org.eclipse.swt.widgets.Menu getMenu(String menuPath) {
 
-		if(GraphicsEnvironment.isHeadless())
-			return null;
-		else
-			return getMenu(menuPath, false);
+		/*
+		 * This builds SWT widgets, not AWT/Swing ones, so AWT's headless flag is not a
+		 * reliable signal here: a JVM can be java.awt.headless=true (e.g. a
+		 * headless-only JRE package) while SWT still has a perfectly usable Display. If
+		 * there is genuinely no SWT display, the Shell/Menu construction below will
+		 * fail on its own.
+		 */
+		return getMenu(menuPath, false);
 	}
 
 	private static org.eclipse.swt.widgets.Menu getMenu(String menuName, boolean readFromProps) {
