@@ -21,7 +21,7 @@ jobs:
     uses: eclipse-dash/dash-licenses/.github/workflows/mavenLicenseCheck.yml@master
     with:
       projectId: technology.swtimagej
-      javaVersion: 21
+      javaVersion: 25
     secrets:
       gitlabAPIToken: ${{ secrets.GITLAB_API_TOKEN }}
     permissions:
