@@ -305,7 +305,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			sourceViewer.doOperation(ProjectionViewer.TOGGLE);
 			/* This is the viewer's real, internally managed folding annotation model! */
 			projectionAnnotationModel = sourceViewer.getProjectionAnnotationModel();
-			System.out.println("[Editor][fold-debug] isProjectionMode=" + sourceViewer.isProjectionMode() + " projectionAnnotationModel=" + projectionAnnotationModel);
+			// System.out.println("[Editor][fold-debug] isProjectionMode=" + sourceViewer.isProjectionMode() + " projectionAnnotationModel=" + projectionAnnotationModel);
 			completionEditor = new CompletionEditor(sourceViewer, Editor.this);
 			annotationRuler.getControl().setBackground(Color.lightGray);
 			overviewRuler.getControl().setBackground(Color.white);
@@ -377,11 +377,11 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	private void updateFoldingStructure() {
 
 		if(projectionAnnotationModel == null) {
-			System.out.println("[Editor][fold-debug] updateFoldingStructure: projectionAnnotationModel is null, aborting");
+			// System.out.println("[Editor][fold-debug] updateFoldingStructure: projectionAnnotationModel is null, aborting");
 			return;
 		}
 		List<Position> positions = computeFoldingPositions(document);
-		System.out.println("[Editor][fold-debug] updateFoldingStructure: documentLength=" + document.getLength() + " computedPositions=" + positions.size() + " -> " + positions);
+		// System.out.println("[Editor][fold-debug] updateFoldingStructure: documentLength=" + document.getLength() + " computedPositions=" + positions.size() + " -> " + positions);
 		Map<ProjectionAnnotation, Position> additions = new HashMap<>();
 		for(Position position : positions) {
 			additions.put(new ProjectionAnnotation(), position);
