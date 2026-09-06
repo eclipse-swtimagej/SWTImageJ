@@ -22,20 +22,33 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.AnnotationRulerColumn;
 import org.eclipse.jface.text.source.CompositeRuler;
+import org.eclipse.jface.text.source.IAnnotationAccess;
+import org.eclipse.jface.text.source.IAnnotationAccessExtension;
+import org.eclipse.jface.text.source.IAnnotationPresentation;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.LineNumberRulerColumn;
 import org.eclipse.jface.text.source.OverviewRuler;
@@ -52,13 +65,16 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.printing.PrintDialog;
 import org.eclipse.swt.printing.Printer;
 import org.eclipse.swt.printing.PrinterData;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -179,7 +195,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	protected ProjectionSupport projectionSupport;
 	protected ProjectionAnnotationModel projectionAnnotationModel;
 	protected Document document;
-	protected ProjectionAnnotation projectionAnnotation;
 	protected Timer timer;
 	boolean contextMenu = false;
 	boolean embedded = false;
@@ -264,15 +279,33 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			ruler.addDecorator(1, lnrc);
 			/* Create a JFace Projection TextViewer! */
 			sourceViewer = new ProjectionViewer(composite, ruler, overviewRuler, true, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-			projectionSupport = new ProjectionSupport(sourceViewer, null, new EditorSharedTextColors());
+			/*
+			 * AnnotationRulerColumn (and therefore the fold ruler column ProjectionSupport
+			 * creates) only ever draws an annotation by delegating to
+			 * fAnnotationAccessExtension.paint(...), and only when that field is non-null.
+			 * Passing null here as the IAnnotationAccess means every fold annotation is
+			 * silently never painted, no matter how correct the model/positions are.
+			 */
+			projectionSupport = new ProjectionSupport(sourceViewer, new EditorAnnotationAccess(), new EditorSharedTextColors());
 			projectionSupport.install();
-			// turn projection mode on
-			sourceViewer.doOperation(ProjectionViewer.TOGGLE);
 			document = new Document();
-			projectionAnnotationModel = new ProjectionAnnotationModel();
-			// projectionAnnotation.setType(Annotation.);
-			// Document document = new Document();
-			sourceViewer.setDocument(document);
+			/*
+			 * SourceViewer.setDocument(document, annotationModel, ...) only builds its
+			 * internal "visual annotation model" (and, through ProjectionViewer's override
+			 * of createVisualAnnotationModel, the real ProjectionAnnotationModel used for
+			 * folding) when the annotationModel argument is non-null! Calling the 1-arg
+			 * setDocument(document) passes null and permanently disables both, so an
+			 * unrelated, throwaway AnnotationModel must be passed here just to trigger that
+			 * setup. It also has to happen BEFORE doOperation(TOGGLE): ProjectionViewer only
+			 * wires the fold ruler column to a live model while a visual annotation model
+			 * already exists.
+			 */
+			sourceViewer.setDocument(document, new AnnotationModel());
+			// turn projection (code folding) mode on now that a document/visual annotation model exists
+			sourceViewer.doOperation(ProjectionViewer.TOGGLE);
+			/* This is the viewer's real, internally managed folding annotation model! */
+			projectionAnnotationModel = sourceViewer.getProjectionAnnotationModel();
+			System.out.println("[Editor][fold-debug] isProjectionMode=" + sourceViewer.isProjectionMode() + " projectionAnnotationModel=" + projectionAnnotationModel);
 			completionEditor = new CompletionEditor(sourceViewer, Editor.this);
 			annotationRuler.getControl().setBackground(Color.lightGray);
 			overviewRuler.getControl().setBackground(Color.white);
@@ -289,7 +322,14 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			ta.addKeyListener(Editor.this);
 			ta.addMouseListener(Editor.this); // ImageJ handles keyboard shortcuts
 			Editor.this.getShell().addKeyListener(ij); // ImageJ handles keyboard shortcuts
-			composite.layout();
+			/*
+			 * The fold ruler column is added to the CompositeRuler dynamically (inside
+			 * doOperation(TOGGLE) above), after the ruler's own composite/canvas already
+			 * had its initial layout computed. A plain layout() only re-lays-out
+			 * immediate children from cached sizes and would not notice/allocate space
+			 * for that new column, so force a full recursive re-layout here.
+			 */
+			composite.layout(true, true);
 			// getShell().layout();
 			setFont();
 			positionWindow();
@@ -312,29 +352,13 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 					@Override
 					public void run() {
 
-						new Thread(new Runnable() {
-
-							@Override
-							public void run() {
-
-								Display.getDefault().syncExec(() -> {
-									/*
-									 * if (projectionAnnotation != null)
-									 * projectionAnnotationModel.removeAllAnnotations();
-									 * System.out.println("Changed..."); projectionAnnotation = new
-									 * org.eclipse.jface.text.source.projection.ProjectionAnnotation(); //
-									 * projectionAnnotation.setRangeIndication(true); //
-									 * projectionAnnotation.setText("Annotation");
-									 * projectionAnnotationModel.addAnnotation(projectionAnnotation, new Position(0,
-									 * 200)); projectionAnnotationModel.expandAll(0, 200);
-									 * sourceViewer.setDocument(document, projectionAnnotationModel);
-									 */
-								});
-							}
-						}).start();
+						Display.getDefault().asyncExec(() -> {
+							if(ta != null && !ta.isDisposed())
+								updateFoldingStructure();
+						});
 					}
 				};
-				timer.schedule(timerTask, 500); // 1 minute
+				timer.schedule(timerTask, 200);
 			}
 
 			@Override
@@ -343,6 +367,182 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 			}
 		});
+	}
+
+	/**
+	 * Recomputes the foldable regions by matching curly braces in the document
+	 * and updates the projection annotation model, adding/removing annotations
+	 * so that the ruler's fold markers reflect the current source code.
+	 */
+	private void updateFoldingStructure() {
+
+		if(projectionAnnotationModel == null) {
+			System.out.println("[Editor][fold-debug] updateFoldingStructure: projectionAnnotationModel is null, aborting");
+			return;
+		}
+		List<Position> positions = computeFoldingPositions(document);
+		System.out.println("[Editor][fold-debug] updateFoldingStructure: documentLength=" + document.getLength() + " computedPositions=" + positions.size() + " -> " + positions);
+		Map<ProjectionAnnotation, Position> additions = new HashMap<>();
+		for(Position position : positions) {
+			additions.put(new ProjectionAnnotation(), position);
+		}
+		List<Annotation> deletions = new ArrayList<>();
+		Iterator<?> iterator = projectionAnnotationModel.getAnnotationIterator();
+		while(iterator.hasNext()) {
+			deletions.add((Annotation)iterator.next());
+		}
+		projectionAnnotationModel.modifyAnnotations(deletions.toArray(new Annotation[deletions.size()]), additions, new Annotation[0]);
+		int count = 0;
+		Iterator<?> check = projectionAnnotationModel.getAnnotationIterator();
+		while(check.hasNext()) {
+			check.next();
+			count++;
+		}
+		// System.out.println("[Editor][fold-debug] updateFoldingStructure: annotations now in model=" + count);
+	}
+
+	/**
+	 * Scans the document for matching '{' / '}' pairs, ignoring braces found
+	 * inside line comments, block comments and string/char literals, and
+	 * returns one foldable position for every block that spans more than one
+	 * line.
+	 */
+	private static List<Position> computeFoldingPositions(IDocument document) {
+
+		List<Position> positions = new ArrayList<>();
+		String content = document.get();
+		Deque<Integer> openOffsets = new ArrayDeque<>();
+		boolean inLineComment = false;
+		boolean inBlockComment = false;
+		char stringChar = 0;
+		int length = content.length();
+		for(int i = 0; i < length; i++) {
+			char c = content.charAt(i);
+			char next = (i + 1 < length) ? content.charAt(i + 1) : '\0';
+			if(inLineComment) {
+				if(c == '\n')
+					inLineComment = false;
+				continue;
+			}
+			if(inBlockComment) {
+				if(c == '*' && next == '/') {
+					inBlockComment = false;
+					i++;
+				}
+				continue;
+			}
+			if(stringChar != 0) {
+				if(c == '\\')
+					i++;
+				else if(c == stringChar)
+					stringChar = 0;
+				continue;
+			}
+			if(c == '/' && next == '/') {
+				inLineComment = true;
+				i++;
+				continue;
+			}
+			if(c == '/' && next == '*') {
+				inBlockComment = true;
+				i++;
+				continue;
+			}
+			if(c == '"' || c == '\'') {
+				stringChar = c;
+				continue;
+			}
+			if(c == '{') {
+				openOffsets.push(i);
+				continue;
+			}
+			if(c == '}') {
+				if(openOffsets.isEmpty())
+					continue;
+				int openOffset = openOffsets.pop();
+				try {
+					int startLine = document.getLineOfOffset(openOffset);
+					int endLine = document.getLineOfOffset(i);
+					if(endLine > startLine) {
+						int startOffset = document.getLineOffset(startLine);
+						int endOfEndLine = document.getLineOffset(endLine) + document.getLineLength(endLine);
+						positions.add(new Position(startOffset, endOfEndLine - startOffset));
+					}
+				} catch(BadLocationException e) {
+					// document changed concurrently, skip this region
+				}
+			}
+		}
+		return positions;
+	}
+
+	/**
+	 * Minimal IAnnotationAccess/IAnnotationAccessExtension so the fold ruler column
+	 * actually paints its annotations. This standalone RCP app has no dependency on
+	 * org.eclipse.ui.texteditor, so Eclipse's own DefaultMarkerAnnotationAccess isn't
+	 * available; ProjectionAnnotation already knows how to draw itself (it implements
+	 * IAnnotationPresentation), this class just has to forward to that.
+	 */
+	private static class EditorAnnotationAccess implements IAnnotationAccess, IAnnotationAccessExtension {
+
+		@Override
+		public Object getType(Annotation annotation) {
+
+			return annotation.getType();
+		}
+
+		@Override
+		public boolean isMultiLine(Annotation annotation) {
+
+			return true;
+		}
+
+		@Override
+		public boolean isTemporary(Annotation annotation) {
+
+			return !annotation.isPersistent();
+		}
+
+		@Override
+		public String getTypeLabel(Annotation annotation) {
+
+			return annotation.getType();
+		}
+
+		@Override
+		public int getLayer(Annotation annotation) {
+
+			if(annotation instanceof IAnnotationPresentation presentation) {
+				return presentation.getLayer();
+			}
+			return IAnnotationAccessExtension.DEFAULT_LAYER;
+		}
+
+		@Override
+		public void paint(Annotation annotation, GC gc, Canvas canvas, Rectangle bounds) {
+
+			if(annotation instanceof IAnnotationPresentation presentation) {
+				presentation.paint(gc, canvas, bounds);
+			}
+		}
+
+		@Override
+		public boolean isPaintable(Annotation annotation) {
+
+			return annotation instanceof IAnnotationPresentation;
+		}
+
+		@Override
+		public boolean isSubtype(Object annotationType, Object potentialSupertype) {
+
+			return annotationType != null && annotationType.equals(potentialSupertype);
+		}
+
+		@Override
+		public Object[] getSupertypes(Object annotationType) {
+
+			return new Object[0];
+		}
 	}
 
 	public void setContextMenuStyledText(boolean contextMenu) {
@@ -547,6 +747,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				ta.addLineStyleListener(lineMacroStyler);
 				ta.redraw();
 			}
+			/* Build the initial code folding structure! */
+			updateFoldingStructure();
 			/* Original ImageJ extension cases! */
 			boolean macroExtension = name.endsWith(".txt") || name.endsWith(".ijm");
 			if(macroExtension || name.endsWith(".js") || name.endsWith(".bsh") || name.endsWith(".py") || name.indexOf(".") == -1) {
