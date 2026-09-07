@@ -187,6 +187,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	protected ProjectionViewer sourceViewer;// Extends TextViewer!
 	protected AnnotationModel _annotationModel;
 	private org.eclipse.swt.graphics.Font fontNew;
+	private LineNumberRulerColumn lnrc;
 	protected JavaLineStyler lineStyler;
 	protected MacroLineStyler lineMacroStyler;
 	protected CompletionEditor completionEditor;
@@ -273,7 +274,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			IOverviewRuler overviewRuler = new OverviewRuler(null, 15, null);
 			/* The ruler on the left side with two columns (line number, annotations)! */
 			CompositeRuler ruler = new CompositeRuler();
-			LineNumberRulerColumn lnrc = new LineNumberRulerColumn();
+			lnrc = new LineNumberRulerColumn();
+			/* Muted grey, like Eclipse's own line number column! */
+			lnrc.setForeground(Color.darkGray);
 			AnnotationRulerColumn annotationRuler = new AnnotationRulerColumn(15);
 			ruler.addDecorator(0, annotationRuler);
 			ruler.addDecorator(1, lnrc);
@@ -305,7 +308,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			sourceViewer.doOperation(ProjectionViewer.TOGGLE);
 			/* This is the viewer's real, internally managed folding annotation model! */
 			projectionAnnotationModel = sourceViewer.getProjectionAnnotationModel();
-			// System.out.println("[Editor][fold-debug] isProjectionMode=" + sourceViewer.isProjectionMode() + " projectionAnnotationModel=" + projectionAnnotationModel);
 			completionEditor = new CompletionEditor(sourceViewer, Editor.this);
 			annotationRuler.getControl().setBackground(Color.lightGray);
 			overviewRuler.getControl().setBackground(Color.white);
@@ -377,11 +379,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	private void updateFoldingStructure() {
 
 		if(projectionAnnotationModel == null) {
-			// System.out.println("[Editor][fold-debug] updateFoldingStructure: projectionAnnotationModel is null, aborting");
 			return;
 		}
 		List<Position> positions = computeFoldingPositions(document);
-		// System.out.println("[Editor][fold-debug] updateFoldingStructure: documentLength=" + document.getLength() + " computedPositions=" + positions.size() + " -> " + positions);
 		Map<ProjectionAnnotation, Position> additions = new HashMap<>();
 		for(Position position : positions) {
 			additions.put(new ProjectionAnnotation(), position);
@@ -392,13 +392,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			deletions.add((Annotation)iterator.next());
 		}
 		projectionAnnotationModel.modifyAnnotations(deletions.toArray(new Annotation[deletions.size()]), additions, new Annotation[0]);
-		int count = 0;
-		Iterator<?> check = projectionAnnotationModel.getAnnotationIterator();
-		while(check.hasNext()) {
-			check.next();
-			count++;
-		}
-		// System.out.println("[Editor][fold-debug] updateFoldingStructure: annotations now in model=" + count);
 	}
 
 	/**
@@ -682,9 +675,11 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		font.setMenu(fontMenu);
 		org.eclipse.swt.widgets.MenuItem makeTextSmallerItem = new org.eclipse.swt.widgets.MenuItem(fontMenu, SWT.PUSH);
 		makeTextSmallerItem.setText("Make Text Smaller");
+		makeTextSmallerItem.setAccelerator(cmdOrCtrl + '-');
 		makeTextSmallerItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem makeTextLargerItem = new org.eclipse.swt.widgets.MenuItem(fontMenu, SWT.PUSH);
 		makeTextLargerItem.setText("Make Text Larger");
+		makeTextLargerItem.setAccelerator(cmdOrCtrl + '=');
 		makeTextLargerItem.addSelectionListener(Editor.this);
 		new org.eclipse.swt.widgets.MenuItem(fontMenu, SWT.SEPARATOR);
 		monospaced = new org.eclipse.swt.widgets.MenuItem(fontMenu, SWT.CHECK);
@@ -2439,9 +2434,25 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		fD[0].setHeight(sizes[fontSizeIndex]);
 		// font = new org.eclipse.swt.graphics.Font(Display.getDefault(),
 		// new FontData(getFontName(), sizes[fontSizeIndex], SWT.NORMAL));
+		org.eclipse.swt.graphics.Font oldFont = fontNew;
 		fontNew = new org.eclipse.swt.graphics.Font(Display.getDefault(), fD[0]);
 		ta.setFont(fontNew);
-		// font.dispose();
+		/* Keep the line numbers in lock-step with the text, like Eclipse does! */
+		if(lnrc != null) {
+			lnrc.setFont(fontNew);
+		}
+		if(oldFont != null) {
+			oldFont.dispose();
+		}
+		/*
+		 * A bigger font means wider digits, so the line-number column needs more
+		 * pixels too - but nothing recomputes column widths on its own after the
+		 * initial layout. Without this, big line numbers get clipped by a ruler
+		 * still sized for the old, smaller font.
+		 */
+		if(composite != null && !composite.isDisposed()) {
+			composite.layout(true, true);
+		}
 	}
 
 	String getFontName() {
@@ -2652,6 +2663,23 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public void keyPressed(org.eclipse.swt.events.KeyEvent evt) {
 
 		// IJ.setKeyDown(evt.keyCode);
+		if((evt.stateMask & SWT.MOD1) != 0) {
+			/*
+			 * Cmd on macOS, Ctrl on Windows/Linux (SWT.MOD1 is the platform's primary
+			 * accelerator modifier). Match on the produced character rather than a
+			 * single fixed key combo so this works regardless of keyboard layout, and
+			 * also accept the numeric keypad +/-.
+			 */
+			if(evt.character == '+' || evt.character == '=' || evt.keyCode == SWT.KEYPAD_ADD) {
+				changeFontSize(true);
+				evt.doit = false;
+				return;
+			} else if(evt.character == '-' || evt.character == '_' || evt.keyCode == SWT.KEYPAD_SUBTRACT) {
+				changeFontSize(false);
+				evt.doit = false;
+				return;
+			}
+		}
 		completionEditor.keyPressed(evt);
 	}
 
