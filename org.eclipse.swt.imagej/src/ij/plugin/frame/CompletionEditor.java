@@ -16,6 +16,7 @@ import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextEvent;
 import org.eclipse.jface.text.TextPresentation;
@@ -27,12 +28,24 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.text.source.SourceViewer;
+import org.eclipse.jface.text.templates.GlobalTemplateVariables;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.text.templates.TemplateCompletionProcessor;
+import org.eclipse.jface.text.templates.TemplateContextType;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Drawable;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 
 import ij.IJ;
 import ij.util.Tools;
@@ -53,12 +66,104 @@ public class CompletionEditor {
 		this.textViewer = textViewer;
 		wordTracker = new WordTracker(MAX_QUEUE_SIZE);
 		buildControls(textViewer);
+		installFontScaling(textViewer);
+	}
+
+	/**
+	 * Picks the completion behaviour to match the file being edited: ImageJ
+	 * macro function names (parsed from functions.html) only make sense for
+	 * actual macro files, and are otherwise just noise; Java files get basic
+	 * keyword/statement snippets (if, for, while, ...) instead, since that's a
+	 * different language with different completions; anything else (.js,
+	 * .bsh, .py, the interactive interpreter, ...) gets no completion at all
+	 * rather than incorrectly offering macro functions.
+	 */
+	public void configureForFile(String name) {
+
+		IContentAssistProcessor processor;
+		if(name.endsWith(".ijm") || name.endsWith(".txt")) {
+			processor = new ImageJMacroWordContentAssistProcessor(wordTracker);
+		} else if(name.endsWith(".java")) {
+			processor = new JavaTemplateContentAssistProcessor();
+		} else {
+			processor = new NoCompletionContentAssistProcessor();
+		}
+		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
+	}
+
+	/**
+	 * ContentAssistant hardcodes its proposal list's font to
+	 * JFaceResources.getDefaultFont() (see CompletionProposalPopup) and exposes
+	 * no API to override it, so the popup never followed Editor's Ctrl/Cmd +/-
+	 * zooming. Since we can't be told about it, we watch for it: every content
+	 * assist popup (the proposal list, and our own additional-info popup) is an
+	 * SWT.ON_TOP Shell parented directly to this editor's shell, so a display-
+	 * wide SWT.Show filter lets us catch each one as it appears and re-apply
+	 * the editor's current font (whatever Editor.setFont() last set on ta) to
+	 * it and its children, without touching any other window in the process.
+	 */
+	private void installFontScaling(SourceViewer textViewer) {
+
+		StyledText ta = textViewer.getTextWidget();
+		Display display = ta.getDisplay();
+		Listener showListener = new Listener() {
+
+			public void handleEvent(Event event) {
+
+				if(!(event.widget instanceof Shell) || ta.isDisposed()) {
+					return;
+				}
+				Shell shell = (Shell)event.widget;
+				Shell editorShell = ta.getShell();
+				if(shell.getParent() != editorShell || (shell.getStyle() & SWT.ON_TOP) == 0) {
+					return;
+				}
+				if(!containsTableOrStyledText(shell)) {
+					return;
+				}
+				applyFontRecursively(shell, ta.getFont());
+				shell.layout(true, true);
+			}
+		};
+		display.addFilter(SWT.Show, showListener);
+		ta.getShell().addDisposeListener(e -> display.removeFilter(SWT.Show, showListener));
+	}
+
+	private static boolean containsTableOrStyledText(Control control) {
+
+		if(control instanceof Table || control instanceof StyledText) {
+			return true;
+		}
+		if(control instanceof Composite) {
+			for(Control child : ((Composite)control).getChildren()) {
+				if(containsTableOrStyledText(child)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static void applyFontRecursively(Control control, Font font) {
+
+		control.setFont(font);
+		if(control instanceof Composite) {
+			for(Control child : ((Composite)control).getChildren()) {
+				applyFontRecursively(child, font);
+			}
+		}
 	}
 
 	private void buildControls(SourceViewer textViewer) {
-		
+
 		assistant = new ContentAssistant();
-		assistant.setContentAssistProcessor(new ImageJMacroWordContentAssistProcessor(wordTracker), IDocument.DEFAULT_CONTENT_TYPE);
+		/*
+		 * Which processor is active depends on the file being edited, and that
+		 * isn't known yet at construction time (create(name, text) is called
+		 * separately, afterwards) - start with completion disabled and let
+		 * configureForFile(...) pick the right one once the name is known.
+		 */
+		assistant.setContentAssistProcessor(new NoCompletionContentAssistProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
 		/*
 		 * ContentAssistant only shows a proposal's additional info (our function
 		 * descriptions) if it has somewhere to put it: internally it only creates
@@ -78,7 +183,7 @@ public class CompletionEditor {
 				 * long line. WrappingInformationPresenter inserts real line breaks
 				 * sized to the popup's actual width instead.
 				 */
-				return new DefaultInformationControl(parent, new WrappingInformationPresenter());
+				return new DefaultInformationControl(parent, new WrappingInformationPresenter(textViewer.getTextWidget()));
 			}
 		});
 		assistant.install(textViewer);
@@ -242,6 +347,108 @@ public class CompletionEditor {
 		}
 	}
 
+	/** No proposals, ever - used for file types that get neither macro nor Java completion. */
+	private static final class NoCompletionContentAssistProcessor implements IContentAssistProcessor {
+
+		public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+
+			return new ICompletionProposal[0];
+		}
+
+		public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
+
+			return null;
+		}
+
+		public char[] getCompletionProposalAutoActivationCharacters() {
+
+			return null;
+		}
+
+		public char[] getContextInformationAutoActivationCharacters() {
+
+			return null;
+		}
+
+		public String getErrorMessage() {
+
+			return null;
+		}
+
+		public IContextInformationValidator getContextInformationValidator() {
+
+			return null;
+		}
+	}
+
+	/**
+	 * Standard Java control-structure completions (if/for/while/...) for
+	 * .java files - a completely different language from ImageJ macros, so
+	 * the macro function list (see ImageJMacroWordContentAssistProcessor)
+	 * would just be wrong here.
+	 * <p>
+	 * Built on JFace's real template machinery (the same one Eclipse's own
+	 * Java editor uses for its "for", "if", "sysout", ... templates) instead
+	 * of plain text substitution, so each "${name}" placeholder becomes a
+	 * genuinely editable, Tab-key-navigable position after insertion - and a
+	 * placeholder used more than once (e.g. the loop variable "index" in the
+	 * "for" template below) stays in sync everywhere it appears as you edit
+	 * any one occurrence. "${cursor}" is the one reserved name marking where
+	 * the caret finally lands once every other placeholder has been visited.
+	 */
+	private static final class JavaTemplateContentAssistProcessor extends TemplateCompletionProcessor {
+
+		private static final String CONTEXT_TYPE_ID = "java";
+		private static final TemplateContextType CONTEXT_TYPE = createContextType();
+		private static final Template[] TEMPLATES = createTemplates();
+
+		private static TemplateContextType createContextType() {
+
+			TemplateContextType type = new TemplateContextType(CONTEXT_TYPE_ID, "Java");
+			type.addResolver(new GlobalTemplateVariables.Cursor());
+			return type;
+		}
+
+		private static Template[] createTemplates() {
+
+			return new Template[]{
+					template("if", "If statement", "if (${condition}) {\n\t${cursor}\n}"),
+					template("ifelse", "If / else statement", "if (${condition}) {\n\t${cursor}\n} else {\n\t\n}"),
+					template("else", "Else block", "else {\n\t${cursor}\n}"),
+					template("for", "For loop over an array", "for (int ${index} = 0; ${index} < ${array}.length; ${index}++) {\n\t${cursor}\n}"),
+					template("foreach", "For-each loop", "for (${type} ${element} : ${collection}) {\n\t${cursor}\n}"),
+					template("while", "While loop", "while (${condition}) {\n\t${cursor}\n}"),
+					template("dowhile", "Do / while loop", "do {\n\t${cursor}\n} while (${condition});"),
+					template("switch", "Switch statement", "switch (${expression}) {\n\tcase ${value} :\n\t\t${cursor}\n\t\tbreak;\n\tdefault :\n\t\tbreak;\n}"),
+					template("trycatch", "Try / catch block", "try {\n\t${cursor}\n} catch (${exception} e) {\n\t\n}"),
+					template("class", "Class declaration", "class ${name} {\n\t${cursor}\n}"),
+					template("main", "Main method", "public static void main(String[] args) {\n\t${cursor}\n}"),
+					template("sysout", "Print to standard out", "System.out.println(${cursor});"),
+					template("return", "Return statement", "return ${cursor};"),
+			};
+		}
+
+		private static Template template(String name, String description, String pattern) {
+
+			return new Template(name, description, CONTEXT_TYPE_ID, pattern, false);
+		}
+
+		protected TemplateContextType getContextType(ITextViewer viewer, IRegion region) {
+
+			return CONTEXT_TYPE;
+		}
+
+		protected Image getImage(Template template) {
+
+			return null;
+		}
+
+		protected Template[] getTemplates(String contextTypeId) {
+
+			return TEMPLATES;
+		}
+	}
+
 	class ImageJMacroWordContentAssistProcessor implements IContentAssistProcessor {
 
 		private String lastError = null;
@@ -336,6 +543,13 @@ public class CompletionEditor {
 	 */
 	private static final class WrappingInformationPresenter implements DefaultInformationControl.IInformationPresenter, DefaultInformationControl.IInformationPresenterExtension {
 
+		private final StyledText editorTextWidget;
+
+		WrappingInformationPresenter(StyledText editorTextWidget) {
+
+			this.editorTextWidget = editorTextWidget;
+		}
+
 		public String updatePresentation(Display display, String hoverInfo, TextPresentation presentation, int maxWidth, int maxHeight) {
 
 			return updatePresentation((Drawable)display, hoverInfo, presentation, maxWidth, maxHeight);
@@ -350,8 +564,31 @@ public class CompletionEditor {
 			if(display == null || maxWidth <= 0) {
 				return hoverInfo;
 			}
+			/*
+			 * AbstractInformationControlManager caches and reuses the same
+			 * DefaultInformationControl/StyledText across many proposal sessions
+			 * ("if (extension.canReuse(fInformationControl)) return fInformationControl;"),
+			 * so the font we set on it when it was first created (in
+			 * createInformationControl(...)) never gets touched again by JFace -
+			 * it's stuck at whatever the editor's font was the very first time a
+			 * description was ever shown. updatePresentation(...) is the one hook
+			 * that reliably runs on every single display, reused control or not,
+			 * so re-apply the editor's *current* font here instead, and measure
+			 * word-wrapping with that same font (otherwise wrapping is computed
+			 * against the old, usually-smaller font's character widths while the
+			 * text actually renders in the new, wider one, so it would overflow
+			 * again regardless of the font fix).
+			 */
+			Font font = null;
+			if(drawable instanceof Control && !((Control)drawable).isDisposed() && editorTextWidget != null && !editorTextWidget.isDisposed()) {
+				font = editorTextWidget.getFont();
+				((Control)drawable).setFont(font);
+			}
 			GC gc = new GC(display);
 			try {
+				if(font != null) {
+					gc.setFont(font);
+				}
 				StringBuilder wrapped = new StringBuilder();
 				for(String paragraph : hoverInfo.split("\n", -1)) {
 					wrapParagraph(gc, paragraph, maxWidth, wrapped);

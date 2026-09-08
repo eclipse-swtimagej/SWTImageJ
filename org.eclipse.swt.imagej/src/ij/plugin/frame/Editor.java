@@ -128,8 +128,16 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	static final String TAB_INC = "editor.tab-inc";
 	private final static int MACRO = 0, JAVASCRIPT = 1, BEANSHELL = 2,
 			PYTHON = 3;
-	private final static String[] languages = {"Macro", "JavaScript", "BeanShell", "Python"};
-	private final static String[] extensions = {".ijm", ".js", ".bsh", ".py"};
+	/*
+	 * "Java" is included here (even though .java files don't get a run bar of
+	 * their own, see getOptions()) so that if a .java file ends up loaded into
+	 * a window that already has this combo - e.g. an editor window originally
+	 * opened for a macro/script and then reused for a different file - the
+	 * combo has something correct to select instead of silently keeping
+	 * whatever it showed before (see the language.select(i) loop below).
+	 */
+	private final static String[] languages = {"Macro", "JavaScript", "BeanShell", "Python", "Java"};
+	private final static String[] extensions = {".ijm", ".js", ".bsh", ".py", ".java"};
 	public static Editor currentMacroEditor;
 	private StyledText ta;
 	private String path;
@@ -169,6 +177,11 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	private FunctionFinder functionFinder;
 	private ArrayList undoBuffer = new ArrayList();
 	private boolean performingUndo;
+	private long lastUndoCheckpointTime;
+	/* Keystrokes within this many ms of the previous one are folded into the
+	 * same undo step, so Ctrl/Cmd+Z reverts a burst of typing at a time
+	 * instead of a single character at a time. */
+	private static final long UNDO_COALESCE_MILLIS = 800;
 	private boolean checkForCurlyQuotes;
 	private static int tabInc = (int)Prefs.get(TAB_INC, 3);
 	private static boolean insertSpaces = Prefs.get(INSERT_SPACES, false);
@@ -345,6 +358,16 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			/* Adding a reconciler for the document! */
 			public void documentChanged(final DocumentEvent event) {
 
+				/*
+				 * Undo-checkpoint recording lives here rather than in the widget's
+				 * ModifyListener (textValueChanged) because content assist / template
+				 * proposals apply their text via document.replace(...), which updates
+				 * ta's displayed text but does NOT fire the widget's ModifyEvent - so
+				 * an inserted completion was invisible to undo entirely. Every actual
+				 * edit, typed or completion-inserted, does go through the document,
+				 * so recording it here catches both uniformly.
+				 */
+				recordUndoCheckpoint(event.getDocument().get());
 				if(timer != null) {
 					timer.cancel();
 				}
@@ -744,6 +767,12 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			}
 			/* Build the initial code folding structure! */
 			updateFoldingStructure();
+			/* Macro functions only make sense as completions for macro files; .java
+			 * gets basic keyword/statement snippets instead; everything else gets
+			 * no completion. */
+			if(completionEditor != null) {
+				completionEditor.configureForFile(name);
+			}
 			/* Original ImageJ extension cases! */
 			boolean macroExtension = name.endsWith(".txt") || name.endsWith(".ijm");
 			if(macroExtension || name.endsWith(".js") || name.endsWith(".bsh") || name.endsWith(".py") || name.indexOf(".") == -1) {
@@ -1364,16 +1393,74 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		 */
 		if(IJ.debugMode)
 			IJ.log("Undo1: " + undoBuffer.size());
-		int position = ta.getCaretOffset();
 		if(undoBuffer.size() > 1) {
 			undoBuffer.remove(undoBuffer.size() - 1);
 			String text = (String)undoBuffer.get(undoBuffer.size() - 1);
 			performingUndo = true;
-			ta.setText(text);
-			if(position <= text.length())
-				ta.setCaretOffset(0);
+			replaceWithMinimalDiff(ta.getText(), text);
 			if(IJ.debugMode)
 				IJ.log("Undo2: " + undoBuffer.size() + " " + text);
+		}
+	}
+
+	/**
+	 * Replaces the widget's content with newText using the smallest possible
+	 * replaceTextRange() covering only the part that actually differs from
+	 * oldText, instead of a wholesale ta.setText(newText). A full setText()
+	 * resets both the caret and the scroll position (topIndex) to the very
+	 * top of the file, no matter how small the actual change is - which is
+	 * exactly the "cursor jumps to the top" behaviour that made undo unusable
+	 * in a long, scrolled-down file even after restoring the caret offset
+	 * afterwards. A real document-based editor's undo (Eclipse included) only
+	 * ever touches the changed region, which is why its viewport barely
+	 * moves; this mirrors that by diffing the common leading/trailing text
+	 * and replacing just what differs in between, wherever in the document
+	 * that happens to be.
+	 */
+	private void replaceWithMinimalDiff(String oldText, String newText) {
+
+		int prefix = 0;
+		int maxPrefix = Math.min(oldText.length(), newText.length());
+		while(prefix < maxPrefix && oldText.charAt(prefix) == newText.charAt(prefix))
+			prefix++;
+		int oldSuffix = oldText.length();
+		int newSuffix = newText.length();
+		while(oldSuffix > prefix && newSuffix > prefix && oldText.charAt(oldSuffix - 1) == newText.charAt(newSuffix - 1)) {
+			oldSuffix--;
+			newSuffix--;
+		}
+		String replacement = newText.substring(prefix, newSuffix);
+		ta.replaceTextRange(prefix, oldSuffix - prefix, replacement);
+		/*
+		 * Land the caret where the undone change actually was (right after the
+		 * restored text), not wherever the caret happened to already be - that
+		 * was the bug: pressing undo repeatedly for edits scattered across the
+		 * file just left the caret (and view) sitting at the PREVIOUS undo's
+		 * location instead of following each new change to where it actually is.
+		 */
+		ta.setCaretOffset(newSuffix);
+		revealCaretLine();
+	}
+
+	/**
+	 * If the caret's line is already visible, does nothing (no gratuitous
+	 * scrolling for an undo that happened to be on-screen already). Otherwise
+	 * scrolls so that line ends up roughly centred, matching Eclipse: simply
+	 * scrolling the minimum distance (StyledText.showSelection()) snaps the
+	 * changed line to whichever edge of the viewport it approaches from,
+	 * which reads as an abrupt jump; centring it instead leaves the
+	 * surrounding context visible, like Eclipse's own "reveal" behaviour.
+	 */
+	private void revealCaretLine() {
+
+		int line = ta.getLineAtOffset(ta.getCaretOffset());
+		int topIndex = ta.getTopIndex();
+		int lineHeight = ta.getLineHeight();
+		int clientHeight = ta.getClientArea().height;
+		int visibleLines = lineHeight > 0 ? Math.max(1, clientHeight / lineHeight) : 1;
+		int bottomIndex = topIndex + visibleLines - 1;
+		if(line < topIndex || line > bottomIndex) {
+			ta.setTopIndex(Math.max(0, line - visibleLines / 2));
 		}
 	}
 
@@ -1503,7 +1590,17 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		// int flags = e.getModifiers();
 		boolean altKeyDown = (e.stateMask & SWT.ALT) != 0;
 		if(e.getSource() == runButton) {
-			runMacro(false);
+			/*
+			 * runMacro() already special-cases .js/.bsh/.py by checking the window
+			 * title's suffix (see runMacro(boolean)) - .java needs the same
+			 * treatment here, since compiling and running is a completely
+			 * different action from executing macro text, not a variant of it.
+			 */
+			if(getShell().getText().endsWith(".java")) {
+				compileAndRun();
+			} else {
+				runMacro(false);
+			}
 			return;
 		} else if(e.getSource() == installButton) {
 			String text = ta.getText();
@@ -1734,11 +1831,51 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 	public void textValueChanged(ModifyEvent e) {
 
-		String text = ta.getText();
-		// if (undo2==null || text.length()!=undo2.length()+1 ||
-		// text.charAt(text.length()-1)=='\n')
-		int length = 0;
-		if(!performingUndo) {
+		/*
+		 * Undo-checkpoint recording used to live here, but this ModifyListener is
+		 * attached to the widget, and widget-level edits are only ONE of the ways
+		 * the text changes - see the documentChanged() listener registered in the
+		 * constructor, which is where that now happens, since it catches
+		 * document.replace()-driven edits (completions, templates) too.
+		 */
+		if(isMacroWindow)
+			return;
+		// first few textValueChanged events may be bogus
+		eventCount++;
+		if(eventCount > 2 || !IJ.isMacOSX() && eventCount > 1)
+			changes = true;
+		if(IJ.isMacOSX()) // screen update bug work around
+			ta.setCaretOffset(ta.getCaretOffset());
+	}
+
+	/**
+	 * Records an undo checkpoint for the document's current full text. Called
+	 * from the document listener (not the widget's ModifyListener) so that
+	 * every real edit is captured regardless of whether it came from typing
+	 * (widget -> document) or from a completion/template proposal applying
+	 * itself directly via document.replace(...) (document only, never touches
+	 * the widget's ModifyEvent).
+	 */
+	private void recordUndoCheckpoint(String text) {
+
+		if(performingUndo) {
+			performingUndo = false;
+			return;
+		}
+		long now = System.currentTimeMillis();
+		/*
+		 * Every edit used to push a brand new full-text snapshot - so Ctrl/Cmd+Z
+		 * only ever undid a single character (or, for a completion, sometimes
+		 * nothing at all - see above), which is why undo felt broken. Instead,
+		 * keep amending the MOST RECENT snapshot while edits keep happening in a
+		 * quick burst, and only start a new undo step once there has been a
+		 * pause (or this is the very first change) - one step per burst, like a
+		 * normal editor.
+		 */
+		if(!undoBuffer.isEmpty() && (now - lastUndoCheckpointTime) < UNDO_COALESCE_MILLIS) {
+			undoBuffer.set(undoBuffer.size() - 1, text);
+		} else {
+			int length = 0;
 			for(int i = 0; i < undoBuffer.size(); i++)
 				length += ((String)undoBuffer.get(i)).length();
 			if(length < 2000000)
@@ -1749,15 +1886,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				undoBuffer.set(undoBuffer.size() - 1, text);
 			}
 		}
-		performingUndo = false;
-		if(isMacroWindow)
-			return;
-		// first few textValueChanged events may be bogus
-		eventCount++;
-		if(eventCount > 2 || !IJ.isMacOSX() && eventCount > 1)
-			changes = true;
-		if(IJ.isMacOSX()) // screen update bug work around
-			ta.setCaretOffset(ta.getCaretOffset());
+		lastUndoCheckpointTime = now;
 	}
 
 	public void keyPressed(KeyEvent e) {
@@ -2085,6 +2214,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		String directory = path.substring(0, path.length() - title.length());
 		open(directory, title);
 		undoBuffer = new ArrayList();
+		lastUndoCheckpointTime = 0;
 	}
 
 	/** Changes a plugins class name to reflect a new file name. */
@@ -2676,6 +2806,20 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				return;
 			} else if(evt.character == '-' || evt.character == '_' || evt.keyCode == SWT.KEYPAD_SUBTRACT) {
 				changeFontSize(false);
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'z' || evt.character == 'Z') {
+				/*
+				 * The Undo menu item's accelerator (also cmdOrCtrl + 'z') only fires
+				 * when THIS editor's own Shell/menu bar is the active one - true when
+				 * it's a standalone floating window, but never true when embedded
+				 * inside a host RCP application's shell (e.g. openchrom), since the
+				 * editor's own Shell is never shown there and the host's completely
+				 * unrelated menu bar is what's actually active. Handling it here too,
+				 * directly against the widget that actually has focus, works either
+				 * way.
+				 */
+				undo();
 				evt.doit = false;
 				return;
 			}
