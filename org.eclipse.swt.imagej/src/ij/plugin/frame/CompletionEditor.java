@@ -58,11 +58,14 @@ public class CompletionEditor {
 	private String[] commands;
 	private Map<String, String> descriptions = new HashMap<String, String>();
 	private static final int MAX_QUEUE_SIZE = 5000;
-	/* Safety cap: how many lines after a <b>...</b> heading we'll scan for its
-	 * description text, in case a malformed entry never hits a stop marker. */
+	/*
+	 * Safety cap: how many lines after a <b>...</b> heading we'll scan for its
+	 * description text, in case a malformed entry never hits a stop marker.
+	 */
 	private static final int MAX_DESCRIPTION_LINES = 15;
 
 	public CompletionEditor(SourceViewer textViewer, Editor editor) {
+
 		this.textViewer = textViewer;
 		wordTracker = new WordTracker(MAX_QUEUE_SIZE);
 		buildControls(textViewer);
@@ -126,7 +129,7 @@ public class CompletionEditor {
 			}
 		};
 		display.addFilter(SWT.Show, showListener);
-		ta.getShell().addDisposeListener(e -> display.removeFilter(SWT.Show, showListener));
+		ta.getShell().addDisposeListener(_ -> display.removeFilter(SWT.Show, showListener));
 	}
 
 	private static boolean containsTableOrStyledText(Control control) {
@@ -260,11 +263,13 @@ public class CompletionEditor {
 		}
 		// ignore everything else
 	}
+
 	public void textChanged(TextEvent e) {
-	        if (isWhitespaceString(e.getText())) {
-	          wordTracker.add(findMostRecentWord(e.getOffset() - 1));
-	        }
-	      }
+
+		if(isWhitespaceString(e.getText())) {
+			wordTracker.add(findMostRecentWord(e.getOffset() - 1));
+		}
+	}
 
 	protected String findMostRecentWord(int startSearchOffset) {
 
@@ -411,21 +416,7 @@ public class CompletionEditor {
 
 		private static Template[] createTemplates() {
 
-			return new Template[]{
-					template("if", "If statement", "if (${condition}) {\n\t${cursor}\n}"),
-					template("ifelse", "If / else statement", "if (${condition}) {\n\t${cursor}\n} else {\n\t\n}"),
-					template("else", "Else block", "else {\n\t${cursor}\n}"),
-					template("for", "For loop over an array", "for (int ${index} = 0; ${index} < ${array}.length; ${index}++) {\n\t${cursor}\n}"),
-					template("foreach", "For-each loop", "for (${type} ${element} : ${collection}) {\n\t${cursor}\n}"),
-					template("while", "While loop", "while (${condition}) {\n\t${cursor}\n}"),
-					template("dowhile", "Do / while loop", "do {\n\t${cursor}\n} while (${condition});"),
-					template("switch", "Switch statement", "switch (${expression}) {\n\tcase ${value} :\n\t\t${cursor}\n\t\tbreak;\n\tdefault :\n\t\tbreak;\n}"),
-					template("trycatch", "Try / catch block", "try {\n\t${cursor}\n} catch (${exception} e) {\n\t\n}"),
-					template("class", "Class declaration", "class ${name} {\n\t${cursor}\n}"),
-					template("main", "Main method", "public static void main(String[] args) {\n\t${cursor}\n}"),
-					template("sysout", "Print to standard out", "System.out.println(${cursor});"),
-					template("return", "Return statement", "return ${cursor};"),
-			};
+			return new Template[]{template("if", "If statement", "if (${condition}) {\n\t${cursor}\n}"), template("ifelse", "If / else statement", "if (${condition}) {\n\t${cursor}\n} else {\n\t\n}"), template("else", "Else block", "else {\n\t${cursor}\n}"), template("for", "For loop over an array", "for (int ${index} = 0; ${index} < ${array}.length; ${index}++) {\n\t${cursor}\n}"), template("foreach", "For-each loop", "for (${type} ${element} : ${collection}) {\n\t${cursor}\n}"), template("while", "While loop", "while (${condition}) {\n\t${cursor}\n}"), template("dowhile", "Do / while loop", "do {\n\t${cursor}\n} while (${condition});"), template("switch", "Switch statement", "switch (${expression}) {\n\tcase ${value} :\n\t\t${cursor}\n\t\tbreak;\n\tdefault :\n\t\tbreak;\n}"), template("trycatch", "Try / catch block", "try {\n\t${cursor}\n} catch (${exception} e) {\n\t\n}"), template("class", "Class declaration", "class ${name} {\n\t${cursor}\n}"), template("main", "Main method", "public static void main(String[] args) {\n\t${cursor}\n}"), template("sysout", "Print to standard out", "System.out.println(${cursor});"), template("return", "Return statement", "return ${cursor};"),};
 		}
 
 		private static Template template(String name, String description, String pattern) {
@@ -493,9 +484,11 @@ public class CompletionEditor {
 			int index = 0;
 			for(Iterator<?> i = suggestions.iterator(); i.hasNext();) {
 				String currSuggestion = (String)i.next();
-				/* Non-null additional info makes ContentAssistant automatically show
+				/*
+				 * Non-null additional info makes ContentAssistant automatically show
 				 * a description panel next to the proposal list - see functions.html,
-				 * parsed in buildControls()/extractDescription(). */
+				 * parsed in buildControls()/extractDescription().
+				 */
 				String info = descriptions.get(currSuggestion);
 				proposals[index] = new CompletionProposal(currSuggestion, offset, replacedWord.length(), currSuggestion.length(), null, currSuggestion, null, info);
 				index++;
