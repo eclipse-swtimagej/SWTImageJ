@@ -31,7 +31,7 @@
 		<maven.compiler.release>25</maven.compiler.release>
 	</properties>
 	<dependencies>
-		<!-- Your main project dependency -->
+		<!-- The main project dependency -->
 		<dependency>
 			<groupId>org.eclipse.swt.imagej</groupId>
 			<artifactId>org.eclipse.swt.imagej</artifactId>
@@ -43,6 +43,7 @@
 			<artifactId>org.eclipse.jface.text</artifactId>
 			<version>3.31.100</version>
 		</dependency>
+		<!-- SVG libraries -->
 		<dependency>
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>org.eclipse.swt.svg</artifactId>
@@ -51,7 +52,7 @@
 		<dependency>
 			<groupId>com.github.weisj</groupId>
 			<artifactId>jsvg</artifactId>
-			<version>1.7.2</version> <!-- Oder eine neuere stabile Version -->
+			<version>1.7.2</version> 
 		</dependency>
 	</dependencies>
 	<build>
