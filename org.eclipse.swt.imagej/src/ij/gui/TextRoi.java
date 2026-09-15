@@ -285,6 +285,8 @@ public class TextRoi extends Roi {
 			drawText(g);
 			if (r!=null)
 				g.setClip(r.x, r.y, r.width, r.height);
+			else
+				g.setClip(null);
 		}
 	}
 	
