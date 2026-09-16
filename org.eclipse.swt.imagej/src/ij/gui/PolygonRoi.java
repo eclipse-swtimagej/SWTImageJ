@@ -227,12 +227,25 @@ public class PolygonRoi extends Roi {
 	private void drawStartBox(Graphics g) {
 
 		if(type != ANGLE) {
-			if(ic.isFitToParent()) {
-				ic.calculateAspectRatio();
-				g.drawRect(screenXD(startXD * ic.aspectRatioX) - 4, (screenYD(startYD * ic.aspectRatioY) - 4), 8, 8);
-			} else {
-				g.drawRect(screenXD(startXD * ic.aspectRatioX) - 4, screenYD(startYD * ic.aspectRatioY) - 4, 8, 8);
-			}
+			/*
+			 * Use boxSize (already scaled for HiDPI/Retina displays via Prefs.getGuiScale() at
+			 * ROI construction, see the constructor) rather than a hardcoded size - it is also
+			 * what the hit-test for "click near the start point to close the polygon" uses
+			 * (biggerStartBox, below), so the visible box and the actually-clickable area agree.
+			 * <p>
+			 * Reuse xp2[0]/yp2[0] - the exact screen position updatePolygon() (called at the
+			 * start of draw(), before this method runs) already computed for vertex 0's own
+			 * handle - rather than recomputing the position independently here. Recomputing it
+			 * (even with an otherwise-equivalent formula) can disagree with xp2[0]/yp2[0] by a
+			 * pixel or two: updatePolygon() narrows the offscreen coordinate to a float
+			 * (float ybase = (float)getYBase()) before converting to screen space, and when that
+			 * value sits close to an integer boundary after scaling, truncating a slightly
+			 * different (if more precise) value than updatePolygon() used can round the other
+			 * way. Sharing the same already-computed value guarantees the start box always lines
+			 * up with vertex 0's actual handle, regardless of that rounding.
+			 */
+			int half = boxSize / 2;
+			g.drawRect(xp2[0] - half, yp2[0] - half, boxSize, boxSize);
 		}
 	}
 
