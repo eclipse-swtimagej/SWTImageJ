@@ -122,6 +122,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public static final String INTERACTIVE_NAME = "Interactive Interpreter";
 	static final String FONT_SIZE = "editor.font.size";
 	static final String FONT_MONO = "editor.font.mono";
+	static final String FONT_NAME = "editor.font.name";
 	static final String CASE_SENSITIVE = "editor.case-sensitive";
 	static final String DEFAULT_DIR = "editor.dir";
 	static final String INSERT_SPACES = "editor.spaces";
@@ -200,6 +201,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	protected ProjectionViewer sourceViewer;// Extends TextViewer!
 	protected AnnotationModel _annotationModel;
 	private org.eclipse.swt.graphics.Font fontNew;
+	/** Explicit font family chosen via the "Font..." picker, or null to use the Monospaced Font checkbox. */
+	private String fontFamily = Prefs.get(FONT_NAME, "").trim().length() > 0 ? Prefs.get(FONT_NAME, "") : null;
 	private LineNumberRulerColumn lnrc;
 	protected JavaLineStyler lineStyler;
 	protected MacroLineStyler lineMacroStyler;
@@ -668,7 +671,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.SEPARATOR);
 		org.eclipse.swt.widgets.MenuItem selectAllItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		selectAllItem.setText("Select All");
-		selectAllItem.setAccelerator(SWT.SHIFT + 'a');
+		selectAllItem.setAccelerator(cmdOrCtrl + 'a');
 		selectAllItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem balanceItem = new org.eclipse.swt.widgets.MenuItem(editMenu, SWT.PUSH);
 		balanceItem.setText("Balance");
@@ -711,6 +714,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		if((options & MONOSPACED) != 0)
 			monospaced.setSelection(true);
 		monospaced.addSelectionListener(Editor.this);
+		org.eclipse.swt.widgets.MenuItem chooseFontItem = new org.eclipse.swt.widgets.MenuItem(fontMenu, SWT.PUSH);
+		chooseFontItem.setText("Font...");
+		chooseFontItem.addSelectionListener(Editor.this);
 		org.eclipse.swt.widgets.MenuItem saveSettingsItem = new org.eclipse.swt.widgets.MenuItem(fontMenu, SWT.PUSH);
 		saveSettingsItem.setText("Save Settings");
 		saveSettingsItem.addSelectionListener(Editor.this);
@@ -828,7 +834,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				evaluatePythonItem.addSelectionListener(Editor.this);
 				org.eclipse.swt.widgets.MenuItem showLogWindowItem = new org.eclipse.swt.widgets.MenuItem(macroMenu, SWT.PUSH);
 				showLogWindowItem.setText("Show Log Window");
-				showLogWindowItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'a');
+				showLogWindowItem.setAccelerator(cmdOrCtrl + SWT.SHIFT + 'l');
 				showLogWindowItem.addSelectionListener(Editor.this);
 				new org.eclipse.swt.widgets.MenuItem(macroMenu, SWT.SEPARATOR);
 				// MACROS_MENU_ITEMS must be updated if items are added to Editor.this menu
@@ -1690,7 +1696,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			changeFontSize(false);
 		else if("Monospaced Font".equals(what)) {
 			setFont();
-		} else if("Save Settings".equals(what))
+		} else if("Font...".equals(what))
+			chooseFont();
+		else if("Save Settings".equals(what))
 			saveSettings();
 		else if("New...".equals(what))
 			IJ.run("Text Window");
@@ -2560,12 +2568,15 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 	void setFont() {
 
-		FontData[] fD = JFaceResources.getFont(getFontName()).getFontData();
-		fD[0].setHeight(sizes[fontSizeIndex]);
-		// font = new org.eclipse.swt.graphics.Font(Display.getDefault(),
-		// new FontData(getFontName(), sizes[fontSizeIndex], SWT.NORMAL));
+		FontData fD0;
+		if(fontFamily != null && fontFamily.length() > 0)
+			fD0 = new FontData(fontFamily, sizes[fontSizeIndex], SWT.NORMAL);
+		else {
+			fD0 = JFaceResources.getFont(getFontName()).getFontData()[0];
+			fD0.setHeight(sizes[fontSizeIndex]);
+		}
 		org.eclipse.swt.graphics.Font oldFont = fontNew;
-		fontNew = new org.eclipse.swt.graphics.Font(Display.getDefault(), fD[0]);
+		fontNew = new org.eclipse.swt.graphics.Font(Display.getDefault(), fD0);
 		ta.setFont(fontNew);
 		/* Keep the line numbers in lock-step with the text, like Eclipse does! */
 		if(lnrc != null) {
@@ -2588,6 +2599,65 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	String getFontName() {
 
 		return monospaced.getSelection() ? JFaceResources.TEXT_FONT : "SansSerif";
+	}
+
+	private static final String SYSTEM_DEFAULT_LABEL = "<System Default>";
+
+	/** Opens a simple picker listing every installed font family, plus the OS's default font. */
+	private void chooseFont() {
+
+		Display display = Display.getDefault();
+		java.util.TreeSet<String> names = new java.util.TreeSet<String>();
+		for(FontData fd : display.getFontList(null, true))
+			names.add(fd.getName());
+		String systemFontName = display.getSystemFont().getFontData()[0].getName();
+		final org.eclipse.swt.widgets.Shell dialog = new org.eclipse.swt.widgets.Shell(getShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+		dialog.setText("Select Font");
+		dialog.setLayout(new org.eclipse.swt.layout.GridLayout(1, false));
+		final org.eclipse.swt.widgets.List list = new org.eclipse.swt.widgets.List(dialog, SWT.BORDER | SWT.V_SCROLL | SWT.SINGLE);
+		org.eclipse.swt.layout.GridData listData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, true);
+		listData.widthHint = 260;
+		listData.heightHint = 320;
+		list.setLayoutData(listData);
+		list.add(SYSTEM_DEFAULT_LABEL);
+		for(String name : names)
+			list.add(name);
+		String current = fontFamily != null && fontFamily.length() > 0 ? fontFamily : SYSTEM_DEFAULT_LABEL;
+		int index = list.indexOf(current);
+		list.select(index >= 0 ? index : 0);
+		list.showSelection();
+		org.eclipse.swt.widgets.Composite buttons = new org.eclipse.swt.widgets.Composite(dialog, SWT.NONE);
+		buttons.setLayout(new org.eclipse.swt.layout.RowLayout());
+		buttons.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.END, SWT.CENTER, false, false));
+		org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
+		okButton.setText("OK");
+		okButton.addListener(SWT.Selection, e -> {
+			String[] selection = list.getSelection();
+			String chosen = selection.length > 0 ? selection[0] : SYSTEM_DEFAULT_LABEL;
+			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
+			Prefs.set(FONT_NAME, fontFamily);
+			monospaced.setSelection(isMonospacedFont(fontFamily));
+			setFont();
+			dialog.close();
+		});
+		org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
+		cancelButton.setText("Cancel");
+		cancelButton.addListener(SWT.Selection, e -> dialog.close());
+		dialog.setDefaultButton(okButton);
+		dialog.pack();
+		org.eclipse.swt.graphics.Rectangle sb = getShell().getBounds();
+		org.eclipse.swt.graphics.Point ds = dialog.getSize();
+		dialog.setLocation(sb.x + (sb.width - ds.x) / 2, sb.y + (sb.height - ds.y) / 2);
+		dialog.open();
+	}
+
+	/** Heuristic: a monospaced font renders a narrow and a wide character at the same width. */
+	private static boolean isMonospacedFont(String family) {
+
+		Font f = new Font(family, Font.PLAIN, 12);
+		java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.FontMetrics fm = img.getGraphics().getFontMetrics(f);
+		return fm.charWidth('i') == fm.charWidth('W');
 	}
 
 	public void setFont(org.eclipse.swt.graphics.Font font) {
@@ -2820,6 +2890,16 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				 * way.
 				 */
 				undo();
+				evt.doit = false;
+				return;
+			} else if((evt.character == 'a' || evt.character == 'A') && (evt.stateMask & SWT.SHIFT) == 0) {
+				/*
+				 * Same reasoning as the undo case above: the Select All menu item's
+				 * accelerator (cmdOrCtrl + 'a') only fires when this editor's own
+				 * Shell/menu bar is active, which is never the case when embedded in
+				 * a host RCP application's shell. Handle it here too.
+				 */
+				selectAll();
 				evt.doit = false;
 				return;
 			}

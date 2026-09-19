@@ -107,6 +107,13 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	private static RoiManager instance;
 	private static int colorIndex = 4;
 	private org.eclipse.swt.widgets.List list;
+	private static final String FONT_NAME = "roimanager.font.name";
+	private static final String FONT_SIZE = "roimanager.font.size";
+	/** Explicit font family chosen via the "Font..." picker, or null to use the default monospaced font. */
+	private String fontFamily = Prefs.get(FONT_NAME, "").trim().length() > 0 ? Prefs.get(FONT_NAME, "") : null;
+	/** Font size for the ROI list, or -1 to use the widget's default (resolved on first use). */
+	private int fontSize = (int)Prefs.get(FONT_SIZE, -1);
+	private org.eclipse.swt.graphics.Font listFont;
 	// private DefaultListModel listModel;
 	private ArrayList rois = new ArrayList();
 	private boolean canceled;
@@ -226,6 +233,118 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		errorMessage = null;
 	}
 
+	/** Returns the name of an installed monospaced font, so ROI names line up in columns. */
+	private static String getMonospacedFontName() {
+
+		String[] candidates;
+		if(IJ.isMacOSX())
+			candidates = new String[]{"Menlo", "Monaco", "Courier New", "Courier", "Monospaced"};
+		else if(IJ.isWindows())
+			candidates = new String[]{"Consolas", "Courier New", "Courier", "Monospaced"};
+		else
+			candidates = ij.util.FontUtil.getSimilarFontsList("Monospaced");
+		Display display = Display.getDefault();
+		for(String candidate : candidates) {
+			if(display.getFontList(candidate, true).length > 0)
+				return candidate;
+		}
+		return "Monospaced";
+	}
+
+	/** Applies the explicitly chosen font (and size), or the defaults, to the ROI list. */
+	private void applyListFont() {
+
+		if(fontSize <= 0)
+			fontSize = list.getFont().getFontData()[0].getHeight();
+		String name = (fontFamily != null && fontFamily.length() > 0) ? fontFamily : getMonospacedFontName();
+		org.eclipse.swt.graphics.Font newFont = new org.eclipse.swt.graphics.Font(Display.getDefault(),
+				new org.eclipse.swt.graphics.FontData(name, fontSize, SWT.NORMAL));
+		list.setFont(newFont);
+		if(listFont != null)
+			listFont.dispose();
+		listFont = newFont;
+		forceListRelayout();
+	}
+
+	/**
+	 * SWT's List widget doesn't recompute its cached item-height/scrollbar metrics from
+	 * setFont() alone on every platform - only an actual size change does, which is why
+	 * resizing the shell "fixes" it. Nudging the size forces the same recalculation.
+	 */
+	private void forceListRelayout() {
+
+		if(list == null || list.isDisposed())
+			return;
+		org.eclipse.swt.graphics.Rectangle bounds = list.getBounds();
+		list.setSize(bounds.width, bounds.height + 1);
+		list.setSize(bounds.width, bounds.height);
+		if(composite != null && !composite.isDisposed())
+			composite.layout(true, true);
+		list.redraw();
+	}
+
+	private void changeFontSize(boolean larger) {
+
+		if(fontSize <= 0)
+			fontSize = list.getFont().getFontData()[0].getHeight();
+		if(larger)
+			fontSize++;
+		else if(fontSize > 4)
+			fontSize--;
+		Prefs.set(FONT_SIZE, fontSize);
+		IJ.showStatus(fontSize + " point");
+		applyListFont();
+	}
+
+	private static final String SYSTEM_DEFAULT_LABEL = "<System Default>";
+
+	/** Opens a simple picker listing every installed font family, plus the OS's default font. */
+	private void chooseFont() {
+
+		Display display = Display.getDefault();
+		java.util.TreeSet<String> names = new java.util.TreeSet<String>();
+		for(org.eclipse.swt.graphics.FontData fd : display.getFontList(null, true))
+			names.add(fd.getName());
+		String systemFontName = display.getSystemFont().getFontData()[0].getName();
+		final org.eclipse.swt.widgets.Shell dialog = new org.eclipse.swt.widgets.Shell(getShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+		dialog.setText("Select Font");
+		dialog.setLayout(new org.eclipse.swt.layout.GridLayout(1, false));
+		final org.eclipse.swt.widgets.List fontList = new org.eclipse.swt.widgets.List(dialog, SWT.BORDER | SWT.V_SCROLL | SWT.SINGLE);
+		org.eclipse.swt.layout.GridData listData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, true);
+		listData.widthHint = 260;
+		listData.heightHint = 320;
+		fontList.setLayoutData(listData);
+		fontList.add(SYSTEM_DEFAULT_LABEL);
+		for(String name : names)
+			fontList.add(name);
+		String current = fontFamily != null && fontFamily.length() > 0 ? fontFamily : SYSTEM_DEFAULT_LABEL;
+		int index = fontList.indexOf(current);
+		fontList.select(index >= 0 ? index : 0);
+		fontList.showSelection();
+		org.eclipse.swt.widgets.Composite buttons = new org.eclipse.swt.widgets.Composite(dialog, SWT.NONE);
+		buttons.setLayout(new org.eclipse.swt.layout.RowLayout());
+		buttons.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.END, SWT.CENTER, false, false));
+		org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
+		okButton.setText("OK");
+		okButton.addListener(SWT.Selection, e -> {
+			String[] selection = fontList.getSelection();
+			String chosen = selection.length > 0 ? selection[0] : SYSTEM_DEFAULT_LABEL;
+			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
+			Prefs.set(FONT_NAME, fontFamily);
+			applyListFont();
+			dialog.close();
+		});
+		org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
+		cancelButton.setText("Cancel");
+		cancelButton.addListener(SWT.Selection, e -> dialog.close());
+		dialog.setDefaultButton(okButton);
+		dialog.pack();
+		org.eclipse.swt.graphics.Rectangle sb = getShell().getBounds();
+		org.eclipse.swt.graphics.Point ds = dialog.getSize();
+		dialog.setLocation(sb.x + (sb.width - ds.x) / 2, sb.y + (sb.height - ds.y) / 2);
+		dialog.open();
+	}
+
 	void showWindow() {
 
 		ImageJ ij = IJ.getInstance();
@@ -245,8 +364,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		gridLayout.marginWidth = 0;
 		composite.setLayout(gridLayout);
 		list = new org.eclipse.swt.widgets.List(composite, SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI);
-		// list.setFont( new org.eclipse.swt.graphics.Font(Display.getDefault(),"Menlo",
-		// 14, SWT.NORMAL ) );
+		applyListFont();
 		list.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -476,6 +594,9 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		addPopupItem("Scale...");
 		addPopupItem("Rotate...");
 		addPopupItem("Translate...");
+		addPopupItem("Font...");
+		addPopupItem("Make Text Larger");
+		addPopupItem("Make Text Smaller");
 		addPopupItem("ROI Manager Action");
 		addPopupItem("Help");
 		addPopupItem("Options...");
@@ -584,6 +705,12 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			rotate();
 		else if(command.equals("Translate..."))
 			translate();
+		else if(command.equals("Font..."))
+			chooseFont();
+		else if(command.equals("Make Text Larger"))
+			changeFontSize(true);
+		else if(command.equals("Make Text Smaller"))
+			changeFontSize(false);
 		else if(command.equals("Help"))
 			help();
 		else if(command.equals("Options..."))

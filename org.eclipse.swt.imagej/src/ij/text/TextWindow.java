@@ -48,6 +48,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 	public static final String DEBUG_LOC_KEY = "debug.loc";
 	static final String FONT_SIZE = "tw.font.size";
 	static final String FONT_ANTI = "tw.font.anti";
+	static final String FONT_NAME = "tw.font.name";
 	TextPanel textPanel;
 	MenuItem monospacedButton, antialiasedButton;
 	int[] sizes = {9, 10, 11, 12, 13, 14, 16, 18, 20, 24, 36, 48, 60, 72};
@@ -58,8 +59,10 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 	protected boolean isVisible;
 	private boolean isResultsTable;
 	private boolean okayToClose;
-	private static org.eclipse.swt.graphics.Font font;
-	private static boolean monospaced;
+	private org.eclipse.swt.graphics.Font font;
+	private boolean monospaced;
+	/** Explicit font family chosen via the "Font..." picker, or null to use the Monospaced/Antialiased checkboxes. */
+	private String fontFamily;
 
 	public Shell getShell() {
 
@@ -169,6 +172,9 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 			setTitle(title2);
 			textPanel.title = title2;
 		}
+		fontFamily = Prefs.get(FONT_NAME, "");
+		if(fontFamily != null && fontFamily.trim().length() == 0)
+			fontFamily = null;
 		addMenuBar();
 		setFont();
 		/* Changed for SWT! */
@@ -330,6 +336,9 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 		// antialiased = new CheckboxMenuItem("Antialiased", Prefs.get(FONT_ANTI,
 		// IJ.isMacOSX() ? true : false));
 		antialiasedButton.addSelectionListener(this);
+		org.eclipse.swt.widgets.MenuItem chooseFontItem = new org.eclipse.swt.widgets.MenuItem(fontmenu, SWT.PUSH);
+		chooseFontItem.setText("Font...");
+		chooseFontItem.addSelectionListener(this);
 		org.eclipse.swt.widgets.MenuItem saveSettingsItem = new org.eclipse.swt.widgets.MenuItem(fontmenu, SWT.PUSH);
 		saveSettingsItem.setText("Save Settings");
 		saveSettingsItem.addSelectionListener(this);
@@ -396,7 +405,83 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 
 	private String getFontName() {
 
-		return monospacedButton.getSelection() ? "Monospaced" : "SansSerif";
+		if(fontFamily != null && fontFamily.length() > 0)
+			return fontFamily;
+		boolean wantMonospaced = monospacedButton.getSelection();
+		String logicalName = wantMonospaced ? "Monospaced" : "SansSerif";
+		String[] candidates;
+		if(wantMonospaced && IJ.isMacOSX())
+			candidates = new String[]{"Menlo", "Monaco", "Courier New", "Courier", "Monospaced"};
+		else if(wantMonospaced && IJ.isWindows())
+			candidates = new String[]{"Consolas", "Courier New", "Courier", "Monospaced"};
+		else
+			candidates = ij.util.FontUtil.getSimilarFontsList(logicalName);
+		Display display = Display.getDefault();
+		for(String candidate : candidates) {
+			if(display.getFontList(candidate, true).length > 0)
+				return candidate;
+		}
+		return logicalName;
+	}
+
+	private static final String SYSTEM_DEFAULT_LABEL = "<System Default>";
+
+	/** Opens a simple picker listing every installed font family, plus the OS's default font. */
+	private void chooseFont() {
+
+		Display display = Display.getDefault();
+		java.util.TreeSet<String> names = new java.util.TreeSet<String>();
+		for(org.eclipse.swt.graphics.FontData fd : display.getFontList(null, true))
+			names.add(fd.getName());
+		String systemFontName = display.getSystemFont().getFontData()[0].getName();
+		final Shell dialog = new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+		dialog.setText("Select Font");
+		dialog.setLayout(new org.eclipse.swt.layout.GridLayout(1, false));
+		final org.eclipse.swt.widgets.List list = new org.eclipse.swt.widgets.List(dialog, SWT.BORDER | SWT.V_SCROLL | SWT.SINGLE);
+		org.eclipse.swt.layout.GridData listData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, true);
+		listData.widthHint = 260;
+		listData.heightHint = 320;
+		list.setLayoutData(listData);
+		list.add(SYSTEM_DEFAULT_LABEL);
+		for(String name : names)
+			list.add(name);
+		String current = fontFamily != null && fontFamily.length() > 0 ? fontFamily : SYSTEM_DEFAULT_LABEL;
+		int index = list.indexOf(current);
+		list.select(index >= 0 ? index : 0);
+		list.showSelection();
+		org.eclipse.swt.widgets.Composite buttons = new org.eclipse.swt.widgets.Composite(dialog, SWT.NONE);
+		buttons.setLayout(new org.eclipse.swt.layout.RowLayout());
+		buttons.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.END, SWT.CENTER, false, false));
+		org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
+		okButton.setText("OK");
+		okButton.addListener(SWT.Selection, e -> {
+			String[] selection = list.getSelection();
+			String chosen = selection.length > 0 ? selection[0] : SYSTEM_DEFAULT_LABEL;
+			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
+			Prefs.set(FONT_NAME, fontFamily);
+			monospacedButton.setSelection(isMonospacedFont(fontFamily));
+			font = null;
+			setFont();
+			dialog.close();
+		});
+		org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
+		cancelButton.setText("Cancel");
+		cancelButton.addListener(SWT.Selection, e -> dialog.close());
+		dialog.setDefaultButton(okButton);
+		dialog.pack();
+		org.eclipse.swt.graphics.Rectangle sb = shell.getBounds();
+		org.eclipse.swt.graphics.Point ds = dialog.getSize();
+		dialog.setLocation(sb.x + (sb.width - ds.x) / 2, sb.y + (sb.height - ds.y) / 2);
+		dialog.open();
+	}
+
+	/** Heuristic: a monospaced font renders a narrow and a wide character at the same width. */
+	private static boolean isMonospacedFont(String family) {
+
+		java.awt.Font f = new java.awt.Font(family, java.awt.Font.PLAIN, 12);
+		java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.FontMetrics fm = img.getGraphics().getFontMetrics(f);
+		return fm.charWidth('i') == fm.charWidth('W');
 	}
 
 	boolean openFile(String path) {
@@ -451,7 +536,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 
 		// System.out.println(e);
 		String cmd = ((org.eclipse.swt.widgets.MenuItem)e.widget).getText();
-		if(cmd.equals("Antialiased")) {
+		if(cmd.equals("Antialiased") || cmd.equals("Monospaced")) {
 			itemStateChanged(e);
 		} else {
 			actionPerformed(e);
@@ -467,6 +552,8 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 			changeFontSize(false);
 		else if(cmd.equals("Save Settings"))
 			saveSettings();
+		else if(cmd.equals("Font..."))
+			chooseFont();
 		else
 			textPanel.doCommand(cmd);
 	}
@@ -594,19 +681,23 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 
 	public static void setFont(String name, int style, int size) {
 
-		font = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData(name, size, style));
 		Object log = WindowManager.getWindow("Log");
-		if(log != null && (log instanceof TextWindow))
-			((TextWindow)log).setFont();
+		if(log != null && (log instanceof TextWindow)) {
+			TextWindow tw = (TextWindow)log;
+			tw.font = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData(name, size, style));
+			tw.setFont();
+		}
 	}
 
 	public static void setMonospaced(boolean b) {
 
-		monospaced = b;
 		Object log = WindowManager.getWindow("Log");
 		if(log != null && (log instanceof TextWindow)) {
-			((TextWindow)log).monospacedButton.setSelection(monospaced);
-			((TextWindow)log).setFont();
+			TextWindow tw = (TextWindow)log;
+			tw.monospaced = b;
+			tw.monospacedButton.setSelection(b);
+			tw.font = null;
+			tw.setFont();
 		}
 	}
 

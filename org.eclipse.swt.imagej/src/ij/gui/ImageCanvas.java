@@ -790,6 +790,7 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			slice = (int)Tools.parseDouble(label.substring(0, 6), 0);
 		return slice;
 	}
+
 	/*
 	 * ImageCanvas overlay drawing: visibility culling + label suppression,
 	 * both switchable at runtime.
@@ -807,6 +808,7 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	 * Both are additionally gated on the overlay being large (CULL_THRESHOLD) and
 	 * on not flattening, for the reasons noted at the call site.
 	 */
+	
 
 	private void drawOverlay(Overlay overlay, Graphics g) {
 

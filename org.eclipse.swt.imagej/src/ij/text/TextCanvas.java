@@ -95,19 +95,19 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 				if(i >= tp.iColWidth.length)
 					break;
 				int w = tp.iColWidth[i];
-				org.eclipse.swt.graphics.Color b = ij.swt.Color.white,
-						t = ij.swt.Color.black;
+				org.eclipse.swt.graphics.Color b = ij.swt.Color.backGround,
+						t = ij.swt.Color.foreGround;
 				if(j >= tp.selStart && j <= tp.selEnd) {
 					int w2 = w;
 					if(tp.iColCount == 1)
 						w2 = iWidth;
 					b = ij.swt.Color.black;
 					t = ij.swt.Color.white;
-					gImage.setBackground(ij.swt.Color.backGround);
+					gImage.setBackground(b);
 					gImage.fillRectangle(x, y, w2 - 1, tp.iRowHeight);
 				}
-				gImage.setBackground(ij.swt.Color.backGround);
-				gImage.setForeground(ij.swt.Color.foreGround);
+				gImage.setBackground(b);
+				gImage.setForeground(t);
 				char[] chars = tp.getChars(i, j);
 				if(chars != null)
 					gImage.drawString(String.valueOf(chars), x + 2, y + tp.iRowHeight - fMetrics.getHeight());
@@ -130,10 +130,13 @@ class TextCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListener
 		if(fFont == null)
 			fFont = Display.getDefault().getSystemFont();
 		gImage.setFont(fFont);
-		if(antialiased)
+		if(antialiased) {
+			gImage.setTextAntialias(SWT.ON);
 			gImage.setAntialias(SWT.ON);
-		else
+		} else {
+			gImage.setTextAntialias(SWT.DEFAULT);
 			gImage.setAntialias(SWT.DEFAULT);
+		}
 		if(fMetrics == null)
 			fMetrics = gImage.getFontMetrics();
 	}
