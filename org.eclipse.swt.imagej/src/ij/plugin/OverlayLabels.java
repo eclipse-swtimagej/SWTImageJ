@@ -1,4 +1,5 @@
 package ij.plugin;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Vector;
@@ -6,6 +7,7 @@ import java.util.Vector;
 import org.eclipse.swt.events.TypedEvent;
 
 import ij.ImagePlus;
+import ij.Prefs;
 import ij.WindowManager;
 import ij.gui.DialogListener;
 import ij.gui.GenericDialog;
@@ -16,6 +18,7 @@ import ij.util.Tools;
 
 /** This plugin implements the Image/Overlay/Labels command. */
 public class OverlayLabels implements PlugIn, DialogListener {
+
 	private static final String[] fontSizes = {"7", "8", "9", "10", "12", "14", "18", "24", "28", "36", "48", "72"};
 	private static Overlay defaultOverlay = new Overlay();
 	private ImagePlus imp;
@@ -27,58 +30,79 @@ public class OverlayLabels implements PlugIn, DialogListener {
 	private String colorName;
 	private int fontSize;
 	private boolean bold;
-	
+	private boolean hideSmallLabels;
+
 	public void run(String arg) {
+
 		imp = WindowManager.getCurrentImage();
 		overlay = null;
-		if (imp!=null) {
+		if(imp != null) {
 			ImageCanvas ic = imp.getCanvas();
-			if (ic!=null)
+			if(ic != null)
 				overlay = ic.getShowAllList();
-			if (overlay==null)
+			if(overlay == null)
 				overlay = imp.getOverlay();
 		}
-		if (overlay==null)
+		if(overlay == null)
 			overlay = defaultOverlay;
 		showDialog();
-		if (!gd.wasCanceled()) {
+		if(!gd.wasCanceled()) {
 			defaultOverlay.drawLabels(overlay.getDrawLabels());
 			defaultOverlay.drawNames(overlay.getDrawNames());
 			defaultOverlay.drawBackgrounds(overlay.getDrawBackgrounds());
 			defaultOverlay.setLabelColor(overlay.getLabelColor());
 			defaultOverlay.setLabelFont(overlay.getLabelFont());
+			// Remember the speed option across sessions.
+			Prefs.set(ImageCanvas.SUPPRESS_SMALL_LABELS_KEY, ImageCanvas.suppressSmallLabels);
+		} else {
+			// Restore, since dialogItemChanged applies changes live.
+			ImageCanvas.suppressSmallLabels = hideSmallLabelsOnEntry;
+			repaint();
 		}
 	}
-	
+
+	/** Value on dialog entry, so Cancel can put it back. */
+	private boolean hideSmallLabelsOnEntry;
+
 	public void showDialog() {
+
 		showLabels = overlay.getDrawLabels();
 		showNames = overlay.getDrawNames();
 		drawBackgrounds = overlay.getDrawBackgrounds();
 		colorName = Colors.getColorName(overlay.getLabelColor(), "white");
 		fontSize = 12;
 		Font font = overlay.getLabelFont();
-		if (font!=null) {
+		if(font != null) {
 			fontSize = font.getSize();
-			bold = font.getStyle()==Font.BOLD;
+			bold = font.getStyle() == Font.BOLD;
 		}
+		hideSmallLabels = ImageCanvas.suppressSmallLabels;
+		hideSmallLabelsOnEntry = hideSmallLabels;
 		gd = new GenericDialog("Labels");
 		gd.addChoice("Color:", Colors.colors, colorName);
-		gd.addChoice("Font size:", fontSizes, ""+fontSize);
+		gd.addChoice("Font size:", fontSizes, "" + fontSize);
 		gd.addCheckbox("Show labels", showLabels);
 		gd.addCheckbox("Use names as labels", showNames);
 		gd.addCheckbox("Draw backgrounds", drawBackgrounds);
 		gd.addCheckbox("Bold", bold);
+		// Appended last on purpose: dialogItemChanged reads checkboxes in the
+		// order they were added, and getCheckboxes().elementAt(0) below must
+		// stay "Show labels".
+		gd.addCheckbox("Hide labels on tiny ROIs", hideSmallLabels);
 		gd.addDialogListener(this);
 		gd.showDialog();
 	}
-	
+
 	public boolean dialogItemChanged(GenericDialog gd, TypedEvent e) {
-		if (gd.wasCanceled()) return false;
+
+		if(gd.wasCanceled())
+			return false;
 		String colorName2 = colorName;
 		boolean showLabels2 = showLabels;
 		boolean showNames2 = showNames;
 		boolean drawBackgrounds2 = drawBackgrounds;
 		boolean bold2 = bold;
+		boolean hideSmallLabels2 = hideSmallLabels;
 		int fontSize2 = fontSize;
 		colorName = gd.getNextChoice();
 		fontSize = (int)Tools.parseDouble(gd.getNextChoice(), 12);
@@ -86,13 +110,12 @@ public class OverlayLabels implements PlugIn, DialogListener {
 		showNames = gd.getNextBoolean();
 		drawBackgrounds = gd.getNextBoolean();
 		bold = gd.getNextBoolean();
+		hideSmallLabels = gd.getNextBoolean();
 		boolean colorChanged = !colorName.equals(colorName2);
-		boolean sizeChanged = fontSize!=fontSize2;
-		boolean changes = showLabels!=showLabels2 || showNames!=showNames2
-			|| drawBackgrounds!=drawBackgrounds2 || colorChanged || sizeChanged
-			|| bold!=bold2;
-		if (changes) {
-			if ((showNames&&!showNames2) || colorChanged || sizeChanged) {
+		boolean sizeChanged = fontSize != fontSize2;
+		boolean changes = showLabels != showLabels2 || showNames != showNames2 || drawBackgrounds != drawBackgrounds2 || colorChanged || sizeChanged || bold != bold2 || hideSmallLabels != hideSmallLabels2;
+		if(changes) {
+			if((showNames && !showNames2) || colorChanged || sizeChanged) {
 				showLabels = true;
 				Vector checkboxes = gd.getCheckboxes();
 				((org.eclipse.swt.widgets.Button)checkboxes.elementAt(0)).setSelection(true);
@@ -103,25 +126,35 @@ public class OverlayLabels implements PlugIn, DialogListener {
 			overlay.drawBackgrounds(drawBackgrounds);
 			Color color = Colors.getColor(colorName, Color.white);
 			overlay.setLabelColor(color);
-			if (sizeChanged || bold || bold!=bold2)
-				overlay.setLabelFont(new Font("SansSerif", bold?Font.BOLD:Font.PLAIN, fontSize));
-			if (imp!=null) {
+			if(sizeChanged || bold || bold != bold2)
+				overlay.setLabelFont(new Font("SansSerif", bold ? Font.BOLD : Font.PLAIN, fontSize));
+			ImageCanvas.suppressSmallLabels = hideSmallLabels;
+			if(hideSmallLabels != hideSmallLabels2)
+				repaint(); // affects drawing even when the image has no Overlay set
+			if(imp != null) {
 				Overlay o = imp.getOverlay();
-				if (o==null) {
+				if(o == null) {
 					ImageCanvas ic = imp.getCanvas();
-					if (ic!=null)
+					if(ic != null)
 						o = ic.getShowAllList();
 				}
-				if (o!=null)
+				if(o != null)
 					imp.draw();
 			}
 		}
 		return true;
 	}
 
-	/** Creates an empty Overlay that has the current label settings. */
-	public static Overlay createOverlay() {
-		return defaultOverlay.duplicate();
+	/** Forces a repaint of the current image, if there is one. */
+	private void repaint() {
+
+		if(imp != null)
+			imp.draw();
 	}
 
+	/** Creates an empty Overlay that has the current label settings. */
+	public static Overlay createOverlay() {
+
+		return defaultOverlay.duplicate();
+	}
 }

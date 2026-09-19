@@ -146,6 +146,21 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	private int cachedBlendX = Integer.MIN_VALUE,
 			cachedBlendY = Integer.MIN_VALUE;
 	private int cachedBlendMode = -1;
+	/** Preferences key for the "hide labels on tiny ROIs" speed option. */
+	public static final String SUPPRESS_SMALL_LABELS_KEY = "overlay.hideSmallLabels";
+	/** Omit labels on ROIs too small on screen to be legible. Off by default. */
+	public static boolean suppressSmallLabels = Prefs.get(SUPPRESS_SMALL_LABELS_KEY, false);
+	/** Skip ROIs that cannot touch the visible region. Invisible to the user. */
+	public static boolean cullInvisibleRois = true;
+	/** Below this many overlay elements, these optimizations cost more than they save. */
+	private static final int CULL_THRESHOLD = 64;
+	/**
+	 * Minimum on-screen size, in pixels, an ROI must have before its label is
+	 * worth drawing.
+	 */
+	private static final int MIN_LABEL_ROI_SIZE = 12;
+	/** Set true to log how many ROIs and labels each paint actually draws. */
+	private static boolean debugCulling = false;
 
 	public Menu getEmbeddedPopupMenu() {
 
@@ -775,6 +790,23 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			slice = (int)Tools.parseDouble(label.substring(0, 6), 0);
 		return slice;
 	}
+	/*
+	 * ImageCanvas overlay drawing: visibility culling + label suppression,
+	 * both switchable at runtime.
+	 * Two independent flags, both public and static so they can be flipped from a
+	 * script without recompiling:
+	 * ImageCanvas.cullInvisibleRois - skip ROIs outside the visible region.
+	 * Purely an optimization; the rendered
+	 * result is identical either way.
+	 * ImageCanvas.suppressSmallLabels - omit labels on ROIs too small on screen
+	 * to read. This one does change what the
+	 * user sees, which is why it is separate.
+	 * From the script editor (Beanshell):
+	 * ij.gui.ImageCanvas.suppressSmallLabels = false;
+	 * IJ.getImage().getCanvas().redraw();
+	 * Both are additionally gated on the overlay being large (CULL_THRESHOLD) and
+	 * on not flattening, for the reasons noted at the call site.
+	 */
 
 	private void drawOverlay(Overlay overlay, Graphics g) {
 
@@ -815,12 +847,59 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		}
 		Roi activeRoi = imp.getRoi();
 		boolean roiManagerShowAllMode = overlay == showAllOverlay && !Prefs.showAllSliceOnly;
+		/*
+		 * Both optimizations are skipped while flattening: the canvas srcRect and
+		 * magnification do not describe the output raster there, so culling would
+		 * silently drop ROIs and the size test would drop labels from the
+		 * flattened image. A null "visible" and a negative "minLabelSize" mean
+		 * "draw everything", so every disabled or excluded path behaves exactly
+		 * as the original method did.
+		 */
+		Rectangle visible = null;
+		double minLabelSize = -1;
+		boolean optimize = !flattening && n >= CULL_THRESHOLD;
+		if(optimize) {
+			double mag = getMagnification();
+			if(cullInvisibleRois && srcRect != null) {
+				/*
+				 * Labels are centred on the ROI and sized in screen pixels, so
+				 * convert their overhang back into image coordinates. drawRoiLabel
+				 * uses 12pt at most when no overlay label font is set.
+				 */
+				int labelSize = (font != null) ? font.getSize() : 12;
+				int pad = (int)Math.ceil(labelSize / Math.max(mag, 0.01)) + 4;
+				visible = new Rectangle(srcRect.x - pad, srcRect.y - pad, srcRect.width + 2 * pad, srcRect.height + 2 * pad);
+			}
+			if(suppressSmallLabels && drawLabels && mag > 0)
+				minLabelSize = MIN_LABEL_ROI_SIZE / mag;
+		}
+		/*
+		 * Roi.getBounds() allocates, and both tests need it, so it is fetched once
+		 * per ROI and shared. When both optimizations are off it is not fetched at
+		 * all.
+		 */
+		boolean needBounds = visible != null || minLabelSize > 0;
+		int drawn = 0, labelled = 0;
 		for(int i = 0; i < n; i++) {
 			if(overlay == null)
 				break;
 			Roi roi = overlay.get(i);
 			if(roi == null)
 				break;
+			java.awt.Rectangle rec = roi.getBounds();
+			Rectangle bounds = needBounds ? new Rectangle(rec.x, rec.y, rec.width, rec.height) : null;
+			if(!isPotentiallyVisible(roi, bounds, visible))
+				continue;
+			drawn++;
+			int labelIndex = drawLabels ? i + LIST_OFFSET : -1;
+			if(labelIndex >= 0 && minLabelSize > 0 && bounds != null && !roi.nonScalable) {
+				// Either dimension being legible is enough, so that long thin
+				// ROIs keep their labels.
+				if(bounds.width < minLabelSize && bounds.height < minLabelSize)
+					labelIndex = -1;
+			}
+			if(labelIndex >= 0)
+				labelled++;
 			int c = roi.getCPosition();
 			int z = roi.getZPosition();
 			int t = roi.getTPosition();
@@ -841,7 +920,7 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				boolean match = (c == 0 || c == channel) && (z == 0 || z == slice) && (t == 0 || t == frame);
 				// IJ.log("drawOverlay1: i="+i+", pos="+roi.getPosition()+" "+c+" "+z+" "+t+" "+match+" "+roiManagerShowAllMode);
 				if(match || roiManagerShowAllMode || position == PointRoi.POINTWISE_POSITION)
-					drawRoi(g, roi, drawLabels ? i + LIST_OFFSET : -1);
+					drawRoi(g, roi, labelIndex);
 			} else {
 				int position = stackSize > 1 ? roi.getPosition() : 0;
 				if(stackSize > 1 && position == 0 && c == 1) {
@@ -859,12 +938,53 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				if((roi instanceof PointRoi) && Prefs.showAllPoints)
 					position = 0;
 				if(position == 0 || position == currentImage || roiManagerShowAllMode)
-					drawRoi(g, roi, drawLabels ? i + LIST_OFFSET : -1);
+					drawRoi(g, roi, labelIndex);
 			}
 		}
+		if(debugCulling)
+			IJ.log("drawOverlay: " + drawn + "/" + n + " ROIs, " + labelled + " labels, mag=" + IJ.d2s(getMagnification(), 3) + ", cull=" + cullInvisibleRois + ", suppress=" + suppressSmallLabels + ", srcRect=" + srcRect);
 		((Graphics2D)g).setStroke(Roi.onePixelWide);
 		drawNames = false;
 		font = null;
+	}
+
+	/**
+	 * Returns true if the ROI can touch the visible region, i.e. if it still
+	 * has to be drawn.
+	 *
+	 * Deliberately conservative. Bounds are inflated by the stroke width, and
+	 * arrow heads get a larger allowance because they reach well past
+	 * getBounds(). The comparisons use &gt;= and &lt;= rather than
+	 * Rectangle.intersects() so that zero-width or zero-height ROIs (single
+	 * points, perfectly horizontal lines) are not culled - intersects()
+	 * rejects empty rectangles outright.
+	 *
+	 * @param roi
+	 *            the ROI to test.
+	 * @param bounds
+	 *            the ROI's bounds, or null if they were not fetched
+	 *            (in which case nothing is culled).
+	 * @param visible
+	 *            the padded visible region in image coordinates, or null
+	 *            when culling is disabled.
+	 * @return true if the ROI must be drawn.
+	 */
+	private boolean isPotentiallyVisible(Roi roi, Rectangle bounds, Rectangle visible) {
+
+		if(visible == null || bounds == null)
+			return true;
+		/*
+		 * Non-scalable ROIs are positioned in screen coordinates, so their
+		 * image-space bounds say nothing about where they land. Never cull
+		 * them. Roi.nonScalable is protected and this class is in the same
+		 * package, so it can be read directly.
+		 */
+		if(roi.nonScalable)
+			return true;
+		int slack = (int)Math.ceil(roi.getStrokeWidth());
+		if(roi instanceof Arrow)
+			slack *= 3; // the head extends past the line bounds
+		return (bounds.x + bounds.width + slack) >= visible.x && (bounds.x - slack) <= (visible.x + visible.width) && (bounds.y + bounds.height + slack) >= visible.y && (bounds.y - slack) <= (visible.y + visible.height);
 	}
 
 	void drawOverlay(Graphics g) {
