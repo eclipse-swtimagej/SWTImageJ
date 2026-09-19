@@ -523,7 +523,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			rename(null);
 		else if(command.equals("Properties..."))
 			setProperties(null, -1, null);
-		else if(command.equals("Flatten [F]"))
+		else if(command.equals("Flatten[F]"))
 			flatten();
 		else if(command.equals("Measure"))
 			measure(getImagePlus());
@@ -590,8 +590,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			options();
 		else if(command.equals("\"Show All\" Color..."))
 			setShowAllColor();
-		else if(command.equals("ROI Manager Action"))
-			IJ.run(command);
+		else if(command.equals("ROI Manager Action")) {
+			if(ij.plugin.MacroInstaller.isMacroCommand("ROI Manager Action"))
+				IJ.run(command);
+		}
 		allowRecording = false;
 	}
 
