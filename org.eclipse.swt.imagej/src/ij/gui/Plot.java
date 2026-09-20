@@ -2193,18 +2193,27 @@ public class Plot implements Cloneable {
 	public void updateImage() {
 		if (!plotDrawn || pp.isFrozen)
 			return;
-		getBlankProcessor();
-		drawContents(ip);
-		if (imp == null || stack != null)
-			return;
-		adjustCalibration(imp.getCalibration());
+		/*
+		 * Serialize all redraws onto the SWT UI thread. "Live Plot" runs its own
+		 * background thread (PlotWindow.bgThread) that calls this method independently
+		 * of the UI thread's own redraws (e.g. from a window resize) and of any macro
+		 * thread calling Plot.add()/replace()/etc. Without this, those can race on the
+		 * same mutable ip/pp fields - e.g. one thread nulling 'ip' via setSize() while
+		 * another is still reading it in drawContents() - causing
+		 * NullPointerExceptions. Display.syncExec() runs immediately, with no extra
+		 * dispatch, when already called from the UI thread, so this is free in the
+		 * common case (e.g. a menu action already on that thread).
+		 */
 		Display.getDefault().syncExec(() -> {
-			imp.updateAndDraw();
-
+			getBlankProcessor();
+			drawContents(ip);
+			if (imp != null && stack == null) {
+				adjustCalibration(imp.getCalibration());
+				imp.updateAndDraw();
+				if (ip != imp.getProcessor())
+					imp.setProcessor(ip);
+			}
 		});
-
-		if (ip != imp.getProcessor())
-			imp.setProcessor(ip);
 	}
 
 	/**
