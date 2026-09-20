@@ -279,8 +279,35 @@ public class Plot implements Cloneable {
 	// that 'COPY_EXTRA_OBJECTS' is also on for live plotting:
 	int templateFlags = COPY_SIZE | COPY_LABELS | COPY_AXIS_STYLE | COPY_CONTENTS_STYLE | COPY_LEGEND;
 	private int dsize = PlotWindow.getDefaultFontSize();
-	Font defaultFont = FontUtil.getFont("Arial", Font.PLAIN, dsize); // default font for labels, axis, etc.
+	private static String dfamily() {
+		String f = PlotWindow.getDefaultFontFamily();
+		return f != null && f.length() > 0 ? f : "Arial";
+	}
+	Font defaultFont = FontUtil.getFont(dfamily(), Font.PLAIN, dsize); // default font for labels, axis, etc.
 	Font currentFont = defaultFont; // font as changed by setFont or setFontSize, must never be null
+	{
+		/*
+		 * Give the frame/number font and the axis label font their own default sizes
+		 * (as set via Axis Options), instead of both just falling back to defaultFont's
+		 * size. A constructor that deserializes a saved plot replaces 'pp' afterwards,
+		 * so this has no effect there - only for brand-new plots.
+		 */
+		pp.frame.setFont(FontUtil.getFont(dfamily(), Font.PLAIN, PlotWindow.getDefaultNumberFontSize()));
+		pp.xLabel.setFont(FontUtil.getFont(dfamily(), Font.PLAIN, PlotWindow.getDefaultLabelFontSize()));
+		pp.yLabel.setFont(FontUtil.getFont(dfamily(), Font.PLAIN, PlotWindow.getDefaultLabelFontSize()));
+	}
+	/**
+	 * Incremented every time drawContents() redraws the plot, even when the ImageProcessor
+	 * object is reused (i.e. the size didn't change) - lets callers (e.g. PlotCanvas's
+	 * HiDPI render cache) detect an appearance-only change (font, axis options, legend,
+	 * style, ...) that wouldn't otherwise be visible via ImageProcessor identity.
+	 */
+	private int contentVersion = 0;
+
+	/** See contentVersion. */
+	public int getContentVersion() {
+		return contentVersion;
+	}
 	private double xScale, yScale; // pixels per data unit
 	private int xBasePxl, yBasePxl; // pixel coordinates corresponding to 0
 	private int maxIntervals = 12; // maximum number of intervals between ticks or grid lines
@@ -1268,10 +1295,26 @@ public class Plot implements Cloneable {
 							plotObject.label = label;
 					}
 		}
-		pp.legend = new PlotObject(currentLineWidth == 0 ? 1 : currentLineWidth, currentFont,
+		/*
+		 * Preserve an already-set legend font instead of always resetting to
+		 * currentFont (the frame/axis font) - otherwise any later call to setLegend()
+		 * (e.g. a data/label refresh, or just resubmitting the Legend dialog for an
+		 * unrelated setting) silently discards a custom legend font and makes it look
+		 * like it "reset to the axis font setting".
+		 */
+		Font legendFont = pp.legend != null && pp.legend.getFont() != null ? pp.legend.getFont() : defaultLegendFont();
+		pp.legend = new PlotObject(currentLineWidth == 0 ? 1 : currentLineWidth, legendFont,
 				currentColor == null ? Color.black : currentColor, flags);
 		if (plotDrawn)
 			updateImage();
+	}
+
+	/** The default font for a brand-new legend: its own default family/size, or the general defaults if unset. */
+	private Font defaultLegendFont() {
+		String family = PlotWindow.getDefaultLegendFontFamily();
+		if (family == null || family.length() == 0)
+			family = dfamily();
+		return FontUtil.getFont(family, Font.PLAIN, PlotWindow.getDefaultLegendFontSize());
 	}
 
 	/**
@@ -2378,6 +2421,7 @@ public class Plot implements Cloneable {
 	 * axes etc.
 	 */
 	void drawContents(ImageProcessor ip) {
+		contentVersion++;
 		makeRangeGetSteps();
 		ip.setColor(Color.black);
 		ip.setLineWidth(sc(1));

@@ -5,11 +5,14 @@ import java.awt.Point;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.widgets.Composite;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.process.ImageProcessor;
 
 
 
@@ -24,6 +27,11 @@ public class PlotCanvas extends ImageCanvas {
 	int xScrolled, yScrolled;	//distance scrolled so far
 	int oldWidth, oldHeight;
 	int rangeArrowIndexWhenPressed = -1;
+	/** A higher-resolution rendering of the current plot, cached for a crisper HiDPI display */
+	private Image hiResImage;
+	private double hiResScale = 1.0;
+	private ImageProcessor hiResSourceIp;
+	private int hiResContentVersion = -1;
 
 	/** Creates a new PlotCanvas */
 	public PlotCanvas(final Composite parent, ImagePlus imp) {
@@ -195,6 +203,59 @@ public class PlotCanvas extends ImageCanvas {
 		magnification = 1.0;
 		srcRect.x = 0;
 		srcRect.y = 0;
+	}
+
+	/**
+	 * On a HiDPI display, renders the plot a second time at the display's device-pixel
+	 * density (using the same scaling machinery as "High-Resolution Plot...") purely for
+	 * display, so it looks crisp instead of interpolated/blurry. The interactive plot
+	 * itself (data range, mouse mapping, "Live" refresh, etc.) is completely unaffected -
+	 * only a throwaway clone is scaled, see Plot.makeHighResolution().
+	 */
+	@Override
+	protected Image getDisplaySwtImage() {
+		if (plot == null || plot.isFrozen() || !hiDpiAwareRendering) {
+			disposeHiResImage();
+			return super.getDisplaySwtImage();
+		}
+		double scale = DPIUtil.getDeviceZoom() / 100.0;
+		if (scale <= 1.0) {
+			disposeHiResImage();
+			return super.getDisplaySwtImage();
+		}
+		ImageProcessor currentIp = imp.getProcessor();
+		int currentVersion = plot.getContentVersion();
+		if (hiResImage == null || hiResImage.isDisposed() || hiResSourceIp != currentIp
+				|| hiResContentVersion != currentVersion || hiResScale != scale) {
+			disposeHiResImage();
+			ImagePlus hiResImp = plot.makeHighResolution(null, (float)scale, true, false);
+			if (hiResImp != null) {
+				hiResImage = hiResImp.getSwtImage();
+				hiResScale = scale;
+				hiResSourceIp = currentIp;
+				hiResContentVersion = currentVersion;
+			}
+		}
+		return hiResImage != null ? hiResImage : super.getDisplaySwtImage();
+	}
+
+	@Override
+	protected double getDisplayImageScale() {
+		return (plot != null && !plot.isFrozen() && hiDpiAwareRendering
+				&& hiResImage != null && !hiResImage.isDisposed()) ? hiResScale : 1.0;
+	}
+
+	private void disposeHiResImage() {
+		if (hiResImage != null && !hiResImage.isDisposed())
+			hiResImage.dispose();
+		hiResImage = null;
+		hiResSourceIp = null;
+	}
+
+	@Override
+	public void dispose() {
+		disposeHiResImage();
+		super.dispose();
 	}
 
 	/** overrides ImageCanvas.setupScroll; if plot is not frozen, scrolling modifies the plot data range */

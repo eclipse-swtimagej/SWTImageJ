@@ -116,6 +116,15 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	protected int zoomTargetOY;
 	protected ImageJ ij;
 	protected double magnification;
+	/**
+	 * Whether Plot windows render an extra, higher-resolution copy of themselves for a
+	 * crisp look on a Retina/HiDPI display (see PlotCanvas.getDisplaySwtImage()). This
+	 * does NOT affect normal image windows - their pixels must never be smoothed/scaled
+	 * here, since that would misrepresent the actual pixel data during image analysis.
+	 * Turn off for faster Plot rendering/updates.
+	 */
+	public static final String HIDPI_AWARE_KEY = "canvas.hidpiAware";
+	public static boolean hiDpiAwareRendering = Prefs.get(HIDPI_AWARE_KEY, true);
 	public int dstWidth;
 	public int dstHeight;
 	protected int xMouseStart;
@@ -506,24 +515,48 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				}
 				imp.updateImage();
 			}
-			img = imp.getSwtImage();
+			img = getDisplaySwtImage();
+			double displayImageScale = getDisplayImageScale();
 			Rectangle max = parent.getClientArea();
 			int width = max.width;
 			int height = max.height;
 			if(IJ.isMacOSX() || IJ.isLinux()) {
-				/* On Windows drastically reduces the speed of display! */
-				gc.setInterpolation(SWT.NONE);
+				if(displayImageScale > 1.0) {
+					/*
+					 * 'img' is a higher-resolution rendering being downscaled to the
+					 * canvas's logical size (currently only PlotCanvas does this, for a
+					 * crisp HiDPI plot) - that needs smoothing to look right. A normal
+					 * 1:1 image must NOT be smoothed here: that would misrepresent the
+					 * actual pixel data during image analysis.
+					 */
+					gc.setAdvanced(true);
+					gc.setInterpolation(SWT.HIGH);
+					gc.setAntialias(SWT.ON);
+				} else {
+					/* On Windows drastically reduces the speed of display! */
+					gc.setInterpolation(SWT.NONE);
+				}
 			}
 			SWTGraphics2D g = new SWTGraphics2D(gc);
 			setInterpolation(g, Prefs.interpolateScaledImages);
 			// setInterpolation(gc, Prefs.interpolateScaledImages);
 			if(img != null) {
+				/*
+				 * displayImageScale > 1 means 'img' is a higher-resolution rendering of the
+				 * same content covering the same srcRect (see PlotCanvas.getDisplaySwtImage()):
+				 * the source rect must be scaled up to match its actual pixel dimensions, while
+				 * the destination rect stays the same logical size.
+				 */
+				int sx = (int)Math.round(srcRect.x * displayImageScale);
+				int sy = (int)Math.round(srcRect.y * displayImageScale);
+				int sw = (int)Math.round(srcRect.width * displayImageScale);
+				int sh = (int)Math.round(srcRect.height * displayImageScale);
 				if(fitToParent) {
-					gc.drawImage(img, srcRect.x, srcRect.y, srcRect.width, srcRect.height, 0, 0, width, height);
+					gc.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
 				}
 				/* Isotropic rendering of the image (as in ImageJ by default)! */
 				else {
-					gc.drawImage(img, srcRect.x, srcRect.y, srcRect.width, srcRect.height, 0, 0, (int)(srcRect.width * magnification + 0.5), (int)(srcRect.height * magnification + 0.5));
+					gc.drawImage(img, sx, sy, sw, sh, 0, 0, (int)(srcRect.width * magnification + 0.5), (int)(srcRect.height * magnification + 0.5));
 				}
 			}
 			if(overlay != null)
@@ -722,6 +755,26 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		if(IJ.isMacOSX()) {
 			DPIUtil.setDeviceZoom(200);
 		}
+	}
+
+	/**
+	 * Returns the SWT Image to draw for this canvas. Default: the normal, single-resolution
+	 * image of the displayed ImagePlus. Subclasses (e.g. PlotCanvas) may override to supply a
+	 * higher-resolution rendering of the same content for a crisper HiDPI display - see
+	 * getDisplayImageScale().
+	 */
+	protected Image getDisplaySwtImage() {
+
+		return imp.getSwtImage();
+	}
+
+	/**
+	 * Returns the pixel-density ratio of the image returned by getDisplaySwtImage() relative to
+	 * the ImagePlus's normal processor (1.0 by default, i.e. same resolution).
+	 */
+	protected double getDisplayImageScale() {
+
+		return 1.0;
 	}
 
 	private void setInterpolation(Graphics g, boolean interpolate) {

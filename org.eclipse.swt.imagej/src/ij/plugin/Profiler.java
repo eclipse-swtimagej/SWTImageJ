@@ -1,5 +1,8 @@
 package ij.plugin;
 
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.widgets.Display;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Prefs;
@@ -66,6 +69,10 @@ public class Profiler implements PlugIn, PlotMaker {
 				gd.addNumericField("Width:", PlotWindow.plotWidth, 0);
 				gd.addNumericField("Height:", PlotWindow.plotHeight, 0);
 				gd.addNumericField("Font size:", PlotWindow.getDefaultFontSize());
+				String currentFamily = PlotWindow.getDefaultFontFamily();
+				if (currentFamily == null || currentFamily.length() == 0)
+					currentFamily = SYSTEM_DEFAULT_LABEL;
+				gd.addChoice("Font:", getFontFamilyChoices(currentFamily), currentFamily);
 				gd.setInsets(5, 20, 0); // distance to previous
 				// gd.addCheckbox("Draw grid lines", !PlotWindow.noGridLines);
 				gd.addCheckbox("Draw_ticks", !PlotWindow.noTicks);
@@ -92,10 +99,18 @@ public class Profiler implements PlugIn, PlotMaker {
 				if (h < Plot.MIN_FRAMEHEIGHT)
 					h = Plot.MIN_FRAMEHEIGHT;
 				int fontSize = (int) gd.getNextNumber();
+				String chosenFont = gd.getNextChoice();
 				if (!gd.invalidNumber()) {
 					PlotWindow.plotWidth = w;
 					PlotWindow.plotHeight = h;
 					PlotWindow.setDefaultFontSize(fontSize);
+					if (SYSTEM_DEFAULT_LABEL.equals(chosenFont)) {
+						final String[] resolved = new String[1];
+						Display.getDefault().syncExec(() -> resolved[0] = Display.getDefault().getSystemFont().getFontData()[0].getName());
+						PlotWindow.setDefaultFontFamily(resolved[0]);
+					} else {
+						PlotWindow.setDefaultFontFamily(chosenFont);
+					}
 				}
 				PlotWindow.noTicks = !gd.getNextBoolean();
 				// data options
@@ -122,6 +137,29 @@ public class Profiler implements PlugIn, PlotMaker {
 				ProfilePlot.setMinAndMax(ymin, ymax);
 				if (!Recorder.scriptMode())
 					Recorder.recordString("setOption(\"InterpolateLines\", " + PlotWindow.interpolate + ");\n");
+	}
+
+	private static final String SYSTEM_DEFAULT_LABEL = "<System Default>";
+
+	/** Returns "<System Default>", every installed font family name, and the given current family, sorted. */
+	private static String[] getFontFamilyChoices(String current) {
+
+		java.util.TreeSet<String> names = new java.util.TreeSet<String>();
+		names.add(SYSTEM_DEFAULT_LABEL);
+		names.add("Arial");
+		if (current != null && current.length() > 0)
+			names.add(current);
+		/*
+		 * Display.getFontList() must run on the SWT UI thread. "Edit>Options>Plots..."
+		 * (and every other Executer-dispatched command) runs on its own background
+		 * thread in this port, so calling this directly here throws
+		 * "Invalid thread access", even for a plain menu click (not just from a macro).
+		 */
+		Display.getDefault().syncExec(() -> {
+			for (FontData fd : Display.getDefault().getFontList(null, true))
+				names.add(fd.getName());
+		});
+		return names.toArray(new String[0]);
 	}
 
 }

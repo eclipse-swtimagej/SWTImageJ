@@ -249,6 +249,14 @@ public class HyperStackConverter implements PlugIn {
 																												// auto
 																												// calculation
 		final GenericDialog gd = new GenericDialog("Convert to HyperStack");
+		/*
+		 * This whole dialog-setup section creates/touches raw SWT widgets directly
+		 * (Composite, Button, Text, Label) rather than going through GenericDialog's
+		 * own individually thread-safe add*() methods, so it must run on the SWT UI
+		 * thread. Without this, invoking "Stack to Hyperstack" from a macro (which runs
+		 * on its own background thread) throws "Invalid thread access" here.
+		 */
+		Display.getDefault().syncExec(() -> {
 		gd.addChoice("Order:", orders, orders[ordering]);
 		for(int i = 0; i < MAX_DIMENSIONS; i++) { // Channels C, Slices Z, Times T
 			gd.addNumericField(DIMENSION_LABELS[i], dimensions[i], 0);
@@ -362,6 +370,7 @@ public class HyperStackConverter implements PlugIn {
 			}
 			dialogListener.dialogItemChanged(gd, null); // enables/diables fields
 		}
+		});
 		gd.showDialog();
 		if(gd.wasCanceled())
 			return;

@@ -22,6 +22,7 @@ import ij.process.LUT;
 /** This plugin implements the Edit/Options/Appearance command. */
 public class AppearanceOptions implements PlugIn, DialogListener {
 	private boolean interpolate = Prefs.interpolateScaledImages;
+	private boolean hiDpiAware = ij.gui.ImageCanvas.hiDpiAwareRendering;
 	private boolean open100 = Prefs.open100Percent;
 	private boolean black = Prefs.blackCanvas;
 	private boolean noBorder = Prefs.noBorder;
@@ -40,6 +41,7 @@ public class AppearanceOptions implements PlugIn, DialogListener {
 		String[] ranges = ContrastAdjuster.getSixteenBitRanges();
 		GenericDialog gd = new GenericDialog("Appearance");
 		gd.addCheckbox("Interpolate zoomed images", Prefs.interpolateScaledImages);
+		gd.addCheckbox("DPI-aware plot rendering (Retina/HiDPI; disable for faster updates)", ij.gui.ImageCanvas.hiDpiAwareRendering);
 		gd.addCheckbox("Open images at 100%", Prefs.open100Percent);
 		gd.addCheckbox("Black canvas", Prefs.blackCanvas);
 		gd.addCheckbox("No image border", Prefs.noBorder);
@@ -69,6 +71,7 @@ public class AppearanceOptions implements PlugIn, DialogListener {
 		gd.showDialog();
 		if (gd.wasCanceled()) {
 			Prefs.interpolateScaledImages = interpolate;
+			ij.gui.ImageCanvas.hiDpiAwareRendering = hiDpiAware;
 			Prefs.open100Percent = open100;
 			Prefs.blackCanvas = black;
 			Prefs.noBorder = noBorder;
@@ -126,6 +129,12 @@ public class AppearanceOptions implements PlugIn, DialogListener {
 		
 		if (IJ.isMacOSX()) IJ.wait(100);
 		boolean interpolate = gd.getNextBoolean();
+		boolean hiDpiAwareNew = gd.getNextBoolean();
+		if (hiDpiAwareNew != ij.gui.ImageCanvas.hiDpiAwareRendering) {
+			ij.gui.ImageCanvas.hiDpiAwareRendering = hiDpiAwareNew;
+			Prefs.set(ij.gui.ImageCanvas.HIDPI_AWARE_KEY, hiDpiAwareNew);
+			repaintWindow();
+		}
 		Prefs.open100Percent = gd.getNextBoolean();
 		boolean blackCanvas = gd.getNextBoolean();
 		boolean noBorder = gd.getNextBoolean();

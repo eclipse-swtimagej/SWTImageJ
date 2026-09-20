@@ -256,6 +256,7 @@ public class PlotDialog implements DialogListener {
 			// gd.setInsets(0, 20, 0); // no extra space
 			gd.addToSameRow();
 			gd.addCheckbox("Bold", labelFont.isBold());
+			gd.addChoice("Font:", getFontFamilyChoices(labelFont.getFamily()), labelFont.getFamily());
 		}
 		if (dialogType == LEGEND) {
 			String labels = plot.getDataLabels();
@@ -284,6 +285,7 @@ public class PlotDialog implements DialogListener {
 			gd.addTextAreas(labels, null, Math.min(nLines + 1, 20), 40);
 			gd.addChoice("Legend position", LEGEND_POSITIONS, LEGEND_POSITIONS[legendPosNumber]);
 			gd.addNumericField("Font Size", legendFont.getSize2D(), 1);
+			gd.addChoice("Font:", getFontFamilyChoices(legendFont.getFamily()), legendFont.getFamily());
 			gd.addCheckbox("Transparent background", transparentBackground);
 			gd.addCheckbox("Bottom-to-top", bottomUp);
 		}
@@ -451,8 +453,19 @@ public class PlotDialog implements DialogListener {
 			if (gd.invalidNumber())
 				labelFontSize = labelFont.getSize2D();
 			boolean axisLabelBold = gd.getNextBoolean();
-			plot.setFont('f', numberFont.deriveFont(numberFont.getStyle(), numberFontSize));
+			String axisFontFamily = gd.getNextChoice();
+			plot.setFont('f', new Font(axisFontFamily, numberFont.getStyle(), 12).deriveFont(numberFontSize));
 			plot.setAxisLabelFont(axisLabelBold ? Font.BOLD : Font.PLAIN, labelFontSize);
+			Font newXFont = plot.getFont('x');
+			if (newXFont != null)
+				plot.setXLabelFont(new Font(axisFontFamily, newXFont.getStyle(), 12).deriveFont(newXFont.getSize2D()));
+			Font newYFont = plot.getFont('y');
+			if (newYFont != null)
+				plot.setYLabelFont(new Font(axisFontFamily, newYFont.getStyle(), 12).deriveFont(newYFont.getSize2D()));
+			// remember these as the defaults for new plots too
+			PlotWindow.setDefaultNumberFontSize(Math.round(numberFontSize));
+			PlotWindow.setDefaultLabelFontSize(Math.round(labelFontSize));
+			PlotWindow.setDefaultFontFamily(axisFontFamily);
 			org.eclipse.swt.graphics.Font smallFont = new org.eclipse.swt.graphics.Font(Display.getDefault(),
 					new FontData("SansSerif", 10, SWT.NORMAL));
 			gd.addMessage("Labels support !!sub-!! and ^^superscript^^", smallFont, ij.swt.Color.gray);
@@ -466,6 +479,7 @@ public class PlotDialog implements DialogListener {
 			legendPosNumber = gd.getNextChoiceIndex();
 			int lFlags = LEGEND_POSITION_N[legendPosNumber];
 			float legendFontSize = (float) gd.getNextNumber();
+			String legendFontFamily = gd.getNextChoice();
 			transparentBackground = gd.getNextBoolean();
 			bottomUp = gd.getNextBoolean();
 			if (bottomUp)
@@ -475,7 +489,10 @@ public class PlotDialog implements DialogListener {
 			plot.setColor(Color.black);
 			plot.setLineWidth(1);
 			plot.setLegend(labels, lFlags);
-			plot.setFont('l', legendFont.deriveFont(legendFont.getStyle(), legendFontSize));
+			plot.setFont('l', new Font(legendFontFamily, legendFont.getStyle(), 12).deriveFont(legendFontSize));
+			// remember these as the defaults for new plots' legends too
+			PlotWindow.setDefaultLegendFontSize(Math.round(legendFontSize));
+			PlotWindow.setDefaultLegendFontFamily(legendFontFamily);
 		}
 		if (dialogType == TEMPLATE) {
 			Plot templatePlot = templatePlots[gd.getNextChoiceIndex()];
@@ -630,6 +647,19 @@ public class PlotDialog implements DialogListener {
 	org.eclipse.swt.widgets.Button lastCheckboxAdded(GenericDialog gd) {
 		Vector checkboxes = gd.getCheckboxes();
 		return (org.eclipse.swt.widgets.Button) (checkboxes.get(checkboxes.size() - 1));
+	}
+
+	/** Returns every installed font family name, plus the given current family, sorted. */
+	static String[] getFontFamilyChoices(String current) {
+		java.util.TreeSet<String> names = new java.util.TreeSet<String>();
+		if (current != null && current.length() > 0)
+			names.add(current);
+		// Display.getFontList() must run on the SWT UI thread - see Profiler.getFontFamilyChoices().
+		Display.getDefault().syncExec(() -> {
+			for (FontData fd : Display.getDefault().getFontList(null, true))
+				names.add(fd.getName());
+		});
+		return names.toArray(new String[0]);
 	}
 
 }

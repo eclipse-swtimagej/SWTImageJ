@@ -54,6 +54,11 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	private static final String PREFS_WIDTH = "pp.width";
 	private static final String PREFS_HEIGHT = "pp.height";
 	private static final String PREFS_FONT_SIZE = "pp.fontsize";
+	private static final String PREFS_FONT_NAME = "pp.fontname";
+	private static final String PREFS_NUMBER_FONT_SIZE = "pp.numberfontsize";
+	private static final String PREFS_LABEL_FONT_SIZE = "pp.labelfontsize";
+	private static final String PREFS_LEGEND_FONT_SIZE = "pp.legendfontsize";
+	private static final String PREFS_LEGEND_FONT_NAME = "pp.legendfontname";
 	/** @deprecated */
 	public static final int CIRCLE = Plot.CIRCLE;
 	/** @deprecated */
@@ -85,6 +90,19 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 	public static boolean interpolate = true;
 	// default values for new installations; values will be then saved in prefs
 	private static int defaultFontSize = Prefs.getInt(PREFS_FONT_SIZE, FONT_SIZE);
+	/** Font family applied to new/changed plots via the "Font..." picker, or null/empty for the built-in default. */
+	private static String defaultFontFamily = Prefs.get(PREFS_FONT_NAME, "");
+	/**
+	 * Default sizes for the frame/number font, axis label font and legend font of new
+	 * plots, set from Axis Options/Legend. -1 means "not explicitly customized" -
+	 * follow the general Plot Defaults font size live instead of a frozen snapshot of
+	 * it, the same way defaultLegendFontFamily falls back to the general font family.
+	 */
+	private static int defaultNumberFontSize = Prefs.getInt(PREFS_NUMBER_FONT_SIZE, -1);
+	private static int defaultLabelFontSize = Prefs.getInt(PREFS_LABEL_FONT_SIZE, -1);
+	private static int defaultLegendFontSize = Prefs.getInt(PREFS_LEGEND_FONT_SIZE, -1);
+	/** Font family for new plots' legend, or null/empty to use the general default font family. */
+	private static String defaultLegendFontFamily = Prefs.get(PREFS_LEGEND_FONT_NAME, "");
 	/** The width of the plot (without frame) in pixels. */
 	public static int plotWidth = WIDTH;
 	/** The height of the plot in pixels. */
@@ -657,11 +675,39 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 			else if(b == menuItems[TEMPLATE])
 				new PlotDialog(plot, PlotDialog.TEMPLATE).showDialog(this.shell);
 			else if(b == menuItems[RESET_PLOT]) {
-				plot.setFont(Font.PLAIN, fontSize);
-				plot.setAxisLabelFont(Font.PLAIN, fontSize);
+				/*
+				 * "Reset Format" means back to ImageJ's true built-in defaults (Arial,
+				 * FONT_SIZE=14) for EVERY font (frame/numbers, labels, legend), not
+				 * whatever is currently in Plot Defaults - that includes font family,
+				 * which the earlier fix wrongly kept pointed at the (customized) default
+				 * family, so the legend never actually looked reset.
+				 * Also clear the persisted Plot Defaults customizations themselves, so
+				 * this reset actually sticks - otherwise a plot created after restarting
+				 * would still pick up the old customized defaults, since Plot Defaults
+				 * and this per-plot reset were otherwise independent.
+				 */
+				PlotWindow.setDefaultFontFamily("Arial");
+				PlotWindow.setDefaultFontSize(FONT_SIZE);
+				PlotWindow.setDefaultNumberFontSize(FONT_SIZE);
+				PlotWindow.setDefaultLabelFontSize(FONT_SIZE);
+				PlotWindow.setDefaultLegendFontFamily("Arial");
+				PlotWindow.setDefaultLegendFontSize(FONT_SIZE);
+				plot.setFont('f', new Font("Arial", Font.PLAIN, FONT_SIZE));
+				plot.setXLabelFont(new Font("Arial", Font.PLAIN, FONT_SIZE));
+				plot.setYLabelFont(new Font("Arial", Font.PLAIN, FONT_SIZE));
+				if(plot.getFont('l') != null)
+					plot.setFont('l', new Font("Arial", Font.PLAIN, FONT_SIZE));
 				plot.setFormatFlags(Plot.getDefaultFlags());
 				plot.setFrameSize(plotWidth, plotHeight); // updates the image only when size changed
 				plot.updateImage();
+				/*
+				 * The plot's pixel size can shrink/grow here (smaller/larger margins for the
+				 * reset font), but nothing tells the surrounding window to relayout for that
+				 * unless the user actually drags the shell border - resizeControl() is the
+				 * exact method ImageWindow's own resize listener calls in that case, so call
+				 * it directly to get the same correct layout without requiring a manual resize.
+				 */
+				resizeControl();
 			} else if(b == menuItems[HI_RESOLUTION])
 				new PlotDialog(plot, PlotDialog.HI_RESOLUTION).showDialog(this.shell);
 			else if(b == menuItems[PROFILE_PLOT_OPTIONS])
@@ -1043,6 +1089,11 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		prefs.put(PREFS_WIDTH, Integer.toString(plotWidth));
 		prefs.put(PREFS_HEIGHT, Integer.toString(plotHeight));
 		prefs.put(PREFS_FONT_SIZE, Integer.toString(defaultFontSize));
+		prefs.put(PREFS_FONT_NAME, defaultFontFamily != null ? defaultFontFamily : "");
+		prefs.put(PREFS_NUMBER_FONT_SIZE, Integer.toString(defaultNumberFontSize));
+		prefs.put(PREFS_LABEL_FONT_SIZE, Integer.toString(defaultLabelFontSize));
+		prefs.put(PREFS_LEGEND_FONT_SIZE, Integer.toString(defaultLegendFontSize));
+		prefs.put(PREFS_LEGEND_FONT_NAME, defaultLegendFontFamily != null ? defaultLegendFontFamily : "");
 		int options = 0;
 		if(!interpolate)
 			options |= INTERPOLATE; // true=0, false=1
@@ -1230,10 +1281,87 @@ public class PlotWindow extends ImageWindow implements ImageListener, ClipboardO
 		if(size < 9)
 			size = 9;
 		defaultFontSize = size;
+		Prefs.set(PREFS_FONT_SIZE, size); // persist immediately, see setDefaultFontFamily()
 	}
 
 	public static int getDefaultFontSize() {
 
 		return defaultFontSize;
+	}
+
+	/** Default size for new plots' frame/number font, set from Axis Options' "Number Font Size". */
+	public static void setDefaultNumberFontSize(int size) {
+
+		if(size < 9)
+			size = 9;
+		defaultNumberFontSize = size;
+		Prefs.set(PREFS_NUMBER_FONT_SIZE, size);
+	}
+
+	/** Returns the customized Number Font Size, or the general Plot Defaults font size if never customized. */
+	public static int getDefaultNumberFontSize() {
+
+		return defaultNumberFontSize > 0 ? defaultNumberFontSize : defaultFontSize;
+	}
+
+	/** Default size for new plots' x/y axis label font, set from Axis Options' "Label Font Size". */
+	public static void setDefaultLabelFontSize(int size) {
+
+		if(size < 9)
+			size = 9;
+		defaultLabelFontSize = size;
+		Prefs.set(PREFS_LABEL_FONT_SIZE, size);
+	}
+
+	/** Returns the customized Label Font Size, or the general Plot Defaults font size if never customized. */
+	public static int getDefaultLabelFontSize() {
+
+		return defaultLabelFontSize > 0 ? defaultLabelFontSize : defaultFontSize;
+	}
+
+	/** Default size for new plots' legend font, set from the Legend dialog's "Font Size". */
+	public static void setDefaultLegendFontSize(int size) {
+
+		if(size < 9)
+			size = 9;
+		defaultLegendFontSize = size;
+		Prefs.set(PREFS_LEGEND_FONT_SIZE, size);
+	}
+
+	/** Returns the customized Legend Font Size, or the general Plot Defaults font size if never customized. */
+	public static int getDefaultLegendFontSize() {
+
+		return defaultLegendFontSize > 0 ? defaultLegendFontSize : defaultFontSize;
+	}
+
+	/** Default font family for new plots' legend, or null/empty to use the general default font family. */
+	public static void setDefaultLegendFontFamily(String family) {
+
+		defaultLegendFontFamily = family;
+		Prefs.set(PREFS_LEGEND_FONT_NAME, family != null ? family : "");
+	}
+
+	public static String getDefaultLegendFontFamily() {
+
+		return defaultLegendFontFamily;
+	}
+
+	/** Sets the font family used for new plots' default font, or null/empty for the built-in default ("Arial"). */
+	public static void setDefaultFontFamily(String family) {
+
+		defaultFontFamily = family;
+		/*
+		 * Persist immediately rather than relying only on the deferred savePreferences(Properties)
+		 * call at app quit (used by plotWidth/plotHeight/defaultFontSize) - that path depends on
+		 * a clean shutdown (e.g. it's skipped if closing a window is cancelled), so save this
+		 * directly too, the same way the Log/Results, Editor and ROI Manager font pickers do.
+		 */
+		Prefs.set(PREFS_FONT_NAME, family != null ? family : "");
+	}
+
+	/** Returns the font family used for new plots' default font, or null/empty for the built-in default ("Arial"). */
+	public static String getDefaultFontFamily() {
+
+		return defaultFontFamily;
 	}
 }
