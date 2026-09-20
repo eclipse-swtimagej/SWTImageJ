@@ -1695,6 +1695,7 @@ public abstract class ImageProcessor implements Cloneable {
 			cxx -= w / 2;
 		else if(justification == RIGHT_JUSTIFY)
 			cxx -= w;
+		setupFontMetrics(); // re-check, see getStringWidth()
 		int h = fontMetrics.getHeight();
 		if(w <= 0 || h <= 0)
 			return;
@@ -1759,6 +1760,7 @@ public abstract class ImageProcessor implements Cloneable {
 			cxx -= w / 2;
 		else if(justification == RIGHT_JUSTIFY)
 			cxx -= w;
+		setupFontMetrics(); // re-check, see getStringWidth()
 		int h = fontMetrics.getHeight();
 		if(w <= 0 || h <= 0)
 			return;
@@ -1916,7 +1918,14 @@ public abstract class ImageProcessor implements Cloneable {
 			this.antialiasedText = true;
 		else
 			this.antialiasedText = false;
+		/*
+		 * Unlike setFont(), this used to just null fontMetrics without recomputing it,
+		 * leaving it null until some later, unrelated call happened to repopulate it.
+		 * A concurrent caller (e.g. a "Live" plot's update thread racing a fast window
+		 * resize) could observe that null in between and NPE in getStringWidth().
+		 */
 		fontMetrics = null;
+		setupFontMetrics();
 	}
 
 	/**
@@ -1935,6 +1944,13 @@ public abstract class ImageProcessor implements Cloneable {
 		// lists of right-justified numbers such as the y axis of plots look ugly.
 		// Thus, the maximum of both methods is returned.
 		Rectangle2D rect = getStringBounds(s);
+		/*
+		 * Re-check right before use: a concurrent setAntialiasedText()/setFont() call
+		 * on this same ImageProcessor (e.g. a "Live" plot's update racing a window
+		 * resize) could have nulled fontMetrics again after getStringBounds() above
+		 * already repopulated it, otherwise causing a NullPointerException here.
+		 */
+		setupFontMetrics();
 		return (int)Math.max(fontMetrics.getStringBounds(s, fmGraphics).getWidth(), rect.getX() + rect.getWidth());
 	}
 
