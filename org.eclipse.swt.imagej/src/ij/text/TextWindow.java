@@ -454,7 +454,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 		buttons.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.END, SWT.CENTER, false, false));
 		org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
 		okButton.setText("OK");
-		okButton.addListener(SWT.Selection, e -> {
+		okButton.addListener(SWT.Selection, _ -> {
 			String[] selection = list.getSelection();
 			String chosen = selection.length > 0 ? selection[0] : SYSTEM_DEFAULT_LABEL;
 			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
@@ -466,7 +466,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 		});
 		org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
 		cancelButton.setText("Cancel");
-		cancelButton.addListener(SWT.Selection, e -> dialog.close());
+		cancelButton.addListener(SWT.Selection, _ -> dialog.close());
 		dialog.setDefaultButton(okButton);
 		dialog.pack();
 		org.eclipse.swt.graphics.Rectangle sb = shell.getBounds();
