@@ -37,6 +37,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Drawable;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -105,6 +106,31 @@ public class CompletionEditor {
 	 * the editor's current font (whatever Editor.setFont() last set on ta) to
 	 * it and its children, without touching any other window in the process.
 	 */
+	/**
+	 * Popup controls must never be handed Editor's own "ta" Font object directly:
+	 * Editor.setFont() disposes it whenever the font changes, with no way to notify
+	 * whoever else it was handed to - and JFace can keep a content-assist popup control
+	 * alive and reused across sessions, so it can easily still be showing (and later
+	 * scrolling, recalculating text layout, etc.) with that now-disposed Font, throwing
+	 * "IllegalArgumentException: Argument not valid". Clone the FontData into our own,
+	 * independently-owned/disposed Font instead, only recreated when it actually changes.
+	 */
+	private Font popupFont;
+	private FontData popupFontData;
+
+	private Font derivePopupFont(StyledText ta) {
+
+		FontData current = ta.getFont().getFontData()[0];
+		if(popupFont == null || popupFont.isDisposed() || !current.equals(popupFontData)) {
+			Font old = popupFont;
+			popupFont = new Font(ta.getDisplay(), current);
+			popupFontData = current;
+			if(old != null && !old.isDisposed())
+				old.dispose();
+		}
+		return popupFont;
+	}
+
 	private void installFontScaling(SourceViewer textViewer) {
 
 		StyledText ta = textViewer.getTextWidget();
@@ -124,12 +150,16 @@ public class CompletionEditor {
 				if(!containsTableOrStyledText(shell)) {
 					return;
 				}
-				applyFontRecursively(shell, ta.getFont());
+				applyFontRecursively(shell, derivePopupFont(ta));
 				shell.layout(true, true);
 			}
 		};
 		display.addFilter(SWT.Show, showListener);
-		ta.getShell().addDisposeListener(_ -> display.removeFilter(SWT.Show, showListener));
+		ta.getShell().addDisposeListener(_ -> {
+			display.removeFilter(SWT.Show, showListener);
+			if(popupFont != null && !popupFont.isDisposed())
+				popupFont.dispose();
+		});
 	}
 
 	private static boolean containsTableOrStyledText(Control control) {
@@ -537,10 +567,38 @@ public class CompletionEditor {
 	private static final class WrappingInformationPresenter implements DefaultInformationControl.IInformationPresenter, DefaultInformationControl.IInformationPresenterExtension {
 
 		private final StyledText editorTextWidget;
+		/*
+		 * Our own Font clone, independent of Editor's "ta" Font - JFace reuses the same
+		 * DefaultInformationControl/StyledText across many popup sessions, so it can
+		 * still be showing (and later scrolling) with whatever Font was last applied
+		 * here well after Editor.setFont() has disposed that instance; see
+		 * CompletionEditor.derivePopupFont() for the same reasoning.
+		 */
+		private Font ownFont;
+		private FontData ownFontData;
 
 		WrappingInformationPresenter(StyledText editorTextWidget) {
 
 			this.editorTextWidget = editorTextWidget;
+			if(editorTextWidget != null && !editorTextWidget.isDisposed()) {
+				editorTextWidget.getShell().addDisposeListener(_ -> {
+					if(ownFont != null && !ownFont.isDisposed())
+						ownFont.dispose();
+				});
+			}
+		}
+
+		private Font derivedFont() {
+
+			FontData current = editorTextWidget.getFont().getFontData()[0];
+			if(ownFont == null || ownFont.isDisposed() || !current.equals(ownFontData)) {
+				Font old = ownFont;
+				ownFont = new Font(editorTextWidget.getDisplay(), current);
+				ownFontData = current;
+				if(old != null && !old.isDisposed())
+					old.dispose();
+			}
+			return ownFont;
 		}
 
 		public String updatePresentation(Display display, String hoverInfo, TextPresentation presentation, int maxWidth, int maxHeight) {
@@ -574,7 +632,7 @@ public class CompletionEditor {
 			 */
 			Font font = null;
 			if(drawable instanceof Control && !((Control)drawable).isDisposed() && editorTextWidget != null && !editorTextWidget.isDisposed()) {
-				font = editorTextWidget.getFont();
+				font = derivedFont();
 				((Control)drawable).setFont(font);
 			}
 			GC gc = new GC(display);
