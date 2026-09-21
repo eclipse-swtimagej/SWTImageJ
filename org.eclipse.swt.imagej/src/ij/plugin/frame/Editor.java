@@ -179,9 +179,11 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	private ArrayList undoBuffer = new ArrayList();
 	private boolean performingUndo;
 	private long lastUndoCheckpointTime;
-	/* Keystrokes within this many ms of the previous one are folded into the
+	/*
+	 * Keystrokes within this many ms of the previous one are folded into the
 	 * same undo step, so Ctrl/Cmd+Z reverts a burst of typing at a time
-	 * instead of a single character at a time. */
+	 * instead of a single character at a time.
+	 */
 	private static final long UNDO_COALESCE_MILLIS = 800;
 	private boolean checkForCurlyQuotes;
 	private static int tabInc = (int)Prefs.get(TAB_INC, 3);
@@ -773,9 +775,11 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			}
 			/* Build the initial code folding structure! */
 			updateFoldingStructure();
-			/* Macro functions only make sense as completions for macro files; .java
+			/*
+			 * Macro functions only make sense as completions for macro files; .java
 			 * gets basic keyword/statement snippets instead; everything else gets
-			 * no completion. */
+			 * no completion.
+			 */
 			if(completionEditor != null) {
 				completionEditor.configureForFile(name);
 			}
@@ -2631,7 +2635,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		buttons.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.END, SWT.CENTER, false, false));
 		org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
 		okButton.setText("OK");
-		okButton.addListener(SWT.Selection, e -> {
+		okButton.addListener(SWT.Selection, _ -> {
 			String[] selection = list.getSelection();
 			String chosen = selection.length > 0 ? selection[0] : SYSTEM_DEFAULT_LABEL;
 			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
@@ -2642,7 +2646,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		});
 		org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
 		cancelButton.setText("Cancel");
-		cancelButton.addListener(SWT.Selection, e -> dialog.close());
+		cancelButton.addListener(SWT.Selection, _ -> dialog.close());
 		dialog.setDefaultButton(okButton);
 		dialog.pack();
 		org.eclipse.swt.graphics.Rectangle sb = getShell().getBounds();

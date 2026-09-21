@@ -257,8 +257,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if(fontSize <= 0)
 			fontSize = list.getFont().getFontData()[0].getHeight();
 		String name = (fontFamily != null && fontFamily.length() > 0) ? fontFamily : getMonospacedFontName();
-		org.eclipse.swt.graphics.Font newFont = new org.eclipse.swt.graphics.Font(Display.getDefault(),
-				new org.eclipse.swt.graphics.FontData(name, fontSize, SWT.NORMAL));
+		org.eclipse.swt.graphics.Font newFont = new org.eclipse.swt.graphics.Font(Display.getDefault(), new org.eclipse.swt.graphics.FontData(name, fontSize, SWT.NORMAL));
 		list.setFont(newFont);
 		if(listFont != null)
 			listFont.dispose();
@@ -326,7 +325,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		buttons.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.END, SWT.CENTER, false, false));
 		org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
 		okButton.setText("OK");
-		okButton.addListener(SWT.Selection, e -> {
+		okButton.addListener(SWT.Selection, _ -> {
 			String[] selection = fontList.getSelection();
 			String chosen = selection.length > 0 ? selection[0] : SYSTEM_DEFAULT_LABEL;
 			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
@@ -336,7 +335,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		});
 		org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, SWT.PUSH);
 		cancelButton.setText("Cancel");
-		cancelButton.addListener(SWT.Selection, e -> dialog.close());
+		cancelButton.addListener(SWT.Selection, _ -> dialog.close());
 		dialog.setDefaultButton(okButton);
 		dialog.pack();
 		org.eclipse.swt.graphics.Rectangle sb = getShell().getBounds();
