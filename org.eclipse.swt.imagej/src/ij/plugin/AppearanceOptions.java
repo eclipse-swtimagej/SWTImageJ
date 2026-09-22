@@ -41,7 +41,7 @@ public class AppearanceOptions implements PlugIn, DialogListener {
 		String[] ranges = ContrastAdjuster.getSixteenBitRanges();
 		GenericDialog gd = new GenericDialog("Appearance");
 		gd.addCheckbox("Interpolate zoomed images", Prefs.interpolateScaledImages);
-		gd.addCheckbox("DPI-aware plot rendering (Retina/HiDPI; disable for faster updates)", ij.gui.ImageCanvas.hiDpiAwareRendering);
+		gd.addCheckbox("Smooth plot rendering (Retina/HiDPI + oversampling; disable for faster updates)", ij.gui.ImageCanvas.hiDpiAwareRendering);
 		gd.addCheckbox("Open images at 100%", Prefs.open100Percent);
 		gd.addCheckbox("Black canvas", Prefs.blackCanvas);
 		gd.addCheckbox("No image border", Prefs.noBorder);
@@ -194,20 +194,26 @@ public class AppearanceOptions implements PlugIn, DialogListener {
     }
 
 	void repaintWindow() {
-		ImagePlus imp = WindowManager.getCurrentImage();
-		if (imp!=null) {
-			ImageWindow win = imp.getWindow();
-			if (win!=null) {
-				if (Prefs.blackCanvas) {
-					win.getShell().setForeground(ij.swt.Color.white);
-					win.getShell().setBackground(ij.swt.Color.black);
-				} else {
-					win.getShell().setForeground(ij.swt.Color.black);
-					win.getShell().setBackground(ij.swt.Color.white);
+		// Edit>Options>Appearance... (like every other Executer-dispatched command)
+		// runs on its own background thread in this port, so touching the Shell's
+		// foreground/background directly here throws "Invalid thread access", even
+		// for a plain menu click - see Profiler.getFontFamilyChoices() for the same fix.
+		Display.getDefault().syncExec(() -> {
+			ImagePlus imp = WindowManager.getCurrentImage();
+			if (imp!=null) {
+				ImageWindow win = imp.getWindow();
+				if (win!=null) {
+					if (Prefs.blackCanvas) {
+						win.getShell().setForeground(ij.swt.Color.white);
+						win.getShell().setBackground(ij.swt.Color.black);
+					} else {
+						win.getShell().setForeground(ij.swt.Color.black);
+						win.getShell().setBackground(ij.swt.Color.white);
+					}
+					imp.repaintWindow();
 				}
-				imp.repaintWindow();
 			}
-		}
+		});
 		repainted = true;
 	}
 		

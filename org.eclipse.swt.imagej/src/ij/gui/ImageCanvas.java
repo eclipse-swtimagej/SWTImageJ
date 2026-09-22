@@ -117,10 +117,11 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	protected ImageJ ij;
 	protected double magnification;
 	/**
-	 * Whether Plot windows render an extra, higher-resolution copy of themselves for a
-	 * crisp look on a Retina/HiDPI display (see PlotCanvas.getDisplaySwtImage()). This
-	 * does NOT affect normal image windows - their pixels must never be smoothed/scaled
-	 * here, since that would misrepresent the actual pixel data during image analysis.
+	 * Whether Plot windows render an extra, higher-resolution copy of themselves (at
+	 * least 2x, more on a Retina/HiDPI display) purely for display, so lines/text look
+	 * smoother instead of jagged/blurry - see PlotCanvas.getDisplaySwtImage(). This does
+	 * NOT affect normal image windows - their pixels must never be smoothed/scaled here,
+	 * since that would misrepresent the actual pixel data during image analysis.
 	 * Turn off for faster Plot rendering/updates.
 	 */
 	public static final String HIDPI_AWARE_KEY = "canvas.hidpiAware";
