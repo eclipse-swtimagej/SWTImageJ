@@ -40,6 +40,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 
 import ij.IJ;
 import ij.ImageJ;
@@ -106,7 +108,13 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	/* Before SWT this was a Frame! */
 	private static RoiManager instance;
 	private static int colorIndex = 4;
-	private org.eclipse.swt.widgets.List list;
+	/*
+	 * Table (with SWT.VIRTUAL) instead of List: the native Win32 LISTBOX that List
+	 * wraps stores item indices as 16-bit values internally and silently wraps
+	 * around past ~65535 items (e.g. a large particle analysis result), which Table
+	 * (backed by SysListView32 in virtual/owner-data mode on Windows) does not do.
+	 */
+	private org.eclipse.swt.widgets.Table list;
 	private static final String FONT_NAME = "roimanager.font.name";
 	private static final String FONT_SIZE = "roimanager.font.size";
 	/** Explicit font family chosen via the "Font..." picker, or null to use the default monospaced font. */
@@ -174,7 +182,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			return;
 		}
 		if(IJ.isMacro() && Interpreter.getBatchModeRoiManager() != null) {
-			list = new org.eclipse.swt.widgets.List(composite, SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI);
+			list = new Table(composite, SWT.V_SCROLL | SWT.MULTI);
 			return;
 		}
 		instance = this;
@@ -193,7 +201,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			composite = new Composite(getShell(), SWT.NONE);
 		});
 		if(IJ.isMacro() && Interpreter.getBatchModeRoiManager() != null) {
-			list = new org.eclipse.swt.widgets.List(composite, SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI);
+			list = new Table(composite, SWT.V_SCROLL | SWT.MULTI);
 			return;
 		}
 		instance = this;
@@ -220,13 +228,13 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		 * we can't wrap them above so we wrap them here for access (see close function)
 		 */
 		Display.getDefault().syncExec(() -> {
-			showAllCheckbox = new Button(composite, SWT.CHECK);
+			showAllCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
 			showAllCheckbox.setText("Show All");
 			showAllCheckbox.setSelection(false);
-			labelsCheckbox = new Button(composite, SWT.CHECK);
+			labelsCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
 			labelsCheckbox.setText("Labels");
 			labelsCheckbox.setSelection(false);
-			list = new org.eclipse.swt.widgets.List(composite, SWT.NONE);
+			list = new Table(composite, SWT.NONE);
 		});
 		// listModel = new DefaultListModel();
 		// list.setModel(listModel);
@@ -266,9 +274,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	}
 
 	/**
-	 * SWT's List widget doesn't recompute its cached item-height/scrollbar metrics from
-	 * setFont() alone on every platform - only an actual size change does, which is why
-	 * resizing the shell "fixes" it. Nudging the size forces the same recalculation.
+	 * SWT's List/Table widgets don't recompute their cached item-height/scrollbar
+	 * metrics from setFont() alone on every platform - only an actual size change
+	 * does, which is why resizing the shell "fixes" it. Nudging the size forces the
+	 * same recalculation.
 	 */
 	private void forceListRelayout() {
 
@@ -362,7 +371,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		gridLayout.marginHeight = 0;
 		gridLayout.marginWidth = 0;
 		composite.setLayout(gridLayout);
-		list = new org.eclipse.swt.widgets.List(composite, SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI);
+		list = new Table(composite, SWT.V_SCROLL | SWT.MULTI);
 		applyListFont();
 		list.addSelectionListener(new SelectionAdapter() {
 
@@ -379,7 +388,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		gd_list.widthHint = 150;
 		list.setLayoutData(gd_list);
 		Button addTButton = new Button(composite, SWT.NONE);
-		addTButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		addTButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		addTButton.setText("Add [t]");
 		addTButton.addSelectionListener(new SelectionAdapter() {
 
@@ -390,7 +399,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button updateButton = new Button(composite, SWT.NONE);
-		updateButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		updateButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		updateButton.setText("Update");
 		updateButton.addSelectionListener(new SelectionAdapter() {
 
@@ -401,7 +410,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button deleteButton = new Button(composite, SWT.NONE);
-		deleteButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		deleteButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		deleteButton.setText("Delete");
 		deleteButton.addSelectionListener(new SelectionAdapter() {
 
@@ -412,7 +421,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button renameButton = new Button(composite, SWT.NONE);
-		renameButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		renameButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		renameButton.setText("Rename...");
 		renameButton.addSelectionListener(new SelectionAdapter() {
 
@@ -423,7 +432,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button measureButton = new Button(composite, SWT.NONE);
-		measureButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		measureButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		measureButton.setText("Measure");
 		measureButton.addSelectionListener(new SelectionAdapter() {
 
@@ -434,7 +443,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button deselectButton = new Button(composite, SWT.NONE);
-		deselectButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		deselectButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		deselectButton.setText("Deselect");
 		deselectButton.addSelectionListener(new SelectionAdapter() {
 
@@ -445,7 +454,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button propertiesButton = new Button(composite, SWT.NONE);
-		propertiesButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		propertiesButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		propertiesButton.setText("Properties...");
 		propertiesButton.addSelectionListener(new SelectionAdapter() {
 
@@ -456,7 +465,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		Button flattenButton = new Button(composite, SWT.NONE);
-		flattenButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		flattenButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		flattenButton.setText("Flatten[F]");
 		flattenButton.addSelectionListener(new SelectionAdapter() {
 
@@ -467,7 +476,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		moreButton = new Button(composite, SWT.NONE);
-		moreButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		moreButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		moreButton.setText("More >>");
 		moreButton.addSelectionListener(new SelectionAdapter() {
 
@@ -498,9 +507,20 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if(embedded == false) {
 			shell.pack();
 		}
-		showAllCheckbox = new Button(composite, SWT.CHECK);
-		GridData gd_showAllCheckbox = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 4);
-		gd_showAllCheckbox.heightHint = 25;
+		showAllCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
+		// LEFT + no horizontal grab: keep the checkbox at its natural compact width,
+		// pinned to the left, instead of stretching it across the column - a wide
+		// CHECK button renders its checkbox+label cluster centered on macOS regardless
+		// of SWT.LEFT, so stretching it is what was pushing the label away from the box.
+		/*
+		 * No heightHint: a forced height taller than the control's natural single-line
+		 * size lets the native checkbox glyph and its text label end up vertically
+		 * anchored differently within that extra space (e.g. glyph centered, text
+		 * top-aligned), which is what was making the label look misaligned with the
+		 * box. Natural size + SWT.CENTER keeps both glyph and text together, centered
+		 * in whatever the cell's actual height is.
+		 */
+		GridData gd_showAllCheckbox = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 4);
 		showAllCheckbox.setLayoutData(gd_showAllCheckbox);
 		showAllCheckbox.setText("Show All");
 		showAllCheckbox.addSelectionListener(new SelectionAdapter() {
@@ -512,9 +532,8 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		showAllCheckbox.setSelection(false);
-		labelsCheckbox = new Button(composite, SWT.CHECK);
-		GridData gd_labelsCheckbox = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 4);
-		gd_labelsCheckbox.heightHint = 25;
+		labelsCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
+		GridData gd_labelsCheckbox = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 4);
 		labelsCheckbox.setLayoutData(gd_labelsCheckbox);
 		labelsCheckbox.setText("Labels");
 		labelsCheckbox.addSelectionListener(new SelectionAdapter() {
@@ -834,7 +853,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			// check for duplicate
 			Roi roi2 = (Roi)rois.get(n - 1);
 			if(roi2 != null) {
-				String label = (String)list.getItem(n - 1);
+				String label = list.getItem(n - 1).getText();
 				int slice2 = getSliceNumber(roi2, label);
 				if(roi.equals(roi2) && (slice2 == -1 || slice2 == imp.getCurrentSlice()) && imp.getID() == prevID && !Interpreter.isBatchMode())
 					return false;
@@ -855,7 +874,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		AtomicReference<String> ref = new AtomicReference<String>();
 		ref.set(label);
 		Display.getDefault().syncExec(() -> {
-			list.add(ref.get());
+			new TableItem(list, SWT.NONE).setText(ref.get());
 		});
 		roi.setName(label);
 		Roi roiCopy = (Roi)roi.clone();
@@ -941,7 +960,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		String[] labell = new String[1];
 		labell[0] = label;
 		Display.getDefault().syncExec(() -> {
-			list.add(labell[0]);
+			new TableItem(list, SWT.NONE).setText(labell[0]);
 		});
 		if(label2 != null)
 			roi.setName(label2);
@@ -1123,7 +1142,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			return error("Exactly one item in the list must be selected.");
 		if(index >= 0) {
 			if(clone) {
-				String name = (String)list.getItem(index);
+				String name = list.getItem(index).getText();
 				Roi roi2 = (Roi)roi.clone();
 				if(roi2.getPosition() != PointRoi.POINTWISE_POSITION)
 					roi2.setPosition(imp);
@@ -1144,7 +1163,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		int index = list.getSelectionIndex();
 		if(index < 0)
 			return error("Exactly one item in the list must be selected.");
-		String name = (String)list.getItem(index);
+		String name = list.getItem(index).getText();
 		if(name2 == null)
 			name2 = promptForName(name);
 		if(name2 == null)
@@ -1159,7 +1178,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		rois.set(index, roi);
 		/* Changed for SWT. We have to remove the item first! */
 		list.remove(index);
-		list.add(name2, index);
+		new TableItem(list, SWT.NONE, index).setText(name2);
 		list.setSelection(index);
 		ImagePlus imp = WindowManager.getCurrentImage();
 		if(imp != null && imp.getRoi() != null)
@@ -1180,7 +1199,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		roi.setName(newName);
 		/* Changed for SWT. We have to remove the item first! */
 		list.remove(index);
-		list.add(newName, index);
+		new TableItem(list, SWT.NONE, index).setText(newName);
 	}
 
 	String promptForName(String name) {
@@ -1223,7 +1242,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 					public void run() {
 
-						item.set(list.getItem(index));
+						item.set(list.getItem(index).getText());
 					}
 				});
 				String label = item.get();
@@ -1354,7 +1373,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 				name = roi.getName();
 			if(name.endsWith(".roi"))
 				name = name.substring(0, name.length() - 4);
-			list.add(name);
+			new TableItem(list, SWT.NONE).setText(name);
 			rois.add(roi);
 			errorMessage = null;
 			ok = true;
@@ -1394,7 +1413,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 						AtomicReference<String> listRef = new AtomicReference<String>();
 						listRef.set(name);
 						Display.getDefault().syncExec(() -> {
-							list.add(listRef.get());
+							new TableItem(list, SWT.NONE).setText(listRef.get());
 						});
 						rois.add(roi);
 						nRois++;
@@ -1459,7 +1478,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		Roi roi = (Roi)rois.get(indexes[0]);
 		if(path == null) {
 			Macro.setOptions(null);
-			String name = (String)list.getItem(indexes[0]);
+			String name = list.getItem(indexes[0]).getText();
 			SaveDialog sd = new SaveDialog("Save Selection...", name, ".roi");
 			String name2 = sd.getFileName();
 			if(name2 == null)
@@ -1470,7 +1489,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			String newName = name2.substring(0, name2.length() - 4);
 			rois.set(indexes[0], roi);
 			roi.setName(newName);
-			list.add(newName, indexes[0]);
+			new TableItem(list, SWT.NONE, indexes[0]).setText(newName);
 			path = dir + name2;
 		}
 		RoiEncoder re = new RoiEncoder(path);
@@ -1508,7 +1527,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		long t0 = System.currentTimeMillis();
 		String[] names = new String[list.getItemCount()];
 		for(int i = 0; i < list.getItemCount(); i++)
-			names[i] = (String)list.getItem(i);
+			names[i] = list.getItem(i).getText();
 		errorMessage = null;
 		try {
 			ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(path)));
@@ -1517,7 +1536,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			for(int i = 0; i < indexes.length; i++) {
 				IJ.showProgress(i, indexes.length);
 				Roi roi = (Roi)rois.get(indexes[i]);
-				String label = (String)list.getItem(indexes[i]);
+				String label = list.getItem(indexes[i]).getText();
 				if(IJ.debugMode)
 					IJ.log("saveMultiple: " + i + "  " + label + "  " + roi);
 				if(roi == null)
@@ -1608,7 +1627,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if(imp.getStackSize() > 1) // do we have to change the stack slice for one of the rois?
 			for(int i = 0; i < indexes.length; i++) {
 				Roi roi = (Roi)rois.get(indexes[i]);
-				String label = (String)list.getItem(indexes[i]);
+				String label = list.getItem(indexes[i]).getText();
 				if(getSliceNumber(roi, label) > 1 || roi.hasHyperStackPosition()) {
 					allSliceOne = false;
 					break;
@@ -2074,7 +2093,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 				continue;
 			if(mode == FILL && (type == Roi.POLYLINE || type == Roi.FREELINE || type == Roi.ANGLE))
 				mode = DRAW;
-			String name = (String)list.getItem(indexes[i]);
+			String name = list.getItem(indexes[i]).getText();
 			int slice2 = getSliceNumber(roi, name);
 			if(slice2 >= 1 && slice2 <= imp.getStackSize()) {
 				imp.setSlice(slice2);
@@ -2440,13 +2459,13 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			return;
 		String[] labels = new String[n];
 		for(int i = 0; i < n; i++)
-			labels[i] = (String)list.getItem(i);
+			labels[i] = list.getItem(i).getText();
 		int[] indices = Tools.rank(labels);
 		Roi[] rois2 = getRoisAsArray();
 		list.removeAll();
 		rois.clear();
 		for(int i = 0; i < labels.length; i++) {
-			list.add(labels[indices[i]]);
+			new TableItem(list, SWT.NONE).setText(labels[indices[i]]);
 			rois.add(rois2[indices[i]]);
 		}
 		if(record())
@@ -2512,13 +2531,13 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		for(int i = 0; i < indexes.length; i++) {
 			int index = indexes[i];
 			Roi roi = (Roi)rois.get(index);
-			String name = (String)list.getItem(index);
+			String name = list.getItem(index).getText();
 			int n = getSliceNumber(name);
 			if(n > 0) {
 				String name2 = name.substring(5, name.length());
 				roi.setName(name2);
 				rois.set(index, roi);
-				list.add(name2, index);
+				new TableItem(list, SWT.NONE, index).setText(name2);
 			}
 			int c = roi.getCPosition();
 			int z = roi.getZPosition();
@@ -2786,7 +2805,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		Roi[] rois = getRoisAsArray();
 		Hashtable ht = new Hashtable();
 		for(int i = 0; i < rois.length; i++)
-			ht.put((String)list.getItem(i), rois[i]);
+			ht.put(list.getItem(i).getText(), rois[i]);
 		return ht;
 	}
 	/**
@@ -2875,7 +2894,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	public String getName(int index) {
 
 		if(index >= 0 && index < getCount())
-			return (String)list.getItem(index);
+			return list.getItem(index).getText();
 		else
 			return null;
 	}
@@ -2909,7 +2928,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		int i = (int)Tools.parseDouble(index, -1);
 		RoiManager instance = getInstance2();
 		if(instance != null && i >= 0 && i < instance.getCount())
-			return (String)instance.list.getItem(i);
+			return instance.list.getItem(i).getText();
 		else
 			return "null";
 	}
@@ -3441,7 +3460,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 				int[] indexes = getSelectedIndexes();
 				if(indexes.length == 1 && list.getItemCount() > 0) {
-					String label = (String)list.getItem(indexes[0]);
+					String label = list.getItem(indexes[0]).getText();
 					if(label.equals(roi.getName())) {
 						deselect();
 						shell.redraw();
@@ -3521,6 +3540,19 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	public void mouseScrolled(org.eclipse.swt.events.MouseEvent e) {
 
+		/*
+		 * This listener is also registered directly on the list/table (in addition to
+		 * the shell), and it doesn't scroll the view at all - it moves the SELECTION by
+		 * one item and calls select(), which calls list.setSelection(index), which
+		 * auto-scrolls that row into view as a side effect. Over the list itself, that
+		 * hijacks the wheel and snaps the viewport back near the selection instead of
+		 * scrolling from wherever the scrollbar currently is. Let the Table handle its
+		 * own native wheel-scrolling there; only change the selection for wheel events
+		 * elsewhere (e.g. over the button area), which is what shell.addMouseWheelListener
+		 * is for.
+		 */
+		if(e.widget == list)
+			return;
 		synchronized(this) {
 			int index = list.getSelectionIndex();
 			int rot = e.count;
@@ -3873,7 +3905,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	}
 
-	public org.eclipse.swt.widgets.List getSwtList() {
+	public Table getSwtList() {
 
 		return list;
 	}

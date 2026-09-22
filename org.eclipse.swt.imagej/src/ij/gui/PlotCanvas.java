@@ -206,11 +206,16 @@ public class PlotCanvas extends ImageCanvas {
 	}
 
 	/**
-	 * On a HiDPI display, renders the plot a second time at the display's device-pixel
-	 * density (using the same scaling machinery as "High-Resolution Plot...") purely for
-	 * display, so it looks crisp instead of interpolated/blurry. The interactive plot
-	 * itself (data range, mouse mapping, "Live" refresh, etc.) is completely unaffected -
-	 * only a throwaway clone is scaled, see Plot.makeHighResolution().
+	 * Renders the plot a second time at a higher pixel density (using the same scaling
+	 * machinery as "High-Resolution Plot...") purely for display, so it looks crisp
+	 * instead of interpolated/blurry on a HiDPI display, and so the curve/grid/frame
+	 * lines - always drawn with ImageProcessor's plain, non-anti-aliased pixel
+	 * rasterizer, never true Graphics2D antialiasing, since that rasterizer is shared
+	 * with real image analysis, which must stay pixel-exact - look smoother even on a
+	 * standard-DPI display, via supersampling-then-downscale instead of true AA. The
+	 * interactive plot itself (data range, mouse mapping, "Live" refresh, etc.) is
+	 * completely unaffected - only a throwaway clone is scaled, see
+	 * Plot.makeHighResolution().
 	 */
 	@Override
 	protected Image getDisplaySwtImage() {
@@ -218,11 +223,8 @@ public class PlotCanvas extends ImageCanvas {
 			disposeHiResImage();
 			return super.getDisplaySwtImage();
 		}
-		double scale = DPIUtil.getDeviceZoom() / 100.0;
-		if (scale <= 1.0) {
-			disposeHiResImage();
-			return super.getDisplaySwtImage();
-		}
+		// at least 2x even on a standard-DPI display, purely for line/text smoothing
+		double scale = Math.max(2.0, DPIUtil.getDeviceZoom() / 100.0);
 		ImageProcessor currentIp = imp.getProcessor();
 		int currentVersion = plot.getContentVersion();
 		if (hiResImage == null || hiResImage.isDisposed() || hiResSourceIp != currentIp
