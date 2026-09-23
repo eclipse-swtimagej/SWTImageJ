@@ -1270,8 +1270,21 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 		});
 		if(selection.get() && !restoreCentered && !noUpdateMode) {
-			roi.setImage(null);
-			imp.setRoi(roi);
+			/*
+			 * Hand imp an independent clone rather than this manager-owned Roi object itself:
+			 * imp.setRoi(roi) previously aliased the image's current selection directly to the
+			 * entry stored in rois, so any later canvas interaction that starts by clicking
+			 * inside it (ImageCanvas.handleRoiMouseDown's roi.contains(ox,oy) branch, which just
+			 * moves the existing Roi instead of starting a new one - very likely to trigger given
+			 * how large these selections tend to be) silently mutated the stored entry in place.
+			 * That made a genuinely new-looking selection actually BE (by reference) the already
+			 * "added" Roi, so RoiManager's own duplicate-Add check correctly - but confusingly -
+			 * rejected it as already present. "Update" is unaffected: it commits imp.getRoi() back
+			 * into the list by the selected row index (see update(boolean)), not by identity.
+			 */
+			Roi roiForDisplay = (Roi)roi.clone();
+			roiForDisplay.setImage(null);
+			imp.setRoi(roiForDisplay);
 			return true;
 		}
 		Roi roi2 = (Roi)roi.clone();
@@ -3487,7 +3500,16 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	public void close() {
 
 		super.close();
-		instance = null;
+		/*
+		 * Only clear the static "current instance" reference if it still actually points to
+		 * this RoiManager. Unconditionally nulling it here means closing ANY RoiManager object
+		 * - even one that was superseded by a separately-constructed one and is no longer the
+		 * globally tracked instance - wipes out getInstance() for that other, still-open,
+		 * still-populated RoiManager too, even though it was never touched itself.
+		 */
+		if(instance == this) {
+			instance = null;
+		}
 		resetMultiMeasureResults();
 		Prefs.saveLocation(LOC_KEY, new java.awt.Point(shell.getLocation().x, shell.getLocation().y));
 		if(!showAllCheckbox.getSelection() || IJ.macroRunning())
