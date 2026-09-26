@@ -2795,6 +2795,17 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 	private boolean isShellVisible() {
 
+		/*
+		 * An embedded Editor's own top-level Shell is intentionally never shown - only its
+		 * composite is reparented into whatever container embeds it (e.g. ScriptExplorer's
+		 * CTabFolder), so shellEd.isVisible() below is always false for it, which would make
+		 * every debug()/step callback think "the user closed the window" and immediately
+		 * abort the macro. What actually matters here for an embedded Editor is whether it -
+		 * i.e. its still-open tab - has been closed/disposed yet, not raw OS-level visibility.
+		 */
+		if(embedded) {
+			return shell != null && !shell.isDisposed();
+		}
 		visible = false;
 		Display.getDefault().syncExec(() -> {
 			Shell shellEd = getShell();
@@ -2916,6 +2927,101 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				 * a host RCP application's shell. Handle it here too.
 				 */
 				selectAll();
+				evt.doit = false;
+				return;
+			}
+			/*
+			 * Same reasoning as Undo/Select All above, extended to every other menu
+			 * accelerator that matters for an embedded (Script Explorer) tab: Save,
+			 * Run/Compile and Run, and the whole Debug menu, none of which fire via
+			 * their MenuItem.setAccelerator() when this Editor's own Shell is never
+			 * the active one. Checked directly against the widget that actually has
+			 * focus instead, so it works the same whether the Editor is a standalone
+			 * floating window or embedded in a host application/CTabFolder.
+			 */
+			boolean shiftDown = (evt.stateMask & SWT.SHIFT) != 0;
+			if(evt.character == 's' || evt.character == 'S') {
+				save();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'r' || evt.character == 'R') {
+				if(getShell().getText().endsWith(".java"))
+					compileAndRun();
+				else
+					runMacro(false);
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'd' || evt.character == 'D') {
+				enableDebugging();
+				runMacro(true);
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 'e' || evt.character == 'E')) {
+				runToInsertionPoint();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'e' || evt.character == 'E') {
+				setDebugMode(STEP);
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 't' || evt.character == 'T')) {
+				setDebugMode(FAST_TRACE);
+				evt.doit = false;
+				return;
+			} else if(evt.character == 't' || evt.character == 'T') {
+				setDebugMode(TRACE);
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 'f' || evt.character == 'F')) {
+				functionFinder = new FunctionFinder(this);
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'f' || evt.character == 'F') {
+				find(null);
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'g' || evt.character == 'G') {
+				find(searchString);
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 'l' || evt.character == 'L')) {
+				showLogWindow();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'l' || evt.character == 'L') {
+				gotoLine();
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 'b' || evt.character == 'B')) {
+				evaluateScript(".bsh");
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'b' || evt.character == 'B') {
+				balance();
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 'a' || evt.character == 'A')) {
+				assignToRepeatCommand();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'y' || evt.character == 'Y') {
+				evaluateLine();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'i' || evt.character == 'I') {
+				installMacros(ta.getText(), true);
+				evt.doit = false;
+				return;
+			} else if(shiftDown && (evt.character == 'm' || evt.character == 'M')) {
+				showMacroFunctions();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'j' || evt.character == 'J') {
+				evaluateJavaScript();
+				evt.doit = false;
+				return;
+			} else if(evt.character == 'p' || evt.character == 'P') {
+				evaluateScript(".py");
 				evt.doit = false;
 				return;
 			}
