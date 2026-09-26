@@ -307,7 +307,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 
 		untitledCount++;
 		String name = "Untitled" + untitledCount + extensionForLanguage(language);
-		Editor editor = new Editor(24, 80, 0, Editor.MENU_BAR, false, true);
+		Editor editor = new Editor(24, 80, 0, Editor.MENU_BAR, true, true);
 		editor.create(name, "");
 		createTab(editor, name);
 	}
@@ -829,8 +829,14 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		 * which would call the private getOptions(name) and add Editor's own internal Run/
 		 * Install/language-combo bar for .ijm/.js/.bsh/.py titles - redundant now that this
 		 * explorer's own toolbar Run/Save buttons work uniformly across every open tab.
+		 * contextMenu=true additionally builds the same File/Edit/Font/Macros/Debug menu
+		 * structure as a right-click popup on the text widget (see Editor's constructor,
+		 * "New Constructor to set a StyledText context menu and embedded!") - the Editor's own
+		 * top-level Shell (and its normal menu bar) is invisible/off-screen once its composite
+		 * is reparented into this explorer's CTabFolder, so the popup is the only way to reach
+		 * those menus from an embedded tab.
 		 */
-		Editor editor = new Editor(24, 80, 0, Editor.MENU_BAR, false, true);
+		Editor editor = new Editor(24, 80, 0, Editor.MENU_BAR, true, true);
 		editor.open(file.getParent() + File.separator, file.getName());
 		CTabItem tabItem = createTab(editor, file.getName());
 		openTabsByPath.put(path, tabItem);
