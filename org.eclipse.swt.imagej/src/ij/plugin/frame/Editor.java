@@ -2180,6 +2180,18 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			fontNew.dispose();
 	}
 
+	/**
+	 * @return whether the last call to {@link #close()} actually deregistered this Editor from
+	 *         WindowManager (false if the user cancelled an unsaved-changes prompt). Callers
+	 *         that embed an Editor (e.g. ScriptExplorer) and need to know whether it's safe to
+	 *         also dispose its Shell/widgets - or whether the close should be aborted instead -
+	 *         should check this right after calling close().
+	 */
+	public boolean isOkayToClose() {
+
+		return okayToClose;
+	}
+
 	public void saveAs() {
 
 		String name1 = getTitle();
