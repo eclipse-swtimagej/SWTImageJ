@@ -124,7 +124,13 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		if(storedExpandedPaths.length() > 0) {
 			expandedPaths.addAll(Arrays.asList(storedExpandedPaths.split("\n")));
 		}
-		treeIconSize = Prefs.getInt(ICON_SIZE_KEY, 16);
+		/*
+		 * Prefs.getInt() explicitly does NOT read back values written by Prefs.set() (its own
+		 * Javadoc says so) - it reads raw IJ_Props/IJ_Prefs.txt keys instead. Prefs.get(key,
+		 * double) is the one that actually round-trips through Prefs.set()/ijPrefs, which is
+		 * why this was silently always falling back to the default on every restart.
+		 */
+		treeIconSize = (int)Prefs.get(ICON_SIZE_KEY, 16);
 		if(treeIconSize != 16 && treeIconSize != 32) {
 			treeIconSize = 16;
 		}
@@ -177,6 +183,15 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		if(tree != null && !tree.isDisposed()) {
 			captureExpandedPaths();
 			Prefs.set(EXPANDED_PATHS_KEY, String.join("\n", expandedPaths));
+			/*
+			 * Prefs.set() only updates the in-memory preferences map - it's only ever written
+			 * to IJ_Prefs.txt by Prefs.savePreferences(), which ij.ImageJ.run() calls once at
+			 * its own quit()/dispose(). That never happens when this Editor/ImageJ instance is
+			 * embedded in (and closed along with) a host application instead of being quit the
+			 * normal standalone way, silently losing this setting between sessions. Saving
+			 * right here instead of relying on that app-wide shutdown hook.
+			 */
+			Prefs.savePreferences();
 		}
 		if(tabFolder != null && !tabFolder.isDisposed()) {
 			for(CTabItem item : tabFolder.getItems()) {
@@ -449,6 +464,8 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		}
 		treeIconSize = size;
 		Prefs.set(ICON_SIZE_KEY, size);
+		/* See the matching comment in close() - Prefs.set() alone is never actually written to disk when this ImageJ instance is embedded rather than quit the normal standalone way. */
+		Prefs.savePreferences();
 		disposeIcons();
 		createIcons(tree.getDisplay());
 		refreshTree();
@@ -506,9 +523,35 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	}
 
 	/**
-	 * Draws a simple manila-folder glyph for directory tree items, since no bundled icon
-	 * resources exist in SWTImageJ. Every coordinate below is designed for size=32 and scaled
-	 * down/up for whatever size is actually requested (currently 16 or 32, see treeIconSize).
+	 * Approximates each OS's own default folder-icon color, since SWT has no cross-platform way
+	 * to fetch the real native folder icon: modern macOS (Big Sur onward) uses a light blue
+	 * Finder folder, while Windows/Linux file browsers still use the classic yellow/manila one.
+	 * This is the darker "back" tone; createFolderIcon derives a lighter "front flap" tone from it.
+	 */
+	private static Color getPlatformFolderColor(Display display) {
+
+		if(IJ.isMacOSX()) {
+			return new Color(display, 70, 150, 220);
+		}
+		return new Color(display, 200, 150, 80);
+	}
+
+	/** @return a copy of color with each channel pushed towards white by amount (clamped to 255). */
+	private static Color lighten(Display display, Color color, int amount) {
+
+		int r = Math.min(255, color.getRed() + amount);
+		int g = Math.min(255, color.getGreen() + amount);
+		int b = Math.min(255, color.getBlue() + amount);
+		return new Color(display, r, g, b);
+	}
+
+	/**
+	 * Draws a flat, modern (macOS Big Sur-style) folder glyph for directory tree items, since no
+	 * bundled icon resources exist in SWTImageJ: a small rounded tab peeking out top-left, a
+	 * rounded body behind it, and a lighter rounded "front flap" layered over most of the body
+	 * (with a faint highlight near its top edge) to give it the same two-tone, glossy look as the
+	 * reference. Every coordinate below is designed for size=32 and scaled for whatever size is
+	 * actually requested (currently 16 or 32, see treeIconSize).
 	 */
 	private static Image createFolderIcon(Display display, int size) {
 
@@ -518,17 +561,23 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		gc.setAntialias(SWT.ON);
 		gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 		gc.fillRectangle(0, 0, size, size);
-		Color folderColor = new Color(display, 235, 185, 105);
-		gc.setBackground(folderColor);
-		gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
-		int tabX = scaled(2, scale), tabY = scaled(8, scale), tabW = scaled(13, scale), tabH = scaled(6, scale);
-		gc.fillRectangle(tabX, tabY, tabW, tabH);
-		gc.drawRectangle(tabX, tabY, tabW, tabH);
-		int bodyX = scaled(2, scale), bodyY = scaled(13, scale), bodyW = scaled(28, scale), bodyH = scaled(16, scale), arc = scaled(5, scale);
-		gc.fillRoundRectangle(bodyX, bodyY, bodyW, bodyH, arc, arc);
-		gc.drawRoundRectangle(bodyX, bodyY, bodyW, bodyH, arc, arc);
+		Color backColor = getPlatformFolderColor(display);
+		Color frontColor = lighten(display, backColor, 45);
+		Color highlightColor = lighten(display, frontColor, 40);
+		int tabX = scaled(3, scale), tabY = scaled(6, scale), tabW = scaled(11, scale), tabH = scaled(7, scale), tabArc = scaled(3, scale);
+		gc.setBackground(backColor);
+		gc.fillRoundRectangle(tabX, tabY, tabW, tabH, tabArc, tabArc);
+		int bodyX = scaled(2, scale), bodyY = scaled(9, scale), bodyW = scaled(28, scale), bodyH = scaled(20, scale), bodyArc = scaled(5, scale);
+		gc.fillRoundRectangle(bodyX, bodyY, bodyW, bodyH, bodyArc, bodyArc);
+		int frontX = bodyX, frontY = bodyY + scaled(4, scale), frontW = bodyW, frontH = bodyH - scaled(4, scale);
+		gc.setBackground(frontColor);
+		gc.fillRoundRectangle(frontX, frontY, frontW, frontH, bodyArc, bodyArc);
+		gc.setForeground(highlightColor);
+		gc.drawLine(frontX + scaled(3, scale), frontY + scaled(2, scale), frontX + frontW - scaled(3, scale), frontY + scaled(2, scale));
 		gc.dispose();
-		folderColor.dispose();
+		backColor.dispose();
+		frontColor.dispose();
+		highlightColor.dispose();
 		return image;
 	}
 
