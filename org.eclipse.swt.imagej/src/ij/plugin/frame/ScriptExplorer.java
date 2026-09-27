@@ -60,6 +60,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import ij.IJ;
 import ij.Menus;
 import ij.Prefs;
+import ij.gui.GenericDialog;
 import ij.WindowManager;
 import ij.plugin.frame.swt.WindowSwt;
 
@@ -908,6 +909,42 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 
 		Menu contextMenu = new Menu(tree);
 		tree.setMenu(contextMenu);
+		MenuItem newFolderItem = new MenuItem(contextMenu, SWT.PUSH);
+		newFolderItem.setText("New Folder...");
+		newFolderItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				TreeItem[] selection = tree.getSelection();
+				TreeItem target = selection.length == 1 ? selection[0] : null;
+				File targetDirectory = resolveDropTargetDirectory(target);
+				if(targetDirectory == null) {
+					return;
+				}
+				GenericDialog gd = new GenericDialog("New Folder");
+				gd.addStringField("Folder name:", "New Folder");
+				gd.showDialog();
+				if(gd.wasCanceled()) {
+					return;
+				}
+				String folderName = gd.getNextString().trim();
+				if(folderName.isEmpty()) {
+					return;
+				}
+				File newFolder = new File(targetDirectory, folderName);
+				if(newFolder.exists()) {
+					IJ.error("New Folder", "\"" + folderName + "\" already exists in " + targetDirectory.getAbsolutePath());
+					return;
+				}
+				if(!newFolder.mkdirs()) {
+					IJ.error("New Folder", "Could not create folder \"" + folderName + "\"");
+					return;
+				}
+				refreshTree();
+			}
+		});
+		new MenuItem(contextMenu, SWT.SEPARATOR);
 		MenuItem copyItem = new MenuItem(contextMenu, SWT.PUSH);
 		copyItem.setText("Copy");
 		copyItem.addSelectionListener(new SelectionAdapter() {
