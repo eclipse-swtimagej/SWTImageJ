@@ -38,6 +38,7 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -52,6 +53,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
@@ -81,6 +83,9 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private Button toggleButton;
 	private Image sidebarIcon;
 	private Image gearIcon;
+	private Image folderIcon;
+	private Image fileIcon;
+	private final Map<String, Image> extensionIcons = new HashMap<>();
 	private Combo languageCombo;
 	private boolean explorerVisible = true;
 	private boolean showAllFileTypes = false;
@@ -92,6 +97,10 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	/** Persists which directories are expanded, across both a refreshTree() and whole SWTImageJ sessions (see EXPANDED_PATHS_KEY). */
 	private static final String EXPANDED_PATHS_KEY = "scriptexplorer.expandedpaths";
 	private final Set<String> expandedPaths = new LinkedHashSet<>();
+
+	/** The tree's folder/file icon size in pixels - user-configurable (16 or 32) via the settings menu, persisted across sessions. */
+	private static final String ICON_SIZE_KEY = "scriptexplorer.iconsize";
+	private int treeIconSize;
 
 	/** Opens the explorer rooted at both ImageJ's plugins and macros directories. */
 	public ScriptExplorer() {
@@ -114,6 +123,10 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		if(storedExpandedPaths.length() > 0) {
 			expandedPaths.addAll(Arrays.asList(storedExpandedPaths.split("\n")));
 		}
+		treeIconSize = Prefs.getInt(ICON_SIZE_KEY, 16);
+		if(treeIconSize != 16 && treeIconSize != 32) {
+			treeIconSize = 16;
+		}
 		Display.getDefault().syncExec(() -> {
 			WindowManager.addWindow(this);
 			getShell().setLayout(new FillLayout());
@@ -123,6 +136,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			sashForm = new SashForm(composite, SWT.HORIZONTAL);
 			sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			tree = new Tree(sashForm, SWT.BORDER);
+			createIcons(getShell().getDisplay());
 			tabFolder = new CTabFolder(sashForm, SWT.BORDER);
 			tabFolder.setSimple(false);
 			sashForm.setWeights(new int[]{25, 75});
@@ -176,6 +190,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		if(gearIcon != null && !gearIcon.isDisposed()) {
 			gearIcon.dispose();
 		}
+		disposeIcons();
 		super.close();
 	}
 
@@ -248,6 +263,17 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 
 				showAllFileTypes = showAllItem.getSelection();
 				refreshTree();
+			}
+		});
+		new MenuItem(settingsMenu, SWT.SEPARATOR);
+		MenuItem iconSizeItem = new MenuItem(settingsMenu, SWT.PUSH);
+		iconSizeItem.setText("Icon Size...");
+		iconSizeItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				openIconSizeDialog();
 			}
 		});
 		settingsButton.setMenu(settingsMenu);
@@ -384,6 +410,197 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		return image;
 	}
 
+	/** Disposes and recreates folderIcon/fileIcon/extensionIcons at the current treeIconSize. */
+	private void createIcons(Display display) {
+
+		folderIcon = createFolderIcon(display, treeIconSize);
+		fileIcon = createFileIcon(display, treeIconSize, null, null);
+		/* One colored single-letter badge per language/type this explorer distinguishes; anything else (.txt, .jar, ...) just gets the plain fileIcon above. */
+		extensionIcons.put(".java", createFileIcon(display, treeIconSize, "J", new Color(display, 0xE7, 0x6F, 0x00)));
+		extensionIcons.put(".ijm", createFileIcon(display, treeIconSize, "M", new Color(display, 0x2B, 0x6C, 0xB0)));
+		extensionIcons.put(".py", createFileIcon(display, treeIconSize, "P", new Color(display, 0x30, 0x69, 0x98)));
+		extensionIcons.put(".bsh", createFileIcon(display, treeIconSize, "B", new Color(display, 0x5A, 0x9B, 0x3F)));
+		extensionIcons.put(".js", createFileIcon(display, treeIconSize, "S", new Color(display, 0xB8, 0x8A, 0x00)));
+	}
+
+	/** Disposes whatever folderIcon/fileIcon/extensionIcons currently hold, so createIcons() can safely rebuild them at a new size. */
+	private void disposeIcons() {
+
+		if(folderIcon != null && !folderIcon.isDisposed()) {
+			folderIcon.dispose();
+		}
+		if(fileIcon != null && !fileIcon.isDisposed()) {
+			fileIcon.dispose();
+		}
+		for(Image icon : extensionIcons.values()) {
+			if(icon != null && !icon.isDisposed()) {
+				icon.dispose();
+			}
+		}
+		extensionIcons.clear();
+	}
+
+	/** Applies and persists a new icon size (16 or 32), rebuilding every icon and the tree so the change is visible immediately. */
+	private void setTreeIconSize(int size) {
+
+		if(size == treeIconSize) {
+			return;
+		}
+		treeIconSize = size;
+		Prefs.set(ICON_SIZE_KEY, size);
+		disposeIcons();
+		createIcons(tree.getDisplay());
+		refreshTree();
+	}
+
+	/** Small modal dialog (Settings > "Icon Size...") letting the user pick 16x16 or 32x32 tree icons; the choice is applied and persisted immediately on OK. */
+	private void openIconSizeDialog() {
+
+		Shell dialog = new Shell(getShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		dialog.setText("Icon Size");
+		dialog.setLayout(new GridLayout(1, false));
+		Button size16Button = new Button(dialog, SWT.RADIO);
+		size16Button.setText("16 x 16");
+		size16Button.setSelection(treeIconSize == 16);
+		Button size32Button = new Button(dialog, SWT.RADIO);
+		size32Button.setText("32 x 32");
+		size32Button.setSelection(treeIconSize == 32);
+		Composite buttons = new Composite(dialog, SWT.NONE);
+		buttons.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+		buttons.setLayout(new GridLayout(2, false));
+		Button okButton = new Button(buttons, SWT.PUSH);
+		okButton.setText("OK");
+		okButton.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				setTreeIconSize(size16Button.getSelection() ? 16 : 32);
+				dialog.close();
+			}
+		});
+		Button cancelButton = new Button(buttons, SWT.PUSH);
+		cancelButton.setText("Cancel");
+		cancelButton.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				dialog.close();
+			}
+		});
+		dialog.setDefaultButton(okButton);
+		dialog.pack();
+		Point parentLocation = getShell().getLocation();
+		Point parentSize = getShell().getSize();
+		Point dialogSize = dialog.getSize();
+		dialog.setLocation(parentLocation.x + (parentSize.x - dialogSize.x) / 2, parentLocation.y + (parentSize.y - dialogSize.y) / 2);
+		dialog.open();
+		Display display = dialog.getDisplay();
+		while(!dialog.isDisposed()) {
+			if(!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+	}
+
+	/**
+	 * Draws a simple manila-folder glyph for directory tree items, since no bundled icon
+	 * resources exist in SWTImageJ. Every coordinate below is designed for size=32 and scaled
+	 * down/up for whatever size is actually requested (currently 16 or 32, see treeIconSize).
+	 */
+	private static Image createFolderIcon(Display display, int size) {
+
+		double scale = size / 32.0;
+		Image image = new Image(display, size, size);
+		GC gc = new GC(image);
+		gc.setAntialias(SWT.ON);
+		gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		gc.fillRectangle(0, 0, size, size);
+		Color folderColor = new Color(display, 235, 185, 105);
+		gc.setBackground(folderColor);
+		gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
+		int tabX = scaled(2, scale), tabY = scaled(8, scale), tabW = scaled(13, scale), tabH = scaled(6, scale);
+		gc.fillRectangle(tabX, tabY, tabW, tabH);
+		gc.drawRectangle(tabX, tabY, tabW, tabH);
+		int bodyX = scaled(2, scale), bodyY = scaled(13, scale), bodyW = scaled(28, scale), bodyH = scaled(16, scale), arc = scaled(5, scale);
+		gc.fillRoundRectangle(bodyX, bodyY, bodyW, bodyH, arc, arc);
+		gc.drawRoundRectangle(bodyX, bodyY, bodyW, bodyH, arc, arc);
+		gc.dispose();
+		folderColor.dispose();
+		return image;
+	}
+
+	/**
+	 * Draws a simple document glyph (a page with a folded top-right corner) for file tree
+	 * items. When label/labelColor are given, a small bold single-letter badge is drawn near
+	 * the bottom of the page in that color instead of the plain "text lines" placeholder, so
+	 * java/macro/python/beanshell/javascript files can be told apart at a glance. labelColor
+	 * (if given) is disposed here, since the caller only needs it for this one drawing call.
+	 * Every coordinate below is designed for size=32 and scaled for whatever size is actually
+	 * requested (currently 16 or 32, see treeIconSize).
+	 */
+	private static Image createFileIcon(Display display, int size, String label, Color labelColor) {
+
+		double scale = size / 32.0;
+		Image image = new Image(display, size, size);
+		GC gc = new GC(image);
+		gc.setAntialias(SWT.ON);
+		gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		gc.fillRectangle(0, 0, size, size);
+		gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+		gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
+		int left = scaled(6, scale), top = scaled(3, scale), right = scaled(24, scale), bottom = scaled(29, scale), fold = scaled(8, scale);
+		int[] outline = {left, top, right - fold, top, right, top + fold, right, bottom, left, bottom};
+		gc.fillPolygon(outline);
+		gc.drawPolygon(outline);
+		gc.drawLine(right - fold, top, right - fold, top + fold);
+		gc.drawLine(right - fold, top + fold, right, top + fold);
+		if(label != null && labelColor != null) {
+			int fontSize = Math.max(6, (int)Math.round(14 * scale));
+			Font labelFont = new Font(display, "Arial", fontSize, SWT.BOLD);
+			gc.setFont(labelFont);
+			gc.setForeground(labelColor);
+			org.eclipse.swt.graphics.Point extent = gc.textExtent(label);
+			int tx = left + ((right - left) - extent.x) / 2;
+			int ty = bottom - extent.y - 1;
+			gc.drawText(label, tx, ty, true);
+			labelFont.dispose();
+			labelColor.dispose();
+		} else {
+			gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+			int lineLeft = left + scaled(3, scale);
+			int lineRight = right - scaled(3, scale);
+			int lineRightShort = right - scaled(6, scale);
+			gc.drawLine(lineLeft, top + scaled(11, scale), lineRight, top + scaled(11, scale));
+			gc.drawLine(lineLeft, top + scaled(16, scale), lineRight, top + scaled(16, scale));
+			gc.drawLine(lineLeft, top + scaled(21, scale), lineRightShort, top + scaled(21, scale));
+		}
+		gc.dispose();
+		return image;
+	}
+
+	/** Scales one of the size=32-design coordinates above to the actual requested icon size, never below 1px. */
+	private static int scaled(int base32Value, double scale) {
+
+		return Math.max(1, (int)Math.round(base32Value * scale));
+	}
+
+	/** @return the folder icon for a directory, the matching language badge icon for a recognized extension, or the plain fileIcon otherwise. */
+	private Image getIconForFile(File file) {
+
+		if(file.isDirectory()) {
+			return folderIcon;
+		}
+		String name = file.getName().toLowerCase();
+		for(Map.Entry<String, Image> entry : extensionIcons.entrySet()) {
+			if(name.endsWith(entry.getKey())) {
+				return entry.getValue();
+			}
+		}
+		return fileIcon;
+	}
+
 	/** Adds another top-level root to the tree, remembering it so {@link #refreshTree()} can rebuild it later (e.g. after toggling "Show All File Types"). */
 	private void addRootDirectory(String rootDirectory) {
 
@@ -403,6 +620,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		TreeItem rootItem = new TreeItem(tree, SWT.NONE);
 		rootItem.setText(root.getName().isEmpty() ? root.getAbsolutePath() : root.getName());
 		rootItem.setData(root);
+		rootItem.setImage(folderIcon);
 		addChildren(rootItem, root);
 		restoreExpansionState(rootItem);
 	}
@@ -503,6 +721,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			TreeItem item = new TreeItem(parentItem, SWT.NONE);
 			item.setText(file.getName());
 			item.setData(file);
+			item.setImage(getIconForFile(file));
 			if(file.isDirectory()) {
 				/* Dummy placeholder child so the expand arrow shows; replaced on first expand. */
 				new TreeItem(item, SWT.NONE);
