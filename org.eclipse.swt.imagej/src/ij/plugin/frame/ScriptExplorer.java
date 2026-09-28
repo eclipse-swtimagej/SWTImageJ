@@ -60,8 +60,8 @@ import org.eclipse.swt.widgets.TreeItem;
 import ij.IJ;
 import ij.Menus;
 import ij.Prefs;
-import ij.gui.GenericDialog;
 import ij.WindowManager;
+import ij.gui.GenericDialog;
 import ij.plugin.frame.swt.WindowSwt;
 
 /**
@@ -564,12 +564,17 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		Color backColor = getPlatformFolderColor(display);
 		Color frontColor = lighten(display, backColor, 45);
 		Color highlightColor = lighten(display, frontColor, 40);
-		int tabX = scaled(3, scale), tabY = scaled(6, scale), tabW = scaled(11, scale), tabH = scaled(7, scale), tabArc = scaled(3, scale);
+		int tabX = scaled(3, scale), tabY = scaled(6, scale),
+				tabW = scaled(11, scale), tabH = scaled(7, scale),
+				tabArc = scaled(3, scale);
 		gc.setBackground(backColor);
 		gc.fillRoundRectangle(tabX, tabY, tabW, tabH, tabArc, tabArc);
-		int bodyX = scaled(2, scale), bodyY = scaled(9, scale), bodyW = scaled(28, scale), bodyH = scaled(20, scale), bodyArc = scaled(5, scale);
+		int bodyX = scaled(2, scale), bodyY = scaled(9, scale),
+				bodyW = scaled(28, scale), bodyH = scaled(20, scale),
+				bodyArc = scaled(5, scale);
 		gc.fillRoundRectangle(bodyX, bodyY, bodyW, bodyH, bodyArc, bodyArc);
-		int frontX = bodyX, frontY = bodyY + scaled(4, scale), frontW = bodyW, frontH = bodyH - scaled(4, scale);
+		int frontX = bodyX, frontY = bodyY + scaled(4, scale), frontW = bodyW,
+				frontH = bodyH - scaled(4, scale);
 		gc.setBackground(frontColor);
 		gc.fillRoundRectangle(frontX, frontY, frontW, frontH, bodyArc, bodyArc);
 		gc.setForeground(highlightColor);
@@ -600,7 +605,9 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		gc.fillRectangle(0, 0, size, size);
 		gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
 		gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
-		int left = scaled(6, scale), top = scaled(3, scale), right = scaled(24, scale), bottom = scaled(29, scale), fold = scaled(8, scale);
+		int left = scaled(6, scale), top = scaled(3, scale),
+				right = scaled(24, scale), bottom = scaled(29, scale),
+				fold = scaled(8, scale);
 		int[] outline = {left, top, right - fold, top, right, top + fold, right, bottom, left, bottom};
 		gc.fillPolygon(outline);
 		gc.drawPolygon(outline);
@@ -915,7 +922,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	/** Recursively copies an entire directory tree from source to target, creating target and its sub-folders as needed. */
 	private void copyDirectoryRecursively(Path source, Path target) throws IOException {
 
-		try(Stream<Path> walk = Files.walk(source)) {
+		try (Stream<Path> walk = Files.walk(source)) {
 			for(Path path : (Iterable<Path>)walk::iterator) {
 				Path relative = source.relativize(path);
 				Path destination = target.resolve(relative);
@@ -934,7 +941,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 
 		try {
 			if(file.isDirectory()) {
-				try(Stream<Path> walk = Files.walk(file.toPath())) {
+				try (Stream<Path> walk = Files.walk(file.toPath())) {
 					for(Path path : (Iterable<Path>)walk.sorted(Comparator.reverseOrder())::iterator) {
 						Files.delete(path);
 					}
@@ -1092,7 +1099,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private void unpackJar(File jarFile, File destination) {
 
 		byte[] buffer = new byte[8192];
-		try(ZipInputStream zip = new ZipInputStream(Files.newInputStream(jarFile.toPath()))) {
+		try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(jarFile.toPath()))) {
 			ZipEntry entry;
 			while((entry = zip.getNextEntry()) != null) {
 				File outFile = new File(destination, entry.getName());
@@ -1104,7 +1111,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 				if(parent != null && !parent.exists()) {
 					parent.mkdirs();
 				}
-				try(OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile))) {
+				try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile))) {
 					int read;
 					while((read = zip.read(buffer)) != -1) {
 						out.write(buffer, 0, read);
@@ -1146,7 +1153,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		CTabItem tabItem = createTab(editor, file.getName());
 		openTabsByPath.put(path, tabItem);
 		/* File-backed tabs also need untracking from openTabsByPath once closed, in addition to createTab's own generic Editor cleanup. */
-		tabItem.addDisposeListener(disposeEvent -> openTabsByPath.remove(path));
+		tabItem.addDisposeListener(_ -> openTabsByPath.remove(path));
 	}
 
 	/**
@@ -1174,7 +1181,6 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		 * disposed (a common SWT gotcha), so without this the Editor's own top-level Shell -
 		 * now invisible/off-screen since its composite was reparented here - would leak as an
 		 * orphaned Shell every time a tab is closed.
-		 *
 		 * Calling editor.close() first (rather than disposing the Shell directly) matters: it's
 		 * what actually calls WindowManager.removeWindow(this) (every Editor self-registers
 		 * there on construction, embedded or not). Skipping it left a disposed-but-still-
@@ -1183,7 +1189,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		 * the non-image window list and called getTitle()/fileChanged() on it. close() also
 		 * prompts to save unsaved changes first, same as closing an Editor normally would.
 		 */
-		tabItem.addDisposeListener(disposeEvent -> {
+		tabItem.addDisposeListener(_ -> {
 			editor.close();
 			if(!editor.getShell().isDisposed()) {
 				editor.getShell().dispose();
