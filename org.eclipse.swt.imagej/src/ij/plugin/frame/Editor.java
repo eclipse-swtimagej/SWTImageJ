@@ -230,6 +230,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	/** One color per MARKER_ERROR/MARKER_WARNING/MARKER_INFO, used for both the ruler dot and the squiggly underline. */
 	private org.eclipse.swt.graphics.Color[] markerColors;
 	private final List<Annotation> markerAnnotations = new ArrayList<>();
+	/** Shared by projectionSupport and the overview ruler; caches real native Color objects, so it needs disposing on close(). */
+	private EditorSharedTextColors sharedTextColors;
 	protected Timer timer;
 	boolean contextMenu = false;
 	boolean embedded = false;
@@ -306,8 +308,26 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			}
 			/* Shared by the ruler column, ProjectionSupport's own fold column, and markerAnnotationPainter below. */
 			EditorAnnotationAccess editorAnnotationAccess = new EditorAnnotationAccess();
-			/* The ruler on the right side! */
-			IOverviewRuler overviewRuler = new OverviewRuler(null, 15, null);
+			/*
+			 * The ruler on the right side! Passing null here (as this originally did) for the
+			 * IAnnotationAccess means this overview ruler - meant to give a whole-document
+			 * overview of every marker, including ones currently scrolled out of view - can
+			 * never paint anything, exactly like AnnotationRulerColumn without one (see the
+			 * comment on annotationRuler below). It also has its own separate per-type
+			 * allow-list, just like AnnotationRulerColumn - addAnnotationType() calls for
+			 * MARKER_ANNOTATION_TYPES are added once markerColors exists, further below.
+			 */
+			/*
+			 * Declared as the concrete class (not IOverviewRuler) so setUseSaturatedColors()
+			 * below is reachable - it isn't on the interface. Without it, OverviewRuler blends
+			 * every registered color toward black or white for contrast (real, intentional JFace
+			 * behavior - see getColor()/getStrokeColor()/getFillColor()), which for a light
+			 * background and mid-tone colors like ours lands mostly toward black, muting
+			 * red/orange/blue into a dark, barely-distinguishable smudge.
+			 */
+			sharedTextColors = new EditorSharedTextColors();
+			OverviewRuler overviewRuler = new OverviewRuler(editorAnnotationAccess, 15, sharedTextColors);
+			overviewRuler.setUseSaturatedColors(true);
 			/* The ruler on the left side with two columns (line number, annotations)! */
 			CompositeRuler ruler = new CompositeRuler();
 			lnrc = new LineNumberRulerColumn();
@@ -344,7 +364,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * Passing null here as the IAnnotationAccess means every fold annotation is
 			 * silently never painted, no matter how correct the model/positions are.
 			 */
-			projectionSupport = new ProjectionSupport(sourceViewer, editorAnnotationAccess, new EditorSharedTextColors());
+			projectionSupport = new ProjectionSupport(sourceViewer, editorAnnotationAccess, sharedTextColors);
 			projectionSupport.install();
 			document = new Document();
 			/*
@@ -376,6 +396,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			for(int severity = 0; severity < MARKER_ANNOTATION_TYPES.length; severity++) {
 				markerAnnotationPainter.addAnnotationType(MARKER_ANNOTATION_TYPES[severity]);
 				markerAnnotationPainter.setAnnotationTypeColor(MARKER_ANNOTATION_TYPES[severity], markerColors[severity]);
+				overviewRuler.addAnnotationType(MARKER_ANNOTATION_TYPES[severity]);
+				overviewRuler.setAnnotationTypeColor(MARKER_ANNOTATION_TYPES[severity], markerColors[severity]);
+				overviewRuler.setAnnotationTypeLayer(MARKER_ANNOTATION_TYPES[severity], IAnnotationPresentation.DEFAULT_LAYER + 1);
 			}
 			sourceViewer.addPainter(markerAnnotationPainter);
 			/*
@@ -2418,6 +2441,22 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public void close() {
 
 		okayToClose = true;
+		if(shell == null || shell.isDisposed()) {
+			/*
+			 * ij.WindowManager.closeAllWindows() (app-wide shutdown) calls close() on every
+			 * registered window in turn - by the time it reaches this one, its Shell may already
+			 * be disposed through a different path (e.g. a parent Composite/Shell that cascaded
+			 * its own disposal first). Everything below assumes a live shell/widgets (getTitle(),
+			 * sourceViewer.removePainter(), font.dispose(), ...) and would itself throw
+			 * "Widget is disposed" against an already-gone one - there's nothing left to save or
+			 * clean up widget-side at that point, so just keep the WindowManager registry
+			 * consistent and stop.
+			 */
+			WindowManager.removeWindow(this);
+			nWindows--;
+			instance = null;
+			return;
+		}
 		ImageJ ij = IJ.getInstance();
 		if(!getTitle().equals("Errors") && changes && !IJ.isMacro() && ij != null && !ij.quittingViaMacro()) {
 			String msg = "Save changes to \"" + getTitle() + "\"?";
@@ -2465,6 +2504,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			for(org.eclipse.swt.graphics.Color color : markerColors)
 				if(color != null && !color.isDisposed())
 					color.dispose();
+		if(sharedTextColors != null)
+			sharedTextColors.dispose();
 	}
 
 	/**

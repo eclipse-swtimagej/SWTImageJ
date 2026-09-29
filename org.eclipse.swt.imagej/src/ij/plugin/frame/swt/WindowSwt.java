@@ -24,30 +24,50 @@ public interface WindowSwt {
 	 */
 	public Shell getShell();
 
+	/**
+	 * @return whether shell is non-null and not yet disposed - every default method below checks
+	 *         this before touching the shell, since ij.WindowManager.closeAllWindows() (app-wide
+	 *         shutdown) calls close()/getTitle() etc. on every registered window in turn, and by
+	 *         then some of them may already have had their Shell disposed through a different
+	 *         path (e.g. a parent Composite/Shell cascading its disposal first). Without this
+	 *         guard, Display.syncExec() doesn't protect against that itself - it just runs the
+	 *         given Runnable and rethrows whatever it throws, wrapped, so calling e.g.
+	 *         shell.getText() inside it on an already-disposed shell still crashes with
+	 *         "SWTException: Widget is disposed".
+	 */
+	default public boolean isShellUsable() {
+
+		Shell shell = getShell();
+		return shell != null && !shell.isDisposed();
+	}
+
 	default public void setTitle(String string) {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setText(string);
+			if(isShellUsable()) {
+				getShell().setText(string);
+			}
 		});
 	}
 
 	default public String getTitle() {
 
-		AtomicReference<String> title = new AtomicReference<String>();
+		AtomicReference<String> title = new AtomicReference<String>("");
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			title.set(shell.getText());
+			if(isShellUsable()) {
+				title.set(getShell().getText());
+			}
 		});
 		return title.get();
 	}
 
 	default public boolean isVisible() {
 
-		AtomicReference<Boolean> visible = new AtomicReference<Boolean>();
+		AtomicReference<Boolean> visible = new AtomicReference<Boolean>(false);
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			visible.set(shell.isVisible());
+			if(isShellUsable()) {
+				visible.set(getShell().isVisible());
+			}
 		});
 		return visible.get();
 	}
@@ -55,74 +75,81 @@ public interface WindowSwt {
 	default public void setVisible(boolean visible) {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setVisible(true);
+			if(isShellUsable()) {
+				getShell().setVisible(true);
+			}
 		});
 	}
 
 	default public void show() {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setVisible(true);
+			if(isShellUsable()) {
+				getShell().setVisible(true);
+			}
 		});
 	}
 
 	default public Point getLocation() {
 
-		AtomicReference<Point> p = new AtomicReference<Point>();
+		AtomicReference<Point> p = new AtomicReference<Point>(new Point(0, 0));
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			p.set(shell.getLocation());
+			if(isShellUsable()) {
+				p.set(getShell().getLocation());
+			}
 		});
-		Point point = p.get();
-		return point;
+		return p.get();
 	}
 
 	default public void setLocation(Point p) {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setLocation(p);
+			if(isShellUsable()) {
+				getShell().setLocation(p);
+			}
 		});
 	}
 
 	default public Point getSize() {
 
-		AtomicReference<Point> size = new AtomicReference<Point>();
+		AtomicReference<Point> size = new AtomicReference<Point>(new Point(0, 0));
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			size.set(shell.getSize());
+			if(isShellUsable()) {
+				size.set(getShell().getSize());
+			}
 		});
 		return size.get();
 	}
 
 	default public Point getShellSize() {
 
-		AtomicReference<Point> size = new AtomicReference<Point>();
+		AtomicReference<Point> size = new AtomicReference<Point>(new Point(0, 0));
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			size.set(shell.getSize());
+			if(isShellUsable()) {
+				size.set(getShell().getSize());
+			}
 		});
 		return size.get();
 	}
 
 	default public Rectangle getBounds() {
 
-		AtomicReference<Rectangle> rec = new AtomicReference<Rectangle>();
+		AtomicReference<Rectangle> rec = new AtomicReference<Rectangle>(new Rectangle(0, 0, 0, 0));
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			rec.set(shell.getBounds());
+			if(isShellUsable()) {
+				rec.set(getShell().getBounds());
+			}
 		});
 		return rec.get();
 	}
 
 	default public Rectangle getMaximumBounds() {
 
-		AtomicReference<Rectangle> rec = new AtomicReference<Rectangle>();
+		AtomicReference<Rectangle> rec = new AtomicReference<Rectangle>(new Rectangle(0, 0, 0, 0));
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			rec.set(shell.getBounds());
+			if(isShellUsable()) {
+				rec.set(getShell().getBounds());
+			}
 		});
 		return rec.get();
 	}
@@ -134,23 +161,27 @@ public interface WindowSwt {
 	default public void setShellSize(Point p, Composite embeddedParent, Shell shell) {
 
 		Display.getDefault().syncExec(() -> {
-			shell.setSize(p);
+			if(shell != null && !shell.isDisposed()) {
+				shell.setSize(p);
+			}
 		});
 	}
 
 	default public void toFront(Composite embeddedParent) {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setActive();
+			if(isShellUsable()) {
+				getShell().setActive();
+			}
 		});
 	}
 
 	default public void toFront() {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setActive();
+			if(isShellUsable()) {
+				getShell().setActive();
+			}
 		});
 	}
 
@@ -158,32 +189,36 @@ public interface WindowSwt {
 	default public void setActive() {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setActive();
+			if(isShellUsable()) {
+				getShell().setActive();
+			}
 		});
 	}
 
 	default public void setSize(int x, int y) {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.setSize(x, y);
+			if(isShellUsable()) {
+				getShell().setSize(x, y);
+			}
 		});
 	}
 
 	default public void validate() {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.layout(true);
+			if(isShellUsable()) {
+				getShell().layout(true);
+			}
 		});
 	}
 
 	default public void pack() {
 
 		Display.getDefault().syncExec(() -> {
-			Shell shell = getShell();
-			shell.pack(true);
+			if(isShellUsable()) {
+				getShell().pack(true);
+			}
 		});
 	}
 }
