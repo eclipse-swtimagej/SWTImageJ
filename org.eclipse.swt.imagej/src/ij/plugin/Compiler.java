@@ -2,6 +2,7 @@ package ij.plugin;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -146,7 +147,31 @@ public class Compiler implements PlugIn, FilenameFilter {
 		options.addElement("-classpath");
 		options.addElement(classpath);
 		Vector sources = new Vector();
-		sources.add(path);
+		/*
+		 * Only compiling the one file being run breaks as soon as it references a sibling class
+		 * in the same folder (e.g. "PreferencesDialog"/"ChatWindow") that isn't itself already
+		 * compiled: javac has no other source to resolve that symbol against, so it fails with
+		 * "symbol not found" even though the sibling .java file is sitting right there. Compiling
+		 * every .java file in the same folder together sidesteps needing getClassPath()'s
+		 * -classpath entry to double as a correct -sourcepath for javac to auto-discover them
+		 * (which only works if the folder layout happens to mirror any declared package, and
+		 * getClassPath() doesn't attempt that - see ScriptExplorer's "Create Plugin Jar", which
+		 * has the same requirement and takes the same approach).
+		 */
+		File pathFile = new File(path).getAbsoluteFile();
+		File parentDir = pathFile.getParentFile();
+		String[] siblingNames = parentDir != null ? parentDir.list((d, n) -> n.toLowerCase().endsWith(".java")) : null;
+		boolean pathIncluded = false;
+		if(siblingNames != null) {
+			for(String siblingName : siblingNames) {
+				File sibling = new File(parentDir, siblingName);
+				sources.add(sibling.getAbsolutePath());
+				if(sibling.equals(pathFile))
+					pathIncluded = true;
+			}
+		}
+		if(!pathIncluded)
+			sources.add(path);
 		if(IJ.debugMode) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("javac");
@@ -288,7 +313,31 @@ public class Compiler implements PlugIn, FilenameFilter {
 	void runPlugin(String name) {
 
 		name = name.substring(0, name.length() - 5); // remove ".java" or ".clas"
+		/*
+		 * This has always assumed a plugin's class name is just its bare file name, with no
+		 * package - fine for the classic default-package plugin, but a package-scoped one (e.g.
+		 * "package llmassistant;") needs to be loaded via its fully qualified name instead, or
+		 * PlugInExecuter's classloader lookup below fails with a ClassNotFoundException for the
+		 * bare name alone, even though the very same class loads fine from a properly packaged
+		 * plugin jar (see ScriptExplorer's "Create Plugin Jar", which already handles this).
+		 */
+		File javaSource = new File(dir, name + ".java");
+		String packageName = javaSource.exists() ? extractPackageName(javaSource) : null;
+		if(packageName != null && packageName.length() > 0)
+			name = packageName + "." + name;
 		new PlugInExecuter(name);
+	}
+
+	/** Best-effort extraction of a .java source's own "package ...;" declaration, or null if it's in the default package - a simple text scan, no real parser needed for this. */
+	private static String extractPackageName(File javaSource) {
+
+		try {
+			String text = new String(java.nio.file.Files.readAllBytes(javaSource.toPath()));
+			java.util.regex.Matcher packageMatcher = java.util.regex.Pattern.compile("(?m)^\\s*package\\s+([\\w.]+)\\s*;").matcher(text);
+			return packageMatcher.find() ? packageMatcher.group(1) : null;
+		} catch(IOException e) {
+			return null;
+		}
 	}
 
 	public void showDialog() {

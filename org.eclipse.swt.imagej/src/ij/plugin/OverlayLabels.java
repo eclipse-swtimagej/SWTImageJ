@@ -20,7 +20,28 @@ import ij.util.Tools;
 public class OverlayLabels implements PlugIn, DialogListener {
 
 	private static final String[] fontSizes = {"7", "8", "9", "10", "12", "14", "18", "24", "28", "36", "48", "72"};
+	/*
+	 * Previously nothing here was ever persisted to Prefs (only ImageCanvas.suppressSmallLabels
+	 * was, in run() below) - defaultOverlay's font size/color/bold/etc. lived only in this
+	 * static field, in memory, resetting to the small built-in defaults (12pt, or as little as
+	 * 9pt via ImageCanvas.drawRoiLabel()'s own per-ROI-size fallback whenever no font was set at
+	 * all) every time the app restarted. Loading/saving through these keys is what makes a
+	 * chosen label size an actual persistent default instead of a same-session-only tweak.
+	 */
+	private static final String FONT_SIZE_KEY = "overlay.labelfontsize";
+	private static final String BOLD_KEY = "overlay.labelbold";
+	private static final String COLOR_KEY = "overlay.labelcolor";
+	private static final String SHOW_NAMES_KEY = "overlay.shownames";
+	private static final String DRAW_BACKGROUNDS_KEY = "overlay.drawbackgrounds";
 	private static Overlay defaultOverlay = new Overlay();
+	static {
+		int savedFontSize = (int)Prefs.get(FONT_SIZE_KEY, 14);
+		boolean savedBold = Prefs.get(BOLD_KEY, false);
+		defaultOverlay.setLabelFont(new Font("SansSerif", savedBold ? Font.BOLD : Font.PLAIN, savedFontSize));
+		defaultOverlay.setLabelColor(Colors.getColor(Prefs.get(COLOR_KEY, "white"), Color.white));
+		defaultOverlay.drawNames(Prefs.get(SHOW_NAMES_KEY, false));
+		defaultOverlay.drawBackgrounds(Prefs.get(DRAW_BACKGROUNDS_KEY, false));
+	}
 	private ImagePlus imp;
 	private Overlay overlay;
 	private GenericDialog gd;
@@ -52,8 +73,23 @@ public class OverlayLabels implements PlugIn, DialogListener {
 			defaultOverlay.drawBackgrounds(overlay.getDrawBackgrounds());
 			defaultOverlay.setLabelColor(overlay.getLabelColor());
 			defaultOverlay.setLabelFont(overlay.getLabelFont());
+			// Remember every one of these across sessions too, not just the speed option below.
+			Prefs.set(FONT_SIZE_KEY, fontSize);
+			Prefs.set(BOLD_KEY, bold);
+			Prefs.set(COLOR_KEY, colorName);
+			Prefs.set(SHOW_NAMES_KEY, showNames);
+			Prefs.set(DRAW_BACKGROUNDS_KEY, drawBackgrounds);
 			// Remember the speed option across sessions.
 			Prefs.set(ImageCanvas.SUPPRESS_SMALL_LABELS_KEY, ImageCanvas.suppressSmallLabels);
+			/*
+			 * Prefs.set() alone only updates the in-memory preferences map; it's only ever
+			 * flushed to IJ_Prefs.txt by Prefs.savePreferences(), which normally happens once at
+			 * ij.ImageJ.run()'s own quit()/dispose() - which never fires when this ImageJ
+			 * instance is embedded in (and closed along with) a host application instead of
+			 * being quit the normal standalone way, silently losing these settings between
+			 * sessions.
+			 */
+			Prefs.savePreferences();
 		} else {
 			// Restore, since dialogItemChanged applies changes live.
 			ImageCanvas.suppressSmallLabels = hideSmallLabelsOnEntry;

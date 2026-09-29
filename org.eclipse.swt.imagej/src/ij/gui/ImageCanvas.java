@@ -1173,10 +1173,31 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		}
 		if(labelRects != null && index < labelRects.length) {
 			if(pointRoi) {
-				int x2 = screenX(r.x);
-				int y2 = screenY(r.y);
+				/*
+				 * x/y above have since been mutated into the label TEXT's draw position (see
+				 * "x = x + width/2 - w/2" etc.), so the point's own screen position is
+				 * recomputed fresh from r.x/r.y here - but it must still go through the same
+				 * aspectRatioX/aspectRatioY scaling the original x/y did (line ~1117), or this
+				 * rectangle ends up in a different (unscaled) coordinate space than every other
+				 * ROI's labelRects entry, breaking click-to-select whenever the aspect ratio
+				 * isn't 1:1 (see activateOverlayRoi(), which expects aspect-ratio-scaled coords).
+				 */
+				int x2 = (int)(screenX(r.x) * aspectRatioX);
+				int y2 = (int)(screenY(r.y) * aspectRatioY);
 				int crossSize2 = crossSize / 2;
-				labelRects[index] = new Rectangle(x2 - crossSize2, y2 - crossSize2, crossSize, crossSize);
+				Rectangle markerRect = new Rectangle(x2 - crossSize2, y2 - crossSize2, crossSize, crossSize);
+				/*
+				 * crossSize above is fixed, based only on the marker's own point size setting -
+				 * never on the label font. The label's drawn position (x - 1 + xoffset,
+				 * y - 3 + yoffset, matching the drawString() call below) drifts further away
+				 * from the marker as the font grows (yoffset includes h, the font's own
+				 * ascent+descent), so at larger font sizes the visible label text moves well
+				 * outside this fixed-size hit box, making it unclickable. Union in the text's
+				 * own bounding box too, so either the marker or its (possibly much larger)
+				 * label can be clicked to select the ROI.
+				 */
+				Rectangle textRect = new Rectangle(x - 1 + xoffset - 3, y - 3 + yoffset - h + 1, w + 4, h);
+				labelRects[index] = markerRect.union(textRect);
 			} else
 				labelRects[index] = new Rectangle(x - 3, y - h + 1, w + 4, h);
 		}
@@ -1189,6 +1210,14 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 		if(text == null || text.isEmpty())
 			return;
+		/*
+		 * gc is the same native GC that drawOverlay()/drawRoiLabel() just drew ROI Manager
+		 * "Labels" through moments ago (via the SWTGraphics2D AWT bridge wrapping this exact
+		 * gc, in paint(PaintEvent) above) - that leaves a small 9-12pt font stuck on it
+		 * afterwards, which this method would otherwise silently inherit instead of using the
+		 * canvas's own normal font, making the tooltip text shrink whenever Labels is on.
+		 */
+		gc.setFont(getFont());
 		calculateAspectRatio();
 		int sx = (int)(screenX(x) * aspectRatioX);
 		int sy = (int)(screenY(y) * aspectRatioY);
@@ -2762,6 +2791,16 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		boolean labels = o.getDrawLabels();
 		int sx = screenX(ox);
 		int sy = screenY(oy);
+		/*
+		 * labelRects (populated by drawRoiLabel()) are stored in aspect-ratio-scaled screen
+		 * coordinates (x = screenX(...) * aspectRatioX, etc.) - overOverlayLabel() above already
+		 * re-applies that same scaling before testing a click against them; this method didn't,
+		 * so clicking directly on a label to select its ROI in the ROI Manager silently missed
+		 * whenever the aspect ratio wasn't 1:1.
+		 */
+		calculateAspectRatio();
+		int labelSx = (int)(sx * aspectRatioX);
+		int labelSy = (int)(sy * aspectRatioY);
 		for(int i = o.size() - 1; i >= 0; i--) {
 			Roi roi = o.get(i);
 			if(roi == null)
@@ -2772,7 +2811,7 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				containsMousePoint = (((Line)roi).getFloatPolygon(grabLineWidth)).contains(ox, oy);
 			} else
 				containsMousePoint = roi.contains(ox, oy);
-			if(containsMousePoint || (labels && labelRects != null && labelRects[i] != null && labelRects[i].contains(sx, sy))) {
+			if(containsMousePoint || (labels && labelRects != null && labelRects[i] != null && labelRects[i].contains(labelSx, labelSy))) {
 				if(hyperstack && roi.getPosition() == 0) {
 					int c = roi.getCPosition();
 					int z = roi.getZPosition();

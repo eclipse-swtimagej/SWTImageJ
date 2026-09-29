@@ -52,9 +52,19 @@ public class PointRoi extends PolygonRoi {
 	private static final BasicStroke fivePixelsWide = new BasicStroke(5);
 	private static int defaultType = HYBRID;
 	private static int defaultSize = SMALL;
-	private static Font font;
+	/*
+	 * Was `private static Font font;`/`private static int fontSize = 9;` - a single shared
+	 * class-level slot instead of a per-ROI one. draw() (below) recomputes/overwrites it from
+	 * THIS instance's own `size` every time any PointRoi with nPoints>1 and showLabels draws
+	 * itself, so whichever PointRoi last happened to draw (e.g. the original multi-point
+	 * selection before its points were split off into individual single-point ROIs) leaves its
+	 * own font size stuck for every OTHER PointRoi's label rendering afterwards -
+	 * copyAttributes() below even had `this.fontSize = p2.fontSize`, a no-op while static since
+	 * that's the same slot on both sides, which only makes sense as an instance-field copy.
+	 */
+	private Font font;
 	private static Color defaultCrossColor = Color.white;
-	private static int fontSize = 9;
+	private int fontSize = 9;
 	public static final int MAX_COUNTERS = 100;
 	private static String[] counterChoices;
 	private static Color[] colors;

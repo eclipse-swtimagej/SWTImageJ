@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -1160,35 +1161,52 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	boolean rename(String name2) {
 
-		int index = list.getSelectionIndex();
-		if(index < 0)
-			return error("Exactly one item in the list must be selected.");
-		String name = list.getItem(index).getText();
-		if(name2 == null)
-			name2 = promptForName(name);
-		if(name2 == null)
-			return false;
-		if(name2.equals(name))
-			return false;
-		Roi roi = (Roi)rois.get(index);
-		roi.setName(name2);
-		int position = getSliceNumber(name2);
-		if(position > 0 && !roi.hasHyperStackPosition())
-			roi.setPosition(position);
-		rois.set(index, roi);
-		/* Changed for SWT. We have to remove the item first! */
-		list.remove(index);
-		new TableItem(list, SWT.NONE, index).setText(name2);
-		list.setSelection(index);
-		ImagePlus imp = WindowManager.getCurrentImage();
-		if(imp != null && imp.getRoi() != null)
-			imp.setRoi(roi);
-		if(Prefs.useNamesAsLabels && labelsCheckbox.getSelection())
-			if(imp != null)
-				imp.draw();
-		if(record())
-			Recorder.record("roiManager", "Rename", name2);
-		return true;
+		/*
+		 * Every other caller here runs on the UI thread already (e.g. the "Rename..." menu
+		 * item), but roiManager("rename", ...) from a macro runs on the macro interpreter's own
+		 * background thread - list.getSelectionIndex() (and every other Table access below)
+		 * throws "SWTException: Invalid thread access" unless marshalled through syncExec, same
+		 * as the rest of this class already does for its other macro-facing commands. syncExec
+		 * is a harmless no-op passthrough when already called from the UI thread, so wrapping
+		 * here doesn't change behavior for the interactive "Rename..." caller.
+		 */
+		final String promptedName = name2;
+		AtomicBoolean renamed = new AtomicBoolean(false);
+		Display.getDefault().syncExec(() -> {
+			int index = list.getSelectionIndex();
+			if(index < 0) {
+				error("Exactly one item in the list must be selected.");
+				return;
+			}
+			String name = list.getItem(index).getText();
+			String newName = promptedName;
+			if(newName == null)
+				newName = promptForName(name);
+			if(newName == null)
+				return;
+			if(newName.equals(name))
+				return;
+			Roi roi = (Roi)rois.get(index);
+			roi.setName(newName);
+			int position = getSliceNumber(newName);
+			if(position > 0 && !roi.hasHyperStackPosition())
+				roi.setPosition(position);
+			rois.set(index, roi);
+			/* Changed for SWT. We have to remove the item first! */
+			list.remove(index);
+			new TableItem(list, SWT.NONE, index).setText(newName);
+			list.setSelection(index);
+			ImagePlus imp = WindowManager.getCurrentImage();
+			if(imp != null && imp.getRoi() != null)
+				imp.setRoi(roi);
+			if(Prefs.useNamesAsLabels && labelsCheckbox.getSelection())
+				if(imp != null)
+					imp.draw();
+			if(record())
+				Recorder.record("roiManager", "Rename", newName);
+			renamed.set(true);
+		});
+		return renamed.get();
 	}
 
 	public void rename(int index, String newName) {

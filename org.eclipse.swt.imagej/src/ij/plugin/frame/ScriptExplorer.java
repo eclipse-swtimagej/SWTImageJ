@@ -1,29 +1,49 @@
 package ij.plugin.frame;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
@@ -32,6 +52,7 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
@@ -118,7 +139,8 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	/** Opens the explorer rooted at the given directories (either may be null to omit it). */
 	public ScriptExplorer(String pluginsDirectory, String macrosDirectory) {
 
-		super("Script Explorer");
+		/* SHELL_TRIM (unlike PlugInFrame's own DIALOG_TRIM|RESIZE default) adds MIN/MAX, which is what gives this window a native maximize/zoom button - and, on macOS, the "Enter Full Screen" affordance that comes with it. */
+		super("Script Explorer", SWT.SHELL_TRIM);
 		/* Restores which folders were left expanded last time (empty on the very first startup, so everything starts collapsed). */
 		String storedExpandedPaths = Prefs.get(EXPANDED_PATHS_KEY, "");
 		if(storedExpandedPaths.length() > 0) {
@@ -142,7 +164,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			createToolbar(composite);
 			sashForm = new SashForm(composite, SWT.HORIZONTAL);
 			sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-			tree = new Tree(sashForm, SWT.BORDER);
+			tree = new Tree(sashForm, SWT.BORDER | SWT.MULTI);
 			createIcons(getShell().getDisplay());
 			tabFolder = new CTabFolder(sashForm, SWT.BORDER);
 			tabFolder.setSimple(false);
@@ -741,7 +763,21 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	 * File extensions Editor can actually open/run (see Editor.getOptions(String)/runMacro()),
 	 * plus plain ".txt" (macros are commonly saved with that extension too).
 	 */
-	private static final String[] SUPPORTED_EXTENSIONS = {".ijm", ".js", ".bsh", ".py", ".java", ".txt", ".jar"};
+	private static final String[] SUPPORTED_EXTENSIONS = {".ijm", ".js", ".bsh", ".py", ".java", ".txt", ".jar", ".zip", ".tar.gz", ".tgz"};
+
+	/** Archive extensions that can be unpacked (see handleArchiveClick()); a subset of SUPPORTED_EXTENSIONS. */
+	private static final String[] ARCHIVE_EXTENSIONS = {".jar", ".zip", ".tar.gz", ".tgz"};
+
+	private static boolean isArchiveFile(File file) {
+
+		String name = file.getName().toLowerCase();
+		for(String extension : ARCHIVE_EXTENSIONS) {
+			if(name.endsWith(extension)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private static boolean isSupportedFile(File file) {
 
@@ -808,8 +844,8 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			public void handleEvent(Event event) {
 
 				if(event.item instanceof TreeItem item && item.getData() instanceof File file && file.isFile()) {
-					if(file.getName().toLowerCase().endsWith(".jar")) {
-						handleJarClick(file);
+					if(isArchiveFile(file)) {
+						handleArchiveClick(file);
 					} else {
 						openFile(file);
 					}
@@ -1015,22 +1051,56 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			}
 		});
 		MenuItem pasteItem = new MenuItem(contextMenu, SWT.PUSH);
-		pasteItem.setText("Paste");
+		pasteItem.setText("Paste\tCmd+V");
 		pasteItem.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
-				if(clipboardFile == null) {
-					return;
+				pasteClipboard();
+			}
+		});
+		/* Cmd+V (Ctrl+V on Windows/Linux) - same paste as the context menu item above, without having to open it first. */
+		tree.addListener(SWT.KeyDown, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+
+				if((event.stateMask & SWT.MOD1) != 0 && (event.character == 'v' || event.character == 'V')) {
+					pasteClipboard();
 				}
+			}
+		});
+		MenuItem renameItem = new MenuItem(contextMenu, SWT.PUSH);
+		renameItem.setText("Rename...");
+		renameItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
 				TreeItem[] selection = tree.getSelection();
-				TreeItem target = selection.length == 1 ? selection[0] : null;
-				File targetDirectory = resolveDropTargetDirectory(target);
-				if(targetDirectory == null) {
+				if(selection.length != 1 || !(selection[0].getData() instanceof File file)) {
 					return;
 				}
-				copyFileInto(clipboardFile, targetDirectory);
+				GenericDialog gd = new GenericDialog("Rename");
+				gd.addStringField("New name:", file.getName());
+				gd.showDialog();
+				if(gd.wasCanceled()) {
+					return;
+				}
+				String newName = gd.getNextString().trim();
+				if(newName.isEmpty() || newName.equals(file.getName())) {
+					return;
+				}
+				File renamed = new File(file.getParentFile(), newName);
+				if(renamed.exists()) {
+					IJ.error("Rename", "\"" + newName + "\" already exists in " + file.getParentFile().getAbsolutePath());
+					return;
+				}
+				if(!file.renameTo(renamed)) {
+					IJ.error("Rename", "Could not rename \"" + file.getName() + "\" to \"" + newName + "\"");
+					return;
+				}
 				refreshTree();
 			}
 		});
@@ -1042,19 +1112,49 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
-				TreeItem[] selection = tree.getSelection();
-				if(selection.length != 1 || !(selection[0].getData() instanceof File file)) {
+				List<File> files = new ArrayList<>();
+				for(TreeItem item : tree.getSelection()) {
+					if(item.getData() instanceof File file) {
+						files.add(file);
+					}
+				}
+				if(files.isEmpty()) {
 					return;
 				}
-				String message = "Delete \"" + file.getName() + "\"?";
-				if(file.isDirectory()) {
-					message += " This will delete the folder and everything inside it.";
+				String message;
+				if(files.size() == 1) {
+					message = "Delete \"" + files.get(0).getName() + "\"?";
+					if(files.get(0).isDirectory()) {
+						message += " This will delete the folder and everything inside it.";
+					}
+				} else {
+					message = "Delete " + files.size() + " selected items?";
+					boolean anyFolders = false;
+					for(File file : files) {
+						anyFolders = anyFolders || file.isDirectory();
+					}
+					if(anyFolders) {
+						message += " This will delete any selected folders and everything inside them.";
+					}
 				}
 				if(!IJ.showMessageWithCancel("Delete", message)) {
 					return;
 				}
-				deleteRecursively(file);
+				for(File file : files) {
+					deleteRecursively(file);
+				}
 				refreshTree();
+			}
+		});
+		new MenuItem(contextMenu, SWT.SEPARATOR);
+		MenuItem createPluginJarItem = new MenuItem(contextMenu, SWT.PUSH);
+		createPluginJarItem.setText("Create Plugin Jar...");
+		createPluginJarItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				createPluginJar();
 			}
 		});
 		contextMenu.addMenuListener(new MenuAdapter() {
@@ -1063,43 +1163,546 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			public void menuShown(MenuEvent e) {
 
 				TreeItem[] selection = tree.getSelection();
-				boolean hasSelection = selection.length == 1 && selection[0].getData() instanceof File;
-				copyItem.setEnabled(hasSelection);
-				deleteItem.setEnabled(hasSelection);
-				pasteItem.setEnabled(clipboardFile != null);
+				boolean hasSingleSelection = selection.length == 1 && selection[0].getData() instanceof File;
+				boolean hasAnySelection = selection.length >= 1;
+				for(TreeItem item : selection) {
+					hasAnySelection = hasAnySelection && item.getData() instanceof File;
+				}
+				copyItem.setEnabled(hasSingleSelection);
+				renameItem.setEnabled(hasSingleSelection);
+				deleteItem.setEnabled(hasAnySelection);
+				createPluginJarItem.setEnabled(hasAnySelection);
+				String systemClipboardText = getSystemClipboardText();
+				pasteItem.setEnabled(clipboardFile != null || getSystemClipboardFiles() != null || (systemClipboardText != null && !systemClipboardText.isEmpty()));
 			}
 		});
 	}
 
 	/**
-	 * Asks whether to unpack the clicked *.jar, and if confirmed, extracts it into a new
-	 * sibling folder (named after the jar, without the extension) in the same directory.
+	 * Packages the selected files (any selected folders are expanded recursively) into an
+	 * ImageJ plugin jar: any *.java sources are compiled together (so a main class plus its own
+	 * helper classes all end up in the same jar), *.class files are included as-is, and
+	 * anything else is bundled as a resource. A dialog lets the user pick which class is the
+	 * plugin's entry point and configure the plugins.config entry (menu location + label) that
+	 * makes it show up in a menu once the jar is dropped into the plugins folder.
 	 */
-	private void handleJarClick(File jarFile) {
+	private void createPluginJar() {
 
-		boolean unpack = IJ.showMessageWithCancel("Unpack Jar", "Unpack \"" + jarFile.getName() + "\"?");
-		if(!unpack) {
+		List<File> selectedFiles = new ArrayList<>();
+		for(TreeItem item : tree.getSelection()) {
+			if(item.getData() instanceof File file) {
+				selectedFiles.add(file);
+			}
+		}
+		if(selectedFiles.isEmpty()) {
 			return;
 		}
-		String folderName = jarFile.getName();
-		int dot = folderName.lastIndexOf('.');
-		if(dot > 0) {
-			folderName = folderName.substring(0, dot);
+		List<File> allFiles = new ArrayList<>();
+		for(File file : selectedFiles) {
+			collectFilesRecursively(file, allFiles);
 		}
-		File destination = new File(jarFile.getParentFile(), folderName);
-		if(!destination.exists() && !destination.mkdir()) {
-			IJ.error("Unpack Jar", "Could not create folder " + destination.getAbsolutePath());
+		List<File> javaSources = new ArrayList<>();
+		List<File> rawClassFiles = new ArrayList<>();
+		List<File> resourceFiles = new ArrayList<>();
+		for(File file : allFiles) {
+			String name = file.getName().toLowerCase();
+			if(name.endsWith(".java")) {
+				javaSources.add(file);
+			} else if(name.endsWith(".class")) {
+				rawClassFiles.add(file);
+			} else {
+				resourceFiles.add(file);
+			}
+		}
+		/*
+		 * Also pull in every OTHER .java file sitting in the same folder as anything selected,
+		 * regardless of its own package declaration - a package statement alone doesn't mean the
+		 * file actually lives in a matching package-path subdirectory (Script Explorer's flat
+		 * tree doesn't require that Maven-style layout), so relying on javac to auto-discover an
+		 * unselected sibling class via -sourcepath (see compileJavaSources()) only works when
+		 * the physical folder layout happens to match the declared package. Always including
+		 * every .java neighbor directly is simpler and doesn't depend on that ever being true.
+		 */
+		Set<File> javaSourceDirs = new LinkedHashSet<>();
+		for(File source : javaSources) {
+			File parent = source.getParentFile();
+			if(parent != null) {
+				javaSourceDirs.add(parent);
+			}
+		}
+		Set<File> allJavaSources = new LinkedHashSet<>(javaSources);
+		for(File dir : javaSourceDirs) {
+			File[] siblings = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".java"));
+			if(siblings != null) {
+				for(File sibling : siblings) {
+					allJavaSources.add(sibling);
+				}
+			}
+		}
+		javaSources = new ArrayList<>(allJavaSources);
+		if(javaSources.isEmpty() && rawClassFiles.isEmpty()) {
+			IJ.error("Create Plugin Jar", "No .java or .class file found in the selection.");
 			return;
 		}
-		unpackJar(jarFile, destination);
+		File tempOutputDir = null;
+		try {
+			List<String> candidateClassNames = new ArrayList<>();
+			/*
+			 * Classes that actually look like a real ImageJ plugin entry point (implements
+			 * PlugIn/PlugInFilter) are pulled to the front, so the dialog defaults to one of
+			 * those instead of an arbitrary helper/utility class that happens to compile first -
+			 * picking one of those as "main" would silently produce a jar that ImageJ can't
+			 * actually run as a plugin.
+			 */
+			List<String> pluginEntryPointClassNames = new ArrayList<>();
+			/* fully qualified class name -> its compiled .class file (under tempOutputDir), for every compiled java source. */
+			Map<String, File> compiledClassFiles = new LinkedHashMap<>();
+			if(!javaSources.isEmpty()) {
+				tempOutputDir = Files.createTempDirectory("scriptexplorer_pluginjar").toFile();
+				if(!compileJavaSources(javaSources, tempOutputDir)) {
+					return; // compileJavaSources() already reported the error
+				}
+				for(File source : javaSources) {
+					String className = extractFullyQualifiedClassName(source);
+					if(className == null) {
+						continue;
+					}
+					File classFile = new File(tempOutputDir, className.replace('.', File.separatorChar) + ".class");
+					if(classFile.exists()) {
+						if(looksLikePluginEntryPoint(source)) {
+							pluginEntryPointClassNames.add(className);
+						} else {
+							candidateClassNames.add(className);
+						}
+						compiledClassFiles.put(className, classFile);
+					}
+				}
+				candidateClassNames.addAll(0, pluginEntryPointClassNames);
+			}
+			for(File classFile : rawClassFiles) {
+				String name = classFile.getName();
+				String simpleName = name.substring(0, name.length() - ".class".length());
+				if(!candidateClassNames.contains(simpleName)) {
+					candidateClassNames.add(simpleName);
+				}
+			}
+			if(candidateClassNames.isEmpty()) {
+				IJ.error("Create Plugin Jar", "Could not determine any class to package (compilation produced no .class files).");
+				return;
+			}
+			String defaultMainClass = candidateClassNames.get(0);
+			GenericDialog gd = new GenericDialog("Create Plugin Jar");
+			gd.addChoice("Main plugin class:", candidateClassNames.toArray(new String[0]), defaultMainClass);
+			gd.addStringField("Menu location:", "Plugins");
+			gd.addStringField("Menu label:", defaultMenuLabel(defaultMainClass));
+			gd.addStringField("Jar file name:", defaultJarName(defaultMainClass));
+			gd.showDialog();
+			if(gd.wasCanceled()) {
+				return;
+			}
+			String mainClassName = gd.getNextChoice();
+			if(!pluginEntryPointClassNames.isEmpty() && !pluginEntryPointClassNames.contains(mainClassName)) {
+				if(!IJ.showMessageWithCancel("Create Plugin Jar", "\"" + mainClassName + "\" doesn't appear to implement PlugIn or PlugInFilter, so ImageJ may not be able to run it as a plugin.\n\nUse it as the main class anyway?")) {
+					return;
+				}
+			}
+			String menuLocation = gd.getNextString().trim();
+			String menuLabel = gd.getNextString().trim();
+			String jarFileName = gd.getNextString().trim();
+			if(menuLocation.isEmpty() || menuLabel.isEmpty() || jarFileName.isEmpty()) {
+				return;
+			}
+			if(!jarFileName.toLowerCase().endsWith(".jar")) {
+				jarFileName += ".jar";
+			}
+			/*
+			 * Menus.getPlugins() (the actual Plugins-menu scanner) only even looks at a *.jar
+			 * file if its OWN file name contains an underscore - without one, our
+			 * plugins.config inside it would never be read at all, no matter how correct
+			 * everything else is.
+			 */
+			if(jarFileName.indexOf('_') < 0) {
+				String suggestedName = jarFileName.substring(0, jarFileName.length() - ".jar".length()) + "_.jar";
+				if(!IJ.showMessageWithCancel("Create Plugin Jar", "ImageJ only scans plugin jars whose file name contains an underscore.\n\nName it \"" + suggestedName + "\" instead?")) {
+					return;
+				}
+				jarFileName = suggestedName;
+			}
+			TreeItem[] selection = tree.getSelection();
+			TreeItem target = selection.length == 1 ? selection[0] : null;
+			File targetDirectory = resolveDropTargetDirectory(target);
+			if(targetDirectory == null) {
+				return;
+			}
+			String pluginsPath = Menus.getPlugInsPath();
+			if(pluginsPath != null && !isWithin(targetDirectory, new File(pluginsPath))) {
+				if(!IJ.showMessageWithCancel("Create Plugin Jar", "\"" + targetDirectory.getAbsolutePath() + "\" is not inside the plugins folder (" + pluginsPath + "), so ImageJ won't add it to the Plugins menu.\n\nCreate it here anyway?")) {
+					return;
+				}
+			}
+			File jarFile = new File(targetDirectory, jarFileName);
+			if(jarFile.exists() && !IJ.showMessageWithCancel("Create Plugin Jar", "\"" + jarFileName + "\" already exists. Overwrite it?")) {
+				return;
+			}
+			String pluginsConfig = menuLocation + ", \"" + menuLabel + "\", " + mainClassName + "\n";
+			writePluginJar(jarFile, tempOutputDir, compiledClassFiles.values(), rawClassFiles, resourceFiles, pluginsConfig);
+			refreshTree();
+			/* Without this, the new jar sits on disk but stays invisible in the Plugins menu until the user runs Help > Refresh Menus (or restarts) themselves. */
+			Menus.updateImageJMenus();
+			IJ.showStatus("Created " + jarFile.getName() + " and refreshed the Plugins menu");
+		} catch(IOException e) {
+			IJ.error("Create Plugin Jar", "Could not create plugin jar:\n" + e.getMessage());
+		} finally {
+			if(tempOutputDir != null) {
+				deleteRecursively(tempOutputDir);
+			}
+		}
+	}
+
+	/** Recursively collects every plain file under file (file itself, if it's not a directory). */
+	private void collectFilesRecursively(File file, List<File> result) {
+
+		if(file.isDirectory()) {
+			File[] children = file.listFiles();
+			if(children != null) {
+				for(File child : children) {
+					collectFilesRecursively(child, result);
+				}
+			}
+		} else {
+			result.add(file);
+		}
+	}
+
+	/** @return whether child is ancestor itself, or is nested (at any depth) inside it. */
+	private static boolean isWithin(File child, File ancestor) {
+
+		File current = child.getAbsoluteFile();
+		File target = ancestor.getAbsoluteFile();
+		while(current != null) {
+			if(current.equals(target)) {
+				return true;
+			}
+			current = current.getParentFile();
+		}
+		return false;
+	}
+
+	/**
+	 * Compiles every given .java source together into outputDir (javac preserves each class's
+	 * own package directory structure there), using the currently running JVM's own classpath
+	 * so ij.* (and anything else already loaded) references resolve without extra setup - plus
+	 * an explicit -sourcepath covering each source's own package root, so a helper class in the
+	 * same folder/package that the user didn't happen to select too (e.g. a plugin's main class
+	 * referencing a sibling "ChatWindow" class) still gets found and compiled automatically,
+	 * instead of failing with "symbol not found".
+	 */
+	private boolean compileJavaSources(List<File> javaSources, File outputDir) {
+
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		if(compiler == null) {
+			IJ.error("Create Plugin Jar", "No system Java compiler available (running on a JRE rather than a JDK?).");
+			return false;
+		}
+		Set<String> sourceRoots = new LinkedHashSet<>();
+		for(File source : javaSources) {
+			File root = packageRootDirectory(source);
+			if(root != null) {
+				sourceRoots.add(root.getAbsolutePath());
+			}
+		}
+		String sourcePath = String.join(File.pathSeparator, sourceRoots);
+		List<String> options = new ArrayList<>();
+		options.add("-d");
+		options.add(outputDir.getAbsolutePath());
+		options.add("-classpath");
+		options.add(sourceRoots.isEmpty() ? System.getProperty("java.class.path") : System.getProperty("java.class.path") + File.pathSeparator + sourcePath);
+		if(!sourceRoots.isEmpty()) {
+			options.add("-sourcepath");
+			options.add(sourcePath);
+		}
+		List<String> sourcePaths = new ArrayList<>();
+		for(File source : javaSources) {
+			sourcePaths.add(source.getAbsolutePath());
+		}
+		StringWriter diagnosticsOutput = new StringWriter();
+		boolean success;
+		try(StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
+			Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(sourcePaths);
+			JavaCompiler.CompilationTask task = compiler.getTask(diagnosticsOutput, fileManager, null, options, null, compilationUnits);
+			success = task.call();
+		} catch(IOException e) {
+			IJ.error("Create Plugin Jar", "Could not compile:\n" + e.getMessage());
+			return false;
+		}
+		if(!success) {
+			IJ.error("Create Plugin Jar", "Compilation failed:\n" + diagnosticsOutput);
+		}
+		return success;
+	}
+
+	/**
+	 * Best-effort check for whether a .java source declares a class that implements
+	 * ij.plugin.PlugIn or ij.plugin.filter.PlugInFilter - i.e. whether it could actually work as
+	 * an ImageJ plugin's entry point, as opposed to a helper/utility class. Used only to pick a
+	 * sensible default (and warn on an unusual choice) in the "Create Plugin Jar" dialog, so a
+	 * simple text scan is enough - it doesn't need to be a real type-aware check.
+	 */
+	private static boolean looksLikePluginEntryPoint(File javaSource) {
+
+		try {
+			String text = Files.readString(javaSource.toPath());
+			return Pattern.compile("(?m)^\\s*public\\s+(?:final\\s+|abstract\\s+)*class\\s+\\w+[^{;]*\\bimplements\\b[^{;]*\\bPlugIn(Filter)?\\b").matcher(text).find();
+		} catch(IOException e) {
+			return false;
+		}
+	}
+
+	/** Best-effort extraction of a .java source's own "package ...;" declaration, or null if it's in the default package - a simple text scan, no real parser needed for this. */
+	private static String extractPackageName(File javaSource) {
+
+		try {
+			String text = Files.readString(javaSource.toPath());
+			Matcher packageMatcher = Pattern.compile("(?m)^\\s*package\\s+([\\w.]+)\\s*;").matcher(text);
+			return packageMatcher.find() ? packageMatcher.group(1) : null;
+		} catch(IOException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * @return the directory that a .java source's package structure is rooted at - i.e. its
+	 *         parent directory, walked back up once per package segment (e.g. a class in
+	 *         "com.example" two directories below its source root walks back up two levels) -
+	 *         or just its parent directory directly if it's in the default package. This is
+	 *         what javac's -sourcepath needs to actually find the file by its class name.
+	 */
+	private static File packageRootDirectory(File javaSource) {
+
+		String packageName = extractPackageName(javaSource);
+		File dir = javaSource.getParentFile();
+		if(packageName != null && !packageName.isEmpty()) {
+			int segments = packageName.split("\\.").length;
+			for(int i = 0; i < segments && dir != null; i++) {
+				dir = dir.getParentFile();
+			}
+		}
+		return dir;
+	}
+
+	/** Best-effort extraction of a .java source's fully qualified (package + public class) name - a simple text scan, no real parser needed for this. */
+	private static String extractFullyQualifiedClassName(File javaSource) {
+
+		try {
+			String text = Files.readString(javaSource.toPath());
+			String packageName = extractPackageName(javaSource);
+			Matcher classMatcher = Pattern.compile("(?m)^\\s*public\\s+(?:final\\s+|abstract\\s+)*class\\s+(\\w+)").matcher(text);
+			String className;
+			if(classMatcher.find()) {
+				className = classMatcher.group(1);
+			} else {
+				/* No public class found (e.g. a package-private helper class) - Java requires its file name to match anyway. */
+				String fileName = javaSource.getName();
+				className = fileName.substring(0, fileName.length() - ".java".length());
+			}
+			return packageName == null ? className : packageName + "." + className;
+		} catch(IOException e) {
+			return null;
+		}
+	}
+
+	private static String defaultJarName(String mainClassName) {
+
+		int lastDot = mainClassName.lastIndexOf('.');
+		String simpleName = lastDot >= 0 ? mainClassName.substring(lastDot + 1) : mainClassName;
+		return simpleName + ".jar";
+	}
+
+	/** Derives a human-friendly menu label from a class name, matching ImageJ's own "Foo_Bar_" -> "Foo Bar" convention. */
+	private static String defaultMenuLabel(String mainClassName) {
+
+		int lastDot = mainClassName.lastIndexOf('.');
+		String simpleName = lastDot >= 0 ? mainClassName.substring(lastDot + 1) : mainClassName;
+		while(simpleName.endsWith("_")) {
+			simpleName = simpleName.substring(0, simpleName.length() - 1);
+		}
+		return simpleName.replace('_', ' ').trim();
+	}
+
+	/**
+	 * Writes a new plugin jar containing: every compiled class under compiledClassFilesRoot (at
+	 * its own package-derived path), every raw *.class file the user selected directly (at the
+	 * jar root), every other selected file as a plain resource (at the jar root), and a
+	 * plugins.config entry so the plugin shows up in a menu once this jar is in the plugins
+	 * folder.
+	 */
+	private void writePluginJar(File jarFile, File compiledClassFilesRoot, Collection<File> compiledClassFiles, List<File> rawClassFiles, List<File> resourceFiles, String pluginsConfig) throws IOException {
+
+		Manifest manifest = new Manifest();
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		Set<String> writtenEntries = new HashSet<>();
+		try(JarOutputStream jar = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)), manifest)) {
+			jar.putNextEntry(new JarEntry("plugins.config"));
+			jar.write(pluginsConfig.getBytes(StandardCharsets.UTF_8));
+			jar.closeEntry();
+			writtenEntries.add("plugins.config");
+			for(File classFile : compiledClassFiles) {
+				String entryName = compiledClassFilesRoot.toPath().relativize(classFile.toPath()).toString();
+				addJarEntry(jar, entryName, classFile, writtenEntries);
+			}
+			for(File classFile : rawClassFiles) {
+				addJarEntry(jar, classFile.getName(), classFile, writtenEntries);
+			}
+			for(File resource : resourceFiles) {
+				addJarEntry(jar, resource.getName(), resource, writtenEntries);
+			}
+		}
+	}
+
+	private static void addJarEntry(JarOutputStream jar, String entryName, File sourceFile, Set<String> writtenEntries) throws IOException {
+
+		entryName = entryName.replace(File.separatorChar, '/');
+		if(!writtenEntries.add(entryName)) {
+			return;
+		}
+		jar.putNextEntry(new JarEntry(entryName));
+		Files.copy(sourceFile.toPath(), jar);
+		jar.closeEntry();
+	}
+
+	/**
+	 * Pastes clipboardFile (copied via this tree's own "Copy") if there is one; otherwise falls
+	 * back to whatever file(s) are currently on the OS clipboard (e.g. copied in Finder); and
+	 * failing that, to plain copied text (e.g. from a text editor), which is written out as a
+	 * new file (see pasteTextAsNewFile()). Always targets whichever item is currently selected
+	 * (its own path if a folder, otherwise its parent - same resolution as drag & drop). Shared
+	 * by the "Paste" context menu item and the Cmd+V key binding.
+	 */
+	private void pasteClipboard() {
+
+		TreeItem[] selection = tree.getSelection();
+		TreeItem target = selection.length == 1 ? selection[0] : null;
+		File targetDirectory = resolveDropTargetDirectory(target);
+		if(targetDirectory == null) {
+			return;
+		}
+		if(clipboardFile != null) {
+			copyFileInto(clipboardFile, targetDirectory);
+			refreshTree();
+			return;
+		}
+		File[] systemClipboardFiles = getSystemClipboardFiles();
+		if(systemClipboardFiles != null) {
+			for(File file : systemClipboardFiles) {
+				copyFileInto(file, targetDirectory);
+			}
+			refreshTree();
+			return;
+		}
+		String text = getSystemClipboardText();
+		if(text != null && !text.isEmpty()) {
+			pasteTextAsNewFile(text, targetDirectory);
+		}
+	}
+
+	/** Prompts for a file name, then writes text into a new file with that name in targetDirectory. */
+	private void pasteTextAsNewFile(String text, File targetDirectory) {
+
+		GenericDialog gd = new GenericDialog("Paste as New File");
+		gd.addStringField("File name:", "Untitled.txt");
+		gd.showDialog();
+		if(gd.wasCanceled()) {
+			return;
+		}
+		String fileName = gd.getNextString().trim();
+		if(fileName.isEmpty()) {
+			return;
+		}
+		File newFile = new File(targetDirectory, fileName);
+		if(newFile.exists()) {
+			IJ.error("Paste as New File", "\"" + fileName + "\" already exists in " + targetDirectory.getAbsolutePath());
+			return;
+		}
+		try {
+			Files.writeString(newFile.toPath(), text);
+		} catch(IOException e) {
+			IJ.error("Paste as New File", "Could not create \"" + fileName + "\":\n" + e.getMessage());
+			return;
+		}
 		refreshTree();
 	}
 
-	/** Extracts every entry of the given jar (a plain zip archive) into destination, creating sub-folders as needed. */
-	private void unpackJar(File jarFile, File destination) {
+	/** @return the file paths currently on the OS clipboard (e.g. copied in Finder/Explorer), or null if there are none. */
+	private File[] getSystemClipboardFiles() {
+
+		Clipboard clipboard = new Clipboard(tree.getDisplay());
+		try {
+			Object contents = clipboard.getContents(FileTransfer.getInstance());
+			if(!(contents instanceof String[] paths) || paths.length == 0) {
+				return null;
+			}
+			File[] files = new File[paths.length];
+			for(int i = 0; i < paths.length; i++) {
+				files[i] = new File(paths[i]);
+			}
+			return files;
+		} finally {
+			clipboard.dispose();
+		}
+	}
+
+	/** @return the plain text currently on the OS clipboard (e.g. copied in a text editor), or null if there is none. */
+	private String getSystemClipboardText() {
+
+		Clipboard clipboard = new Clipboard(tree.getDisplay());
+		try {
+			Object contents = clipboard.getContents(TextTransfer.getInstance());
+			return contents instanceof String text ? text : null;
+		} finally {
+			clipboard.dispose();
+		}
+	}
+
+	/** Strips a recognized archive extension off a filename (".tar.gz" specially, since it has two dots) for the destination folder's name. */
+	private static String stripArchiveExtension(String fileName) {
+
+		if(fileName.toLowerCase().endsWith(".tar.gz")) {
+			return fileName.substring(0, fileName.length() - ".tar.gz".length());
+		}
+		int dot = fileName.lastIndexOf('.');
+		return dot > 0 ? fileName.substring(0, dot) : fileName;
+	}
+
+	/**
+	 * Asks whether to unpack the clicked archive (*.jar/*.zip/*.tar.gz/*.tgz), and if confirmed,
+	 * extracts it into a new sibling folder (named after the archive, without the extension) in
+	 * the same directory.
+	 */
+	private void handleArchiveClick(File archiveFile) {
+
+		boolean unpack = IJ.showMessageWithCancel("Unpack Archive", "Unpack \"" + archiveFile.getName() + "\"?");
+		if(!unpack) {
+			return;
+		}
+		File destination = new File(archiveFile.getParentFile(), stripArchiveExtension(archiveFile.getName()));
+		if(!destination.exists() && !destination.mkdir()) {
+			IJ.error("Unpack Archive", "Could not create folder " + destination.getAbsolutePath());
+			return;
+		}
+		String name = archiveFile.getName().toLowerCase();
+		if(name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
+			unpackTarGz(archiveFile, destination);
+		} else {
+			unpackZip(archiveFile, destination);
+		}
+		refreshTree();
+	}
+
+	/** Extracts every entry of the given jar/zip archive into destination, creating sub-folders as needed. */
+	private void unpackZip(File zipFile, File destination) {
 
 		byte[] buffer = new byte[8192];
-		try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(jarFile.toPath()))) {
+		try(ZipInputStream zip = new ZipInputStream(Files.newInputStream(zipFile.toPath()))) {
 			ZipEntry entry;
 			while((entry = zip.getNextEntry()) != null) {
 				File outFile = new File(destination, entry.getName());
@@ -1120,7 +1723,119 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 				zip.closeEntry();
 			}
 		} catch(IOException e) {
-			IJ.error("Unpack Jar", "Could not unpack \"" + jarFile.getName() + "\":\n" + e.getMessage());
+			IJ.error("Unpack Archive", "Could not unpack \"" + zipFile.getName() + "\":\n" + e.getMessage());
+		}
+	}
+
+	/**
+	 * Extracts every entry of a gzip-compressed tar archive (*.tar.gz/*.tgz) into destination.
+	 * The JDK has no built-in tar reader (unlike zip/jar), so this is a small, self-contained
+	 * reader for the classic (POSIX/USTAR) 512-byte-block tar format: a fixed-size header per
+	 * entry (name, size, type, and - for names too long for the 100-byte name field - a USTAR
+	 * "prefix" field) followed by the entry's content, both padded up to the next 512-byte
+	 * boundary.
+	 */
+	private void unpackTarGz(File archiveFile, File destination) {
+
+		byte[] header = new byte[512];
+		byte[] buffer = new byte[8192];
+		try(InputStream in = new GZIPInputStream(new BufferedInputStream(Files.newInputStream(archiveFile.toPath())))) {
+			while(true) {
+				if(readFully(in, header) < header.length || isAllZero(header)) {
+					break; // truncated stream, or the two all-zero end-of-archive blocks
+				}
+				String name = readTarString(header, 0, 100);
+				String prefix = readTarString(header, 345, 155);
+				if(!prefix.isEmpty()) {
+					name = prefix + "/" + name;
+				}
+				long size = readTarOctal(header, 124, 12);
+				char typeFlag = (char)header[156];
+				File outFile = new File(destination, name);
+				if(typeFlag == '5' || name.endsWith("/")) {
+					outFile.mkdirs();
+				} else if(typeFlag == '0' || typeFlag == 0) {
+					File parent = outFile.getParentFile();
+					if(parent != null && !parent.exists()) {
+						parent.mkdirs();
+					}
+					try(OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile))) {
+						long remaining = size;
+						while(remaining > 0) {
+							int n = in.read(buffer, 0, (int)Math.min(buffer.length, remaining));
+							if(n < 0) {
+								break;
+							}
+							out.write(buffer, 0, n);
+							remaining -= n;
+						}
+					}
+				} else {
+					skipFully(in, size); // symlink/hardlink/other entry types: skip content, nothing to extract
+				}
+				skipFully(in, (512 - (size % 512)) % 512); // content is padded up to the next 512-byte boundary
+			}
+		} catch(IOException e) {
+			IJ.error("Unpack Archive", "Could not unpack \"" + archiveFile.getName() + "\":\n" + e.getMessage());
+		}
+	}
+
+	private static int readFully(InputStream in, byte[] buf) throws IOException {
+
+		int total = 0;
+		while(total < buf.length) {
+			int n = in.read(buf, total, buf.length - total);
+			if(n < 0) {
+				break;
+			}
+			total += n;
+		}
+		return total;
+	}
+
+	private static void skipFully(InputStream in, long count) throws IOException {
+
+		byte[] discard = new byte[8192];
+		long remaining = count;
+		while(remaining > 0) {
+			int n = in.read(discard, 0, (int)Math.min(discard.length, remaining));
+			if(n < 0) {
+				break;
+			}
+			remaining -= n;
+		}
+	}
+
+	private static boolean isAllZero(byte[] buf) {
+
+		for(byte b : buf) {
+			if(b != 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static String readTarString(byte[] header, int offset, int length) {
+
+		int end = offset;
+		int limit = offset + length;
+		while(end < limit && header[end] != 0) {
+			end++;
+		}
+		return new String(header, offset, end - offset, java.nio.charset.StandardCharsets.UTF_8);
+	}
+
+	private static long readTarOctal(byte[] header, int offset, int length) {
+
+		String s = readTarString(header, offset, length).trim();
+		if(s.isEmpty()) {
+			return 0;
+		}
+		try {
+			return Long.parseLong(s, 8);
+		} catch(NumberFormatException e) {
+			return 0;
 		}
 	}
 

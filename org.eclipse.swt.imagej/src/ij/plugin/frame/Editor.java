@@ -38,12 +38,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITextViewerExtension2;
 import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.AnnotationModel;
+import org.eclipse.jface.text.source.AnnotationPainter;
 import org.eclipse.jface.text.source.AnnotationRulerColumn;
 import org.eclipse.jface.text.source.CompositeRuler;
 import org.eclipse.jface.text.source.IAnnotationAccess;
@@ -119,6 +126,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public static final int MONOSPACED = 1, MENU_BAR = 2, RUN_BAR = 4,
 			INSTALL_BUTTON = 8;
 	public static final int MACROS_MENU_ITEMS = 15;
+	/** Severities for addMarker()/addMarker() - meant to be fed from a compiler/parser's own reported error/warning/info locations. */
+	public static final int MARKER_ERROR = 0, MARKER_WARNING = 1, MARKER_INFO = 2;
+	private static final String[] MARKER_ANNOTATION_TYPES = {"ij.editor.marker.error", "ij.editor.marker.warning", "ij.editor.marker.info"};
 	public static final String INTERACTIVE_NAME = "Interactive Interpreter";
 	static final String FONT_SIZE = "editor.font.size";
 	static final String FONT_MONO = "editor.font.mono";
@@ -214,6 +224,12 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	protected ProjectionSupport projectionSupport;
 	protected ProjectionAnnotationModel projectionAnnotationModel;
 	protected Document document;
+	/** The document's own (non-folding-specific) annotation model - what addMarker()/clearMarkers() add to/remove from. */
+	private AnnotationModel annotationModel;
+	private AnnotationPainter markerAnnotationPainter;
+	/** One color per MARKER_ERROR/MARKER_WARNING/MARKER_INFO, used for both the ruler dot and the squiggly underline. */
+	private org.eclipse.swt.graphics.Color[] markerColors;
+	private final List<Annotation> markerAnnotations = new ArrayList<>();
 	protected Timer timer;
 	boolean contextMenu = false;
 	boolean embedded = false;
@@ -288,6 +304,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				language.addSelectionListener(Editor.this);
 				language.select(0);
 			}
+			/* Shared by the ruler column, ProjectionSupport's own fold column, and markerAnnotationPainter below. */
+			EditorAnnotationAccess editorAnnotationAccess = new EditorAnnotationAccess();
 			/* The ruler on the right side! */
 			IOverviewRuler overviewRuler = new OverviewRuler(null, 15, null);
 			/* The ruler on the left side with two columns (line number, annotations)! */
@@ -295,7 +313,26 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			lnrc = new LineNumberRulerColumn();
 			/* Muted grey, like Eclipse's own line number column! */
 			lnrc.setForeground(Color.darkGray);
-			AnnotationRulerColumn annotationRuler = new AnnotationRulerColumn(15);
+			/*
+			 * Passing editorAnnotationAccess here (rather than the no-arg constructor, which
+			 * leaves this column without any IAnnotationAccess at all) is what makes THIS ruler
+			 * column - as opposed to the folding-only one ProjectionSupport manages internally
+			 * below - actually able to paint anything: EditorAnnotationAccess.paint() only ever
+			 * delegates to IAnnotationPresentation.paint(), which is never called for any
+			 * annotation without an access object. This is what addMarker()'s error/warning/info
+			 * dots (see MarkerAnnotation) are drawn through.
+			 */
+			AnnotationRulerColumn annotationRuler = new AnnotationRulerColumn(15, editorAnnotationAccess);
+			/*
+			 * AnnotationRulerColumn has its OWN per-type allow-list (separate from
+			 * AnnotationPainter's, registered further below) - fAnnotationAccessExtension being
+			 * non-null is not enough by itself; every annotation TYPE the ruler should be
+			 * willing to paint at all must also be added here, or skip() always returns true
+			 * and nothing is ever drawn, no matter how correct the model/access wiring is.
+			 */
+			for(String markerAnnotationType : MARKER_ANNOTATION_TYPES) {
+				annotationRuler.addAnnotationType(markerAnnotationType);
+			}
 			ruler.addDecorator(0, annotationRuler);
 			ruler.addDecorator(1, lnrc);
 			/* Create a JFace Projection TextViewer! */
@@ -307,7 +344,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * Passing null here as the IAnnotationAccess means every fold annotation is
 			 * silently never painted, no matter how correct the model/positions are.
 			 */
-			projectionSupport = new ProjectionSupport(sourceViewer, new EditorAnnotationAccess(), new EditorSharedTextColors());
+			projectionSupport = new ProjectionSupport(sourceViewer, editorAnnotationAccess, new EditorSharedTextColors());
 			projectionSupport.install();
 			document = new Document();
 			/*
@@ -319,13 +356,39 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * unrelated, throwaway AnnotationModel must be passed here just to trigger that
 			 * setup. It also has to happen BEFORE doOperation(TOGGLE): ProjectionViewer only
 			 * wires the fold ruler column to a live model while a visual annotation model
-			 * already exists.
+			 * already exists. Kept (not thrown away) since addMarker()/clearMarkers() below add
+			 * to/remove from this exact model - it's the same one the ruler/overview ruler are
+			 * wired against.
 			 */
-			sourceViewer.setDocument(document, new AnnotationModel());
+			annotationModel = new AnnotationModel();
+			sourceViewer.setDocument(document, annotationModel);
 			// turn projection (code folding) mode on now that a document/visual annotation model exists
 			sourceViewer.doOperation(ProjectionViewer.TOGGLE);
 			/* This is the viewer's real, internally managed folding annotation model! */
 			projectionAnnotationModel = sourceViewer.getProjectionAnnotationModel();
+			markerColors = new org.eclipse.swt.graphics.Color[]{
+					new org.eclipse.swt.graphics.Color(Display.getDefault(), 220, 50, 50), // MARKER_ERROR
+					new org.eclipse.swt.graphics.Color(Display.getDefault(), 230, 160, 20), // MARKER_WARNING
+					new org.eclipse.swt.graphics.Color(Display.getDefault(), 60, 130, 220) // MARKER_INFO
+			};
+			/* addAnnotationType(Object) alone registers JFace's own built-in squiggly-underline drawing strategy for that type. */
+			markerAnnotationPainter = new AnnotationPainter(sourceViewer, editorAnnotationAccess);
+			for(int severity = 0; severity < MARKER_ANNOTATION_TYPES.length; severity++) {
+				markerAnnotationPainter.addAnnotationType(MARKER_ANNOTATION_TYPES[severity]);
+				markerAnnotationPainter.setAnnotationTypeColor(MARKER_ANNOTATION_TYPES[severity], markerColors[severity]);
+			}
+			sourceViewer.addPainter(markerAnnotationPainter);
+			/*
+			 * ITextViewerExtension2.setTextHover() works directly against this plain
+			 * ProjectionViewer without needing a full SourceViewerConfiguration (the usual way
+			 * hovers are wired in a real Eclipse editor, but overkill for just this one hover).
+			 * setHoverControlCreator() MUST be called first: setTextHover() immediately tries to
+			 * install the hover manager, but that install is a no-op unless a hover control
+			 * creator is already set - without it, the hover is registered but nothing ever
+			 * actually listens for the mouse resting over the text, so no popup ever appears.
+			 */
+			sourceViewer.setHoverControlCreator(shell -> new DefaultInformationControl(shell));
+			sourceViewer.setTextHover(new MarkerHover(), IDocument.DEFAULT_CONTENT_TYPE, ITextViewerExtension2.DEFAULT_HOVER_STATE_MASK);
 			completionEditor = new CompletionEditor(sourceViewer, Editor.this);
 			annotationRuler.getControl().setBackground(Color.lightGray);
 			overviewRuler.getControl().setBackground(Color.white);
@@ -564,6 +627,208 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 			return new Object[0];
 		}
+	}
+
+	/**
+	 * A suggested fix for a marker: description is shown to the user (e.g. in the hover, next
+	 * to "Double-click to apply"), replacement is the text that replaces the marker's whole
+	 * range when applied via applyQuickFix(int).
+	 */
+	public static class QuickFix {
+
+		public final String description;
+		public final String replacement;
+
+		public QuickFix(String description, String replacement) {
+
+			this.description = description;
+			this.replacement = replacement;
+		}
+	}
+
+	/**
+	 * A single compiler/parser-reported marker (error/warning/info) at a specific character
+	 * range. Implementing IAnnotationPresentation is what makes it paint its own colored dot
+	 * in the annotation ruler - EditorAnnotationAccess.paint() already delegates to any such
+	 * annotation generically, exactly like it already does for ProjectionAnnotation's own fold
+	 * triangles; the squiggly underline in the text itself is drawn separately, by
+	 * markerAnnotationPainter (registered per-type in the constructor). The marker's message
+	 * (shown in the hover, see MarkerHover) is inherited from Annotation.getText().
+	 */
+	private static class MarkerAnnotation extends Annotation implements IAnnotationPresentation {
+
+		private final org.eclipse.swt.graphics.Color color;
+		private final QuickFix quickFix;
+
+		MarkerAnnotation(int severity, String message, org.eclipse.swt.graphics.Color color, QuickFix quickFix) {
+
+			super(MARKER_ANNOTATION_TYPES[severity], false, message);
+			this.color = color;
+			this.quickFix = quickFix;
+		}
+
+		@Override
+		public int getLayer() {
+
+			return IAnnotationPresentation.DEFAULT_LAYER + 1;
+		}
+
+		@Override
+		public void paint(GC gc, Canvas canvas, Rectangle bounds) {
+
+			int size = Math.max(4, Math.min(bounds.width, bounds.height) - 2);
+			int x = bounds.x + Math.max(0, (bounds.width - size) / 2);
+			int y = bounds.y + Math.max(0, (bounds.height - size) / 2);
+			gc.setBackground(color);
+			gc.fillOval(x, y, size, size);
+		}
+	}
+
+	/**
+	 * Shows a marker's message (and, if it has one, its quick fix's description) as a hover
+	 * popup while the mouse rests over the marked-up text - registered onto sourceViewer in the
+	 * constructor via ITextViewerExtension2.setTextHover(), which (unlike a full
+	 * SourceViewerConfiguration) works directly against the plain ProjectionViewer already used
+	 * here.
+	 */
+	private class MarkerHover implements ITextHover {
+
+		@Override
+		public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
+
+			MarkerAnnotation marker = findMarkerAt(hoverRegion.getOffset());
+			if(marker == null) {
+				return null;
+			}
+			String info = marker.getText();
+			if(marker.quickFix != null) {
+				info += "\n\nDouble-click to apply fix: " + marker.quickFix.description;
+			}
+			return info;
+		}
+
+		@Override
+		public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
+
+			MarkerAnnotation marker = findMarkerAt(offset);
+			if(marker == null) {
+				return null;
+			}
+			Position position = annotationModel.getPosition(marker);
+			return position == null ? null : new Region(position.getOffset(), position.getLength());
+		}
+	}
+
+	/** @return the marker (if any) among markerAnnotations whose range includes offset, or null. */
+	private MarkerAnnotation findMarkerAt(int offset) {
+
+		for(Annotation annotation : markerAnnotations) {
+			if(annotation instanceof MarkerAnnotation marker) {
+				Position position = annotationModel.getPosition(marker);
+				if(position != null && position.includes(offset)) {
+					return marker;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Adds a marker (a colored dot in the ruler, plus a matching squiggly underline under the
+	 * given text) spanning the character range [startOffset, endOffset) - meant to be fed
+	 * directly from a compiler/parser's own reported error/warning/info locations, when it
+	 * already works in character offsets rather than line numbers. severity is one of
+	 * MARKER_ERROR/MARKER_WARNING/MARKER_INFO; message is shown as the marker's hover text. See
+	 * addMarker(int,int,String) for the line-number-addressed equivalent, and getQuickFixAt(int)
+	 * /applyQuickFix(int) for the optional suggested-fix mechanism.
+	 */
+	public void addMarker(int startOffset, int endOffset, int severity, String message) {
+
+		addMarker(startOffset, endOffset, severity, message, null);
+	}
+
+	/** Same as addMarker(int,int,int,String), plus a suggested fix the user can apply (see applyQuickFix(int)). */
+	public void addMarker(int startOffset, int endOffset, int severity, String message, QuickFix quickFix) {
+
+		if(severity < 0 || severity >= MARKER_ANNOTATION_TYPES.length || endOffset <= startOffset) {
+			return;
+		}
+		MarkerAnnotation annotation = new MarkerAnnotation(severity, message, markerColors[severity], quickFix);
+		Position position = new Position(startOffset, endOffset - startOffset);
+		Display.getDefault().syncExec(() -> {
+			markerAnnotations.add(annotation);
+			annotationModel.addAnnotation(annotation, position);
+		});
+	}
+
+	/**
+	 * Adds a marker spanning an entire line, addressed the way most compilers/parsers report
+	 * their own line numbers: 1-based (line 1 is the first line). See
+	 * addMarker(int,int,int,String) instead for a precise character-range marker.
+	 */
+	public void addMarker(int line, int severity, String message) {
+
+		addMarker(line, severity, message, null);
+	}
+
+	/** Same as addMarker(int,int,String), plus a suggested fix the user can apply (see applyQuickFix(int)). */
+	public void addMarker(int line, int severity, String message, QuickFix quickFix) {
+
+		AtomicReference<IRegion> lineRegion = new AtomicReference<>();
+		Display.getDefault().syncExec(() -> {
+			try {
+				lineRegion.set(document.getLineInformation(line - 1));
+			} catch(BadLocationException e) {
+				lineRegion.set(null);
+			}
+		});
+		IRegion region = lineRegion.get();
+		if(region == null) {
+			return;
+		}
+		addMarker(region.getOffset(), region.getOffset() + region.getLength(), severity, message, quickFix);
+	}
+
+	/** @return the quick fix for the marker at offset, if any (see MARKER_ERROR/MARKER_WARNING/MARKER_INFO), or null. */
+	public QuickFix getQuickFixAt(int offset) {
+
+		MarkerAnnotation marker = findMarkerAt(offset);
+		return marker == null ? null : marker.quickFix;
+	}
+
+	/**
+	 * Replaces the marker's whole range at offset with its quick fix's replacement text (see
+	 * addMarker(..., QuickFix)), then removes that marker. Also wired to a double-click on the
+	 * marked-up text itself (see mouseDoubleClick()). Does nothing (returns false) if there's no
+	 * marker with a quick fix at offset.
+	 */
+	public boolean applyQuickFix(int offset) {
+
+		MarkerAnnotation marker = findMarkerAt(offset);
+		if(marker == null || marker.quickFix == null) {
+			return false;
+		}
+		Position position = annotationModel.getPosition(marker);
+		if(position == null) {
+			return false;
+		}
+		Display.getDefault().syncExec(() -> {
+			ta.replaceTextRange(position.getOffset(), position.getLength(), marker.quickFix.replacement);
+			markerAnnotations.remove(marker);
+			annotationModel.removeAnnotation(marker);
+		});
+		return true;
+	}
+
+	/** Removes every marker previously added via addMarker() - e.g. right before a fresh compile/parse pass. */
+	public void clearMarkers() {
+
+		Display.getDefault().syncExec(() -> {
+			for(Annotation annotation : markerAnnotations) {
+				annotationModel.removeAnnotation(annotation);
+			}
+			markerAnnotations.clear();
+		});
 	}
 
 	public void setContextMenuStyledText(boolean contextMenu) {
@@ -2174,10 +2439,32 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			// Necessary to dispose the listener for the styling of keywords, etc.?
 			// ta.removeLineStyleListener(lineStyler);
 		}
+		if(markerAnnotationPainter != null && sourceViewer != null) {
+			/*
+			 * sourceViewer.removePainter(...) - NOT markerAnnotationPainter.dispose() directly -
+			 * is the correct teardown: it unregisters the painter from PaintManager AND calls
+			 * its deactivate(true)/disablePainting() while the StyledText is still alive. Calling
+			 * dispose() here instead leaves it registered but already nulled-out internally, so
+			 * the widget's OWN later disposal cascade (TextViewer.handleDispose() ->
+			 * setDocument(null,...) -> PaintManager.inputDocumentAboutToBeChanged() ->
+			 * deactivate() again) throws a NullPointerException trying to remove a paint
+			 * listener from an already-null text widget reference.
+			 *
+			 * This MUST run before font/fontNew are disposed below: deactivate(true) forces one
+			 * last repaint of the squiggly decorations (redraw=true), which re-measures ta's
+			 * current font via TextLayout.setFont() - if that font was already disposed first,
+			 * SWT rejects it with "IllegalArgumentException: Argument not valid".
+			 */
+			sourceViewer.removePainter(markerAnnotationPainter);
+		}
 		if(font != null && !font.isDisposed())
 			font.dispose();
 		if(fontNew != null && !fontNew.isDisposed())
 			fontNew.dispose();
+		if(markerColors != null)
+			for(org.eclipse.swt.graphics.Color color : markerColors)
+				if(color != null && !color.isDisposed())
+					color.dispose();
 	}
 
 	/**
@@ -2868,8 +3155,12 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 	@Override
 	public void mouseDoubleClick(org.eclipse.swt.events.MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
+		try {
+			applyQuickFix(ta.getOffsetAtPoint(new Point(arg0.x, arg0.y)));
+		} catch(IllegalArgumentException e) {
+			// double-click landed past the end of a line/the document - nothing to apply there
+		}
 	}
 
 	@Override
