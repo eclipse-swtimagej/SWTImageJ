@@ -148,26 +148,32 @@ public class Compiler implements PlugIn, FilenameFilter {
 		options.addElement(classpath);
 		Vector sources = new Vector();
 		/*
-		 * Only compiling the one file being run breaks as soon as it references a sibling class
-		 * in the same folder (e.g. "PreferencesDialog"/"ChatWindow") that isn't itself already
-		 * compiled: javac has no other source to resolve that symbol against, so it fails with
-		 * "symbol not found" even though the sibling .java file is sitting right there. Compiling
-		 * every .java file in the same folder together sidesteps needing getClassPath()'s
-		 * -classpath entry to double as a correct -sourcepath for javac to auto-discover them
-		 * (which only works if the folder layout happens to mirror any declared package, and
-		 * getClassPath() doesn't attempt that - see ScriptExplorer's "Create Plugin Jar", which
-		 * has the same requirement and takes the same approach).
+		 * Compiling just the one file breaks as soon as it references a sibling class in the
+		 * same folder (e.g. a package-scoped plugin's own "PreferencesDialog"/"ChatWindow" helper
+		 * classes) that isn't itself already compiled. But the plugins folder (and Script
+		 * Explorer subfolders generally) also conventionally holds many entirely unrelated,
+		 * independent single-file plugins side by side - bundling EVERY .java file in the
+		 * folder together regardless would mean one broken/unrelated file anywhere in that same
+		 * folder breaks compiling anything else in it. Only bundling siblings that share the
+		 * SAME declared package as the file being run targets exactly the multi-file-plugin-in-
+		 * its-own-package case (see ScriptExplorer's "Create Plugin Jar", which has the same
+		 * requirement and takes the same approach) without affecting the classic default-package,
+		 * one-file-per-plugin convention at all.
 		 */
 		File pathFile = new File(path).getAbsoluteFile();
+		String targetPackage = extractPackageName(pathFile);
 		File parentDir = pathFile.getParentFile();
-		String[] siblingNames = parentDir != null ? parentDir.list((d, n) -> n.toLowerCase().endsWith(".java")) : null;
+		String[] siblingNames = targetPackage != null && targetPackage.length() > 0 && parentDir != null ? parentDir.list((d, n) -> n.toLowerCase().endsWith(".java")) : null;
 		boolean pathIncluded = false;
 		if(siblingNames != null) {
 			for(String siblingName : siblingNames) {
 				File sibling = new File(parentDir, siblingName);
-				sources.add(sibling.getAbsolutePath());
-				if(sibling.equals(pathFile))
-					pathIncluded = true;
+				boolean isTargetFile = sibling.equals(pathFile);
+				if(isTargetFile || targetPackage.equals(extractPackageName(sibling))) {
+					sources.add(sibling.getAbsolutePath());
+					if(isTargetFile)
+						pathIncluded = true;
+				}
 			}
 		}
 		if(!pathIncluded)

@@ -1215,27 +1215,32 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			}
 		}
 		/*
-		 * Also pull in every OTHER .java file sitting in the same folder as anything selected,
-		 * regardless of its own package declaration - a package statement alone doesn't mean the
-		 * file actually lives in a matching package-path subdirectory (Script Explorer's flat
-		 * tree doesn't require that Maven-style layout), so relying on javac to auto-discover an
-		 * unselected sibling class via -sourcepath (see compileJavaSources()) only works when
-		 * the physical folder layout happens to match the declared package. Always including
-		 * every .java neighbor directly is simpler and doesn't depend on that ever being true.
+		 * Also pull in every OTHER .java file that shares a folder AND a declared package with
+		 * a selected source (e.g. a package-scoped plugin's own "PreferencesDialog"/"ChatWindow"
+		 * helper classes that the user didn't happen to select too) - relying on javac to
+		 * auto-discover an unselected sibling class via -sourcepath (see compileJavaSources())
+		 * only works when the physical folder layout happens to mirror the declared package,
+		 * which Script Explorer's flat tree doesn't require. Restricted to same-PACKAGE siblings
+		 * (rather than every .java neighbor regardless) because a folder - especially the
+		 * top-level plugins folder itself - conventionally also holds many entirely unrelated,
+		 * independent default-package plugins side by side; pulling in everything indiscriminately
+		 * would mean one broken/unrelated file anywhere in that folder breaks packaging anything
+		 * else in it. A selected file with no package declaration at all (the classic
+		 * one-file-per-plugin convention) never pulls in any siblings.
 		 */
-		Set<File> javaSourceDirs = new LinkedHashSet<>();
+		Set<File> allJavaSources = new LinkedHashSet<>(javaSources);
 		for(File source : javaSources) {
 			File parent = source.getParentFile();
-			if(parent != null) {
-				javaSourceDirs.add(parent);
+			String packageName = extractPackageName(source);
+			if(parent == null || packageName == null || packageName.isEmpty()) {
+				continue;
 			}
-		}
-		Set<File> allJavaSources = new LinkedHashSet<>(javaSources);
-		for(File dir : javaSourceDirs) {
-			File[] siblings = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".java"));
+			File[] siblings = parent.listFiles((d, name) -> name.toLowerCase().endsWith(".java"));
 			if(siblings != null) {
 				for(File sibling : siblings) {
-					allJavaSources.add(sibling);
+					if(packageName.equals(extractPackageName(sibling))) {
+						allJavaSources.add(sibling);
+					}
 				}
 			}
 		}
