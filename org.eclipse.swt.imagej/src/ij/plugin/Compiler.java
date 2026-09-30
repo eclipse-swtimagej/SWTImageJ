@@ -163,7 +163,7 @@ public class Compiler implements PlugIn, FilenameFilter {
 		File pathFile = new File(path).getAbsoluteFile();
 		String targetPackage = extractPackageName(pathFile);
 		File parentDir = pathFile.getParentFile();
-		String[] siblingNames = targetPackage != null && targetPackage.length() > 0 && parentDir != null ? parentDir.list((d, n) -> n.toLowerCase().endsWith(".java")) : null;
+		String[] siblingNames = targetPackage != null && targetPackage.length() > 0 && parentDir != null ? parentDir.list((_, n) -> n.toLowerCase().endsWith(".java")) : null;
 		boolean pathIncluded = false;
 		if(siblingNames != null) {
 			for(String siblingName : siblingNames) {

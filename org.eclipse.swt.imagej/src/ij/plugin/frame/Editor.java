@@ -37,8 +37,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
@@ -56,7 +56,6 @@ import org.eclipse.jface.text.source.CompositeRuler;
 import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
 import org.eclipse.jface.text.source.IAnnotationPresentation;
-import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.LineNumberRulerColumn;
 import org.eclipse.jface.text.source.OverviewRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
@@ -127,7 +126,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			INSTALL_BUTTON = 8;
 	public static final int MACROS_MENU_ITEMS = 15;
 	/** Severities for addMarker()/addMarker() - meant to be fed from a compiler/parser's own reported error/warning/info locations. */
-	public static final int MARKER_ERROR = 0, MARKER_WARNING = 1, MARKER_INFO = 2;
+	public static final int MARKER_ERROR = 0, MARKER_WARNING = 1,
+			MARKER_INFO = 2;
 	private static final String[] MARKER_ANNOTATION_TYPES = {"ij.editor.marker.error", "ij.editor.marker.warning", "ij.editor.marker.info"};
 	public static final String INTERACTIVE_NAME = "Interactive Interpreter";
 	static final String FONT_SIZE = "editor.font.size";
@@ -386,8 +386,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			sourceViewer.doOperation(ProjectionViewer.TOGGLE);
 			/* This is the viewer's real, internally managed folding annotation model! */
 			projectionAnnotationModel = sourceViewer.getProjectionAnnotationModel();
-			markerColors = new org.eclipse.swt.graphics.Color[]{
-					new org.eclipse.swt.graphics.Color(Display.getDefault(), 220, 50, 50), // MARKER_ERROR
+			markerColors = new org.eclipse.swt.graphics.Color[]{new org.eclipse.swt.graphics.Color(Display.getDefault(), 220, 50, 50), // MARKER_ERROR
 					new org.eclipse.swt.graphics.Color(Display.getDefault(), 230, 160, 20), // MARKER_WARNING
 					new org.eclipse.swt.graphics.Color(Display.getDefault(), 60, 130, 220) // MARKER_INFO
 			};
@@ -2488,7 +2487,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * setDocument(null,...) -> PaintManager.inputDocumentAboutToBeChanged() ->
 			 * deactivate() again) throws a NullPointerException trying to remove a paint
 			 * listener from an already-null text widget reference.
-			 *
 			 * This MUST run before font/fontNew are disposed below: deactivate(true) forces one
 			 * last repaint of the squiggly decorations (redraw=true), which re-measures ta's
 			 * current font via TextLayout.setFont() - if that font was already disposed first,

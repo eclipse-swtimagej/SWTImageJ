@@ -1235,7 +1235,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			if(parent == null || packageName == null || packageName.isEmpty()) {
 				continue;
 			}
-			File[] siblings = parent.listFiles((d, name) -> name.toLowerCase().endsWith(".java"));
+			File[] siblings = parent.listFiles((_, name) -> name.toLowerCase().endsWith(".java"));
 			if(siblings != null) {
 				for(File sibling : siblings) {
 					if(packageName.equals(extractPackageName(sibling))) {
@@ -1432,7 +1432,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		}
 		StringWriter diagnosticsOutput = new StringWriter();
 		boolean success;
-		try(StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
+		try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
 			Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(sourcePaths);
 			JavaCompiler.CompilationTask task = compiler.getTask(diagnosticsOutput, fileManager, null, options, null, compilationUnits);
 			success = task.call();
@@ -1546,7 +1546,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		Set<String> writtenEntries = new HashSet<>();
-		try(JarOutputStream jar = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)), manifest)) {
+		try (JarOutputStream jar = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)), manifest)) {
 			jar.putNextEntry(new JarEntry("plugins.config"));
 			jar.write(pluginsConfig.getBytes(StandardCharsets.UTF_8));
 			jar.closeEntry();
@@ -1707,7 +1707,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private void unpackZip(File zipFile, File destination) {
 
 		byte[] buffer = new byte[8192];
-		try(ZipInputStream zip = new ZipInputStream(Files.newInputStream(zipFile.toPath()))) {
+		try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(zipFile.toPath()))) {
 			ZipEntry entry;
 			while((entry = zip.getNextEntry()) != null) {
 				File outFile = new File(destination, entry.getName());
@@ -1744,7 +1744,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 
 		byte[] header = new byte[512];
 		byte[] buffer = new byte[8192];
-		try(InputStream in = new GZIPInputStream(new BufferedInputStream(Files.newInputStream(archiveFile.toPath())))) {
+		try (InputStream in = new GZIPInputStream(new BufferedInputStream(Files.newInputStream(archiveFile.toPath())))) {
 			while(true) {
 				if(readFully(in, header) < header.length || isAllZero(header)) {
 					break; // truncated stream, or the two all-zero end-of-archive blocks
@@ -1764,7 +1764,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 					if(parent != null && !parent.exists()) {
 						parent.mkdirs();
 					}
-					try(OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile))) {
+					try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile))) {
 						long remaining = size;
 						while(remaining > 0) {
 							int n = in.read(buffer, 0, (int)Math.min(buffer.length, remaining));
