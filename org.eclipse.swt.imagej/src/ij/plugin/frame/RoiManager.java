@@ -27,6 +27,12 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -388,6 +394,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		gd_list.heightHint = 263;
 		gd_list.widthHint = 150;
 		list.setLayoutData(gd_list);
+		hookDragAndDrop();
 		Button addTButton = new Button(composite, SWT.NONE);
 		addTButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		addTButton.setText("Add [t]");
@@ -1364,6 +1371,41 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if(slice == -1)
 			slice = getSliceNumber(label);
 		return slice;
+	}
+
+	/**
+	 * Lets a *.roi file or a *.zip ROI set be dragged from the OS file browser straight onto
+	 * the list to import it - open(String) already does exactly this (it branches on the
+	 * ".zip" extension internally and adds the resulting ROI(s) straight into the list), so
+	 * this only has to resolve the dropped file paths and hand each one to it.
+	 */
+	private void hookDragAndDrop() {
+
+		DropTarget dropTarget = new DropTarget(list, DND.DROP_COPY);
+		dropTarget.setTransfer(new Transfer[]{FileTransfer.getInstance()});
+		dropTarget.addDropListener(new DropTargetAdapter() {
+
+			@Override
+			public void dragOver(DropTargetEvent event) {
+
+				event.detail = DND.DROP_COPY;
+			}
+
+			@Override
+			public void drop(DropTargetEvent event) {
+
+				event.detail = DND.DROP_COPY;
+				if(!(event.data instanceof String[] paths)) {
+					return;
+				}
+				for(String path : paths) {
+					String lowerCasePath = path.toLowerCase();
+					if(lowerCasePath.endsWith(".roi") || lowerCasePath.endsWith(".zip")) {
+						open(path);
+					}
+				}
+			}
+		});
 	}
 
 	/**
