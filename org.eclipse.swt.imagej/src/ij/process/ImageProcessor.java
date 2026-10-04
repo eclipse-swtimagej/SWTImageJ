@@ -3045,13 +3045,40 @@ public abstract class ImageProcessor implements Cloneable {
 				img.flush();
 				img = null;
 			}
-			/*
-			 * Do we need to dispose the imageSwt here? Dispose causes an error at least in
-			 * the Convolver preview so we simply null the object!
-			 */
-			if(imageSwt != null) {
-				imageSwt = null;
-			}
+			disposeImageSwt();
+		}
+	}
+
+	/**
+	 * Disposes imageSwt (if any) and clears the field - every setPixels()/resetPixels() override
+	 * used to just null the field directly, which leaked the native Image (createImageSwt() in
+	 * each subclass already disposes correctly when REPLACING a still-cached imageSwt, but
+	 * setPixels/resetPixels never did). A direct imageSwt.dispose() here was tried once before
+	 * (see git history) and reportedly crashed during the Convolver's live preview, which runs
+	 * resetPixels()/setPixels() off the SWT display thread - SWT resources can only be disposed
+	 * from the thread that created them. Disposing through asyncExec when called off-thread
+	 * avoids that without blocking the caller.
+	 *
+	 * Public (not just used internally by this class and its subclasses) because ImagePlus
+	 * also needs to call this - when it drops its ImageProcessor (flush(), setProcessor()), the
+	 * processor's own cached imageSwt is otherwise never reclaimed; nulling the "ip" field only
+	 * drops ImagePlus's reference to the processor, it doesn't dispose anything the processor
+	 * itself is still holding onto.
+	 */
+	public final void disposeImageSwt() {
+
+		org.eclipse.swt.graphics.Image old = imageSwt;
+		imageSwt = null;
+		if(old == null || old.isDisposed())
+			return;
+		Display display = Display.getDefault();
+		if(display.getThread() == Thread.currentThread()) {
+			old.dispose();
+		} else {
+			display.asyncExec(() -> {
+				if(!old.isDisposed())
+					old.dispose();
+			});
 		}
 	}
 

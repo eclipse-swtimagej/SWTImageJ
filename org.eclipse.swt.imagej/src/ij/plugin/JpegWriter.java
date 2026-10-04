@@ -65,9 +65,20 @@ public class JpegWriter implements PlugIn {
 		try {
 			Graphics g = bi.createGraphics();
 			Image img = imp.getImage();
-			if (overlay && !imp.tempOverlay())
-				img = imp.flatten().getImage();
+			ImagePlus flattened = null;
+			if (overlay && !imp.tempOverlay()) {
+				/*
+				 * flatten() builds a brand new ImagePlus (with its own native SWT image) purely
+				 * to extract its pixels here - it's never shown as a window, so nothing else
+				 * will ever call close()/flush() on it to reclaim that native resource. Flushed
+				 * below once img has been drawn from it.
+				 */
+				flattened = imp.flatten();
+				img = flattened.getImage();
+			}
 			g.drawImage(img, 0, 0, null);
+			if (flattened != null)
+				flattened.flush();
 			g.dispose();            
 			Iterator iter = ImageIO.getImageWritersByFormatName("jpeg");
 			ImageWriter writer = (ImageWriter)iter.next();

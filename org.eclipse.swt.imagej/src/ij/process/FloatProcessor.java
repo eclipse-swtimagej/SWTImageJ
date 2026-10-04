@@ -261,12 +261,7 @@ public class FloatProcessor extends ImageProcessor {
 			//SampleModel sm = getIndexSampleModel();
 			//DataBuffer db = new DataBufferByte(pixels8, width*height, 0);
 			//raster = Raster.createWritableRaster(sm, db, null);
-		if(imageSwt!=null) {
-			if (imageSwt.isDisposed() == false) {
-				imageSwt.dispose();
-			}
-			imageSwt = null;
-		}
+		disposeImageSwt();
 		 /*imageSwt variable in abstract superclass!*/
 		if (imageSwt==null || cm!=cm2) {
 			if (cm==null) cm = getDefaultColorModel();

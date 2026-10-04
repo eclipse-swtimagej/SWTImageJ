@@ -3561,6 +3561,16 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 		super.close();
 		/*
+		 * applyListFont() already disposes the previous listFont before installing a
+		 * replacement, but nothing disposed the final one when the window itself closes - same
+		 * shape as the earlier TextWindow font leak, a Font is a native Resource that the Shell
+		 * disposed by super.close() does not reclaim on its own.
+		 */
+		if(listFont != null) {
+			listFont.dispose();
+			listFont = null;
+		}
+		/*
 		 * Only clear the static "current instance" reference if it still actually points to
 		 * this RoiManager. Unconditionally nulling it here means closing ANY RoiManager object
 		 * - even one that was superseded by a separately-constructed one and is no longer the

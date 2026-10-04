@@ -72,8 +72,20 @@ public class PNG_Writer implements PlugIn {
 			writeFourChannelsWithAlpha(imp, path);
 		else if(transparentIndex >= 0 && transparentIndex <= 255 && imp.getBitDepth() == 8)
 			writeImageWithTransparency(imp, path, transparentIndex);
-		else if(imp.getOverlay() != null && !imp.getHideOverlay() && !imp.tempOverlay())
-			ImageIO.write(imp.flatten().getBufferedImage(), "png", new File(path));
+		else if(imp.getOverlay() != null && !imp.getHideOverlay() && !imp.tempOverlay()) {
+			/*
+			 * flatten() builds a brand new ImagePlus (with its own native SWT image) purely to
+			 * extract its pixels here - it's never shown as a window, so nothing else will ever
+			 * call close()/flush() on it to reclaim that native resource. Doing so explicitly
+			 * avoids leaking it.
+			 */
+			ImagePlus flattened = imp.flatten();
+			try {
+				ImageIO.write(flattened.getBufferedImage(), "png", new File(path));
+			} finally {
+				flattened.flush();
+			}
+		}
 		else if(imp.getBitDepth() == 16 && !imp.isComposite() && imp.getProcessor().isDefaultLut())
 			write16gs(imp, path);
 		else

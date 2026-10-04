@@ -246,11 +246,7 @@ public class DoubleProcessor extends ImageProcessor {
 
 	public org.eclipse.swt.graphics.Image createImageSwt() {
 
-		if(imageSwt != null) {
-			if(!imageSwt.isDisposed())
-				imageSwt.dispose();
-			imageSwt = null;
-		}
+		disposeImageSwt();
 		if(imageSwt == null || cm != cm2) {
 			if(cm == null)
 				cm = getDefaultColorModel();

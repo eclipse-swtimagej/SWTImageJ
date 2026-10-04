@@ -184,9 +184,20 @@ public class Clipboard implements PlugIn, Transferable {
 				imp = imp.crop();
 		}
 		boolean overlay = imp.getOverlay() != null && !imp.getHideOverlay();
-		if (overlay && !imp.tempOverlay())
-			imp = imp.flatten();
-		return imp.getImage();
+		ImagePlus flattened = null;
+		if (overlay && !imp.tempOverlay()) {
+			/*
+			 * flatten() builds a brand new ImagePlus (with its own native SWT image) purely to
+			 * extract its java.awt.Image below - it's never shown as a window, so nothing else
+			 * will ever call close()/flush() on it to reclaim that native resource.
+			 */
+			flattened = imp.flatten();
+			imp = flattened;
+		}
+		Image image = imp.getImage();
+		if (flattened != null)
+			flattened.flush();
+		return image;
 	}
 
 	void showInternalClipboard() {

@@ -403,6 +403,19 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 		}
 	}
 
+	/**
+	 * Disposes the current font (if any) before it's replaced or this window closes. A Font is
+	 * a native Resource, not a child widget, so shell.dispose() in close() never reclaims it on
+	 * its own - every call site that used to just do "font = null;" before building a
+	 * replacement leaked the old one.
+	 */
+	private void disposeFont() {
+
+		if(font != null && !font.isDisposed())
+			font.dispose();
+		font = null;
+	}
+
 	private String getFontName() {
 
 		if(fontFamily != null && fontFamily.length() > 0)
@@ -460,7 +473,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 			fontFamily = chosen.equals(SYSTEM_DEFAULT_LABEL) ? systemFontName : chosen;
 			Prefs.set(FONT_NAME, fontFamily);
 			monospacedButton.setSelection(isMonospacedFont(fontFamily));
-			font = null;
+			disposeFont();
 			setFont();
 			dialog.close();
 		});
@@ -566,7 +579,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 
 	public void itemStateChanged(SelectionEvent e) {
 
-		font = null;
+		disposeFont();
 		setFont();
 		if(IJ.recording()) {
 			boolean state = monospacedButton.getSelection();
@@ -630,6 +643,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 			// setVisible(false);
 			// Changed for SWT!
 			WindowManager.removeWindow(TextWindow.this);
+			disposeFont();
 			shell.dispose();
 			textPanel.flush();
 		});
@@ -674,8 +688,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 				fontSize = 0;
 		}
 		IJ.showStatus(sizes[fontSize] + " point");
-		font.dispose();
-		font = null;
+		disposeFont();
 		setFont();
 	}
 
@@ -684,6 +697,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 		Object log = WindowManager.getWindow("Log");
 		if(log != null && (log instanceof TextWindow)) {
 			TextWindow tw = (TextWindow)log;
+			tw.disposeFont();
 			tw.font = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData(name, size, style));
 			tw.setFont();
 		}
@@ -696,7 +710,7 @@ public class TextWindow implements WindowSwt, SelectionListener, ShellListener, 
 			TextWindow tw = (TextWindow)log;
 			tw.monospaced = b;
 			tw.monospacedButton.setSelection(b);
-			tw.font = null;
+			tw.disposeFont();
 			tw.setFont();
 		}
 	}

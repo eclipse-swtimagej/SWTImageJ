@@ -435,10 +435,7 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 		if(win == null) {
 			img = null;
-			if(imgSwt != null && !imgSwt.isDisposed()) {
-				imgSwt.dispose();
-			}
-			imgSwt = null;
+			disposeImgSwt();
 			return;
 		}
 		if(stack != null && !stack.isVirtual() && currentSlice >= 1 && currentSlice <= stack.size()) {
@@ -601,16 +598,11 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 		if(win == null) {
 			img = null;
-			// if(imgSwt != null && !imgSwt.isDisposed()) {
-			// imgSwt.dispose();
-			// }
-			imgSwt = null;
+			disposeImgSwt();
 			return;
 		}
 		if(ip != null) {
-			// if(imgSwt != null) {
-			// imgSwt.dispose();
-			// }
+			disposeImgSwt();
 			imgSwt = ip.createSwtImage();
 			/* Necessary for SWT? Probably not! */
 			// img = ip.createImage();
@@ -622,10 +614,7 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 		if(win == null) {
 			img = null;
-			if(imgSwt != null && !imgSwt.isDisposed()) {
-				imgSwt.dispose();
-			}
-			imgSwt = null;
+			disposeImgSwt();
 			Interpreter.removeBatchModeImage(this);
 			return;
 		}
@@ -888,12 +877,20 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		setStackNull();
 		LookUpTable lut = new LookUpTable(image);
 		int type = lut.getMapSize() > 0 ? GRAY8 : COLOR_RGB;
+		/*
+		 * "Replaces the image, if any" per this method's own javadoc below - the OLD ip's
+		 * cached imageSwt must be disposed before it's overwritten, same as flush()/
+		 * setProcessor2() above.
+		 */
+		if(ip != null)
+			ip.disposeImageSwt();
 		if(image != null && type == COLOR_RGB)
 			ip = new ColorProcessor(image);
 		if(ip == null && image != null)
 			ip = new ByteProcessor(image);
 		setType(type);
 		this.img = ip.createImage();
+		disposeImgSwt();
 		this.imgSwt = ip.createSwtImage();
 		if(win != null) {
 			if(dimensionsChanged)
@@ -956,12 +953,20 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		setStackNull();
 		LookUpTable lut = new LookUpTable(image);
 		int type = lut.getMapSize() > 0 ? GRAY8 : COLOR_RGB;
+		/*
+		 * "Replaces the image, if any" per this method's own javadoc above - the OLD ip's
+		 * cached imageSwt must be disposed before it's overwritten, same as flush()/
+		 * setProcessor2()/setImage() above.
+		 */
+		if(ip != null)
+			ip.disposeImageSwt();
 		if(image != null && type == COLOR_RGB)
 			ip = new ColorProcessor(image);
 		if(ip == null && image != null)
 			ip = new ByteProcessor(image);
 		setType(type);
 		this.img = ip.createImage();
+		disposeImgSwt();
 		this.imgSwt = ip.createSwtImage();
 		if(win != null) {
 			if(dimensionsChanged)
@@ -1123,6 +1128,14 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			setTitle(title);
 		if(ip == null)
 			return;
+		/*
+		 * Replacing the processor without disposing the OLD one's cached imageSwt leaks it -
+		 * same reasoning as in flush() above. setProcessor()/setProcessor2() can run every frame
+		 * of an animation or live-processing loop, so this is the highest-frequency of the
+		 * imageSwt leak sites.
+		 */
+		if(this.ip != null && this.ip != ip)
+			this.ip.disposeImageSwt();
 		this.ip = ip;
 		if(this.ip != null && getWindow() != null)
 			notifyListeners(UPDATED);
@@ -1138,10 +1151,7 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 				stack.setPixels(ip.getPixels(), currentSlice);
 		}
 		img = null;
-		if(imgSwt != null && !imgSwt.isDisposed()) {
-			imgSwt.dispose();
-		}
-		imgSwt = null;
+		disposeImgSwt();
 		if(dimensionsChanged)
 			roi = null;
 		int type;
@@ -1726,12 +1736,11 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		if(updateWin) {
 			if(nSlices != getImageStackSize())
 				setOpenAsHyperStack(true);
+			if(ip != null)
+				ip.disposeImageSwt();
 			ip = null;
 			img = null;
-			if(imgSwt != null && !imgSwt.isDisposed()) {
-				imgSwt.dispose();
-			}
-			imgSwt = null;
+			disposeImgSwt();
 			setPositionWithoutUpdate(getChannel(), getSlice(), getFrame());
 			if(isComposite())
 				((CompositeImage)this).reset();
@@ -2533,6 +2542,8 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			double max = ip.getMax();
 			ImageProcessor ip2 = stack.getProcessor(1);
 			if(ip2 != null) {
+				if(ip != null && ip != ip2)
+					ip.disposeImageSwt();
 				ip = ip2;
 				ip.setColorModel(cm);
 				ip.setMinAndMax(min, max);
@@ -2615,8 +2626,11 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 				}
 			} else {
 				ImageProcessor ip2 = stack.getProcessor(n);
-				if(ip2 != null)
+				if(ip2 != null) {
+					if(ip != null && ip != ip2)
+						ip.disposeImageSwt();
 					ip = ip2;
+				}
 			}
 			if(compositeImage && getCompositeMode() == IJ.COMPOSITE && ip != null) {
 				int channel = getC();
@@ -2636,10 +2650,7 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 				updateAndRepaintWindow();
 			else {
 				img = null;
-				if(imgSwt != null && !imgSwt.isDisposed()) {
-					imgSwt.dispose();
-				}
-				imgSwt = null;
+				disposeImgSwt();
 				if(ip != null)
 					ip.setSliceNumber(n);
 			}
@@ -3184,6 +3195,36 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 	}
 
 	/**
+	 * Disposes imgSwt (if any) and clears the field. Every call site used to do
+	 * "if(imgSwt != null && !imgSwt.isDisposed()) imgSwt.dispose(); imgSwt = null;" inline,
+	 * which is exactly the pattern ImageProcessor.disposeImageSwt() replaced for the same
+	 * reason: ImagePlus methods like setProcessor2()/setStack() can run on a background thread
+	 * (e.g. a macro executed by the LLM assistant's run_code tool, off the SWT display thread),
+	 * and disposing an SWT Resource is not thread-safe between the isDisposed() check and the
+	 * dispose() call - two threads racing here can both pass isDisposed() before either clears
+	 * the other's Resource.device field, so the second dispose() call then NPEs inside SWT's
+	 * own Resource.dispose() ("Cannot read field \"tracking\" because \"this.device\" is null").
+	 * Disposing on the display thread directly, or deferring to it via asyncExec otherwise,
+	 * avoids that race.
+	 */
+	private void disposeImgSwt() {
+
+		org.eclipse.swt.graphics.Image old = imgSwt;
+		imgSwt = null;
+		if(old == null || old.isDisposed())
+			return;
+		Display display = Display.getDefault();
+		if(display.getThread() == Thread.currentThread()) {
+			old.dispose();
+		} else {
+			display.asyncExec(() -> {
+				if(!old.isDisposed())
+					old.dispose();
+			});
+		}
+	}
+
+	/**
 	 * Sets the ImageProcessor, Roi, AWT Image and stack image arrays to null. Does
 	 * nothing if the image is locked.
 	 */
@@ -3192,6 +3233,13 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		notifyListeners(CLOSED);
 		if(locked || ignoreFlush)
 			return;
+		/*
+		 * ip's own cached imageSwt (built by e.g. ColorProcessor.createImageSwt()) is a separate
+		 * native Image from imgSwt below - just nulling "ip" drops this ImagePlus's reference to
+		 * the processor, it doesn't dispose anything the processor itself is still holding onto.
+		 */
+		if(ip != null)
+			ip.disposeImageSwt();
 		ip = null;
 		if(roi != null)
 			roi.setImage(null);
@@ -3207,10 +3255,7 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		}
 		setStackNull();
 		img = null;
-		if(imgSwt != null && !imgSwt.isDisposed()) {
-			imgSwt.dispose();
-		}
-		imgSwt = null;
+		disposeImgSwt();
 		win = null;
 		if(roi != null)
 			roi.setImage(null);

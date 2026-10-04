@@ -57,10 +57,12 @@ public class GifWriter implements PlugIn {
 		Overlay overlay = imp.getOverlay();
 		int nSlices = stack.size();				
 		if (nSlices==1) { // save using ImageIO
-			if (overlay!=null && !imp.tempOverlay())
-				imp = imp.flatten();
+			ImagePlus toWrite = imp;
+			boolean flattened = overlay!=null && !imp.tempOverlay();
+			if (flattened)
+				toWrite = imp.flatten();
 			try {
-				writeImage(imp, path, transparentIndex);
+				writeImage(toWrite, path, transparentIndex);
 			} catch (Exception e) {
 				String msg = e.getMessage();
 				if (msg==null || msg.equals(""))
@@ -73,9 +75,12 @@ public class GifWriter implements PlugIn {
 					IJ.error("GIF Writer", msg);
 					showErrors = false;
 				}
+			} finally {
+				if (flattened)
+					toWrite.flush();
 			}
 			return;
-		}		
+		}
 		AnimatedGifEncoder2 ge = new AnimatedGifEncoder2();
 		if (!ge.setoptions())
 			return;
@@ -94,26 +99,40 @@ public class GifWriter implements PlugIn {
 			IJ.showStatus("writing: "+i+"/"+nSlices);
 			IJ.showProgress((double)i/nSlices);
 			tmp.setProcessor(null, stack.getProcessor(i));
+			/*
+			 * flatten() (when there's per-slice overlay content) builds a brand new ImagePlus
+			 * with its own native SWT image, used here only to encode this one frame - it's
+			 * never shown as a window, so nothing else will ever call close()/flush() on it.
+			 * Reassigning "tmp" to it directly, as this used to do, would also drop the
+			 * reference to whichever flattened frame the PREVIOUS iteration built, leaking that
+			 * one too. Keeping "tmp" as the one reused, never-replaced base object and tracking
+			 * this iteration's frame separately lets every flattened frame be flushed right
+			 * after use.
+			 */
+			ImagePlus frame = tmp;
 			if (overlay!=null) {
 				Overlay overlay2 = overlay.duplicate();
 				overlay2.crop(i, i);
 				if (overlay2.size()>0) {
 					tmp.setOverlay(overlay2);
-					tmp = tmp.flatten();
+					frame = tmp.flatten();
 					if (imp.getBitDepth()==8)
-						new ImageConverter(tmp).convertRGBtoIndexedColor(256);
+						new ImageConverter(frame).convertRGBtoIndexedColor(256);
 				}
-			}			
+			}
 			try {
-				ge.addFrame(tmp);
+				ge.addFrame(frame);
 			} catch(Exception e)  {
 				error = ""+e;
 				if (showErrors) {
 					IJ.error("Save as Gif: "+e);
 					showErrors = false;
 				}
+			} finally {
+				if (frame != tmp)
+					frame.flush();
 			}
-		}	
+		}
 		ge.finish();
 		IJ.showStatus("");
 		IJ.showProgress(1.0);

@@ -189,14 +189,8 @@ public class ColorProcessor extends ImageProcessor {
 		 * }
 		 */
 		// if (rgbRaster == null) {
-		if(imageSwt != null) {
-			if(imageSwt.isDisposed() == false) {
-				imageSwt.dispose();
-			}
-			imageSwt = null;
-		}
+		disposeImageSwt();
 		// }
-		// imageSwt = null;
 		if(imageSwt == null) {
 			// int[] pixels = new int[width * height];
 			// rgb.get(pixels);
@@ -663,7 +657,7 @@ public class ColorProcessor extends ImageProcessor {
 			snapshotPixels = null;
 		rgbRaster = null;
 		image = null;
-		imageSwt = null;
+		disposeImageSwt();
 		caSnapshot = false;
 	}
 

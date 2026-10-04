@@ -141,12 +141,7 @@ public class IntProcessor extends ColorProcessor {
 		// SampleModel sm = getIndexSampleModel();
 		// DataBuffer db = new DataBufferByte(pixels8, width*height, 0);
 		// raster = Raster.createWritableRaster(sm, db, null);
-		if(imageSwt != null) {
-			if(imageSwt.isDisposed() == false) {
-				imageSwt.dispose();
-			}
-			imageSwt = null;
-		}
+		disposeImageSwt();
 		// }
 		if(imageSwt == null || cm != cm2) {
 			if(cm == null)
