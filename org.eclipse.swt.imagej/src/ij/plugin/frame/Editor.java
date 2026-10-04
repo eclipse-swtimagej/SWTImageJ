@@ -272,7 +272,16 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			WindowManager.addWindow(Editor.this);
 			getShell().setLayout(new FillLayout());
 			composite = new Composite(shell, SWT.NONE);
-			composite.setLayout(new GridLayout(1, true));
+			GridLayout compositeLayout = new GridLayout(1, true);
+			/*
+			 * GridLayout defaults to a 5px margin on every side. sourceViewer's control (the
+			 * ruler columns + text area) is a direct child of this composite, so that margin
+			 * showed up as extra blank space flanking the rulers - easy to mistake for the
+			 * ruler columns themselves being too wide.
+			 */
+			compositeLayout.marginWidth = 0;
+			compositeLayout.marginHeight = 0;
+			composite.setLayout(compositeLayout);
 			/* Add a menu to the Shell! */
 			mb = new org.eclipse.swt.widgets.Menu(getShell(), SWT.BAR);
 			/*
@@ -326,7 +335,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * red/orange/blue into a dark, barely-distinguishable smudge.
 			 */
 			sharedTextColors = new EditorSharedTextColors();
-			OverviewRuler overviewRuler = new OverviewRuler(editorAnnotationAccess, 15, sharedTextColors);
+			OverviewRuler overviewRuler = new OverviewRuler(editorAnnotationAccess, 12, sharedTextColors);
 			overviewRuler.setUseSaturatedColors(true);
 			/* The ruler on the left side with two columns (line number, annotations)! */
 			CompositeRuler ruler = new CompositeRuler();
@@ -342,7 +351,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * annotation without an access object. This is what addMarker()'s error/warning/info
 			 * dots (see MarkerAnnotation) are drawn through.
 			 */
-			AnnotationRulerColumn annotationRuler = new AnnotationRulerColumn(15, editorAnnotationAccess);
+			AnnotationRulerColumn annotationRuler = new AnnotationRulerColumn(12, editorAnnotationAccess);
 			/*
 			 * AnnotationRulerColumn has its OWN per-type allow-list (separate from
 			 * AnnotationPainter's, registered further below) - fAnnotationAccessExtension being
@@ -412,8 +421,15 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			sourceViewer.setHoverControlCreator(shell -> new DefaultInformationControl(shell));
 			sourceViewer.setTextHover(new MarkerHover(), IDocument.DEFAULT_CONTENT_TYPE, ITextViewerExtension2.DEFAULT_HOVER_STATE_MASK);
 			completionEditor = new CompletionEditor(sourceViewer, Editor.this);
-			annotationRuler.getControl().setBackground(Color.lightGray);
-			overviewRuler.getControl().setBackground(Color.white);
+			/*
+			 * Color.lightGray/Color.white are hardcoded light-theme RGBs (see ij.swt.Color), so
+			 * in dark mode these two columns stayed light-colored while every other widget here
+			 * (ta, lnrc, ...) adapts automatically since they're never given an explicit
+			 * background. SWT.COLOR_WIDGET_BACKGROUND tracks the current OS theme instead.
+			 */
+			org.eclipse.swt.graphics.Color rulerBackground = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+			annotationRuler.getControl().setBackground(rulerBackground);
+			overviewRuler.getControl().setBackground(rulerBackground);
 			sourceViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 7, 1));
 			ta = sourceViewer.getTextWidget();
 			/* Add a context menu to the StyledText widget if set! */
