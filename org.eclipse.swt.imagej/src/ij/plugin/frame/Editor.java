@@ -457,7 +457,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				 * edit, typed or completion-inserted, does go through the document,
 				 * so recording it here catches both uniformly.
 				 */
-				recordUndoCheckpoint(event.getDocument().get());
+				String currentText = event.getDocument().get();
+				recordUndoCheckpoint(currentText);
 				if(timer != null) {
 					timer.cancel();
 				}
@@ -467,9 +468,33 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 					@Override
 					public void run() {
 
+						/*
+						 * Deferred via asyncExec to run only after the triggering key event's own
+						 * call stack (StyledText.doContent()/doBackspace() -> modifyContent() ->
+						 * showCaret()/document.replace() -> ...) has fully unwound and the widget
+						 * is idle again. lineStyler/lineMacroStyler cache block-comment offsets
+						 * from parseBlockComments(), computed once in create() and otherwise never
+						 * updated, so any edit leaves them stale relative to the live document -
+						 * but reparsing/redrawing synchronously from documentChanged()/
+						 * documentAboutToBeChanged() reentered StyledText mid-edit
+						 * and crashed with "IllegalArgumentException: Index out of bounds" out of
+						 * StyledText.setCaretLocations()/getPointAtOffset(): a style range computed
+						 * from text that hadn't actually landed in the widget yet left its internal
+						 * caret/TextLayout state briefly inconsistent. Doing it later, outside any
+						 * edit's call stack, avoids that entirely.
+						 */
 						Display.getDefault().asyncExec(() -> {
-							if(ta != null && !ta.isDisposed())
-								updateFoldingStructure();
+							if(ta == null || ta.isDisposed())
+								return;
+							updateFoldingStructure();
+							String liveText = ta.getText();
+							if(lineStyler != null) {
+								lineStyler.parseBlockComments(liveText);
+								ta.redraw();
+							} else if(lineMacroStyler != null) {
+								lineMacroStyler.parseBlockComments(liveText);
+								ta.redraw();
+							}
 						});
 					}
 				};
@@ -1048,6 +1073,21 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 				IJ.wait(25); // needed to get setCaretPosition() on OS X
 			ta.setCaretOffset(0);
 			setWindowTitle(name);
+			/*
+			 * create() runs again on every revert()/reopen of this same ta (via open() ->
+			 * create()), so remove whichever styler is currently registered first - otherwise
+			 * StyledText ends up with two LineStyleListeners computing colors independently,
+			 * each "winning" for whichever lines it last redrew, producing inconsistent colors
+			 * across the same document.
+			 */
+			if(lineStyler != null) {
+				ta.removeLineStyleListener(lineStyler);
+				lineStyler = null;
+			}
+			if(lineMacroStyler != null) {
+				ta.removeLineStyleListener(lineMacroStyler);
+				lineMacroStyler = null;
+			}
 			/* Add a Java styler to the document! */
 			if(name.endsWith(".java")) {
 				lineStyler = new JavaLineStyler();
@@ -2474,8 +2514,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			changes = false;
 			if(functionFinder != null)
 				functionFinder.close();
-			// Necessary to dispose the listener for the styling of keywords, etc.?
-			// ta.removeLineStyleListener(lineStyler);
 		}
 		if(markerAnnotationPainter != null && sourceViewer != null) {
 			/*
