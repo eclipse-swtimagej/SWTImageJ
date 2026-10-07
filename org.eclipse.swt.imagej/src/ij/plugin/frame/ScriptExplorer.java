@@ -69,6 +69,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -112,13 +113,35 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private boolean explorerVisible = true;
 	private boolean showAllFileTypes = false;
 	private int untitledCount = 0;
-	private File clipboardFile;
+	/** Files/folders copied via this tree's own "Copy" (as opposed to the OS clipboard - see pasteClipboard()). */
+	private final List<File> clipboardFiles = new ArrayList<>();
 	private final Map<String, CTabItem> openTabsByPath = new HashMap<>();
 	private final List<String> rootDirectories = new ArrayList<>();
+	/** Files/folders currently being dragged FROM this tree (empty when a drag in progress originated elsewhere, e.g. the OS file manager) - see hookDragAndDrop(). */
+	private final List<File> draggedFiles = new ArrayList<>();
 
 	/** Persists which directories are expanded, across both a refreshTree() and whole SWTImageJ sessions (see EXPANDED_PATHS_KEY). */
 	private static final String EXPANDED_PATHS_KEY = "scriptexplorer.expandedpaths";
 	private final Set<String> expandedPaths = new LinkedHashSet<>();
+
+	/**
+	 * Extra root directories added by the user via "Add Location..." (on top of the two built-in
+	 * plugins/macros roots, which are not stored here and can't be removed this way), persisted
+	 * across sessions - see ROOT_DIRECTORIES_KEY. A path that no longer exists on disk is
+	 * silently dropped when restored (see the constructor).
+	 */
+	private static final String ROOT_DIRECTORIES_KEY = "scriptexplorer.extraroots";
+	private final List<String> extraRootDirectories = new ArrayList<>();
+
+	/**
+	 * Folders added via "Add to Classpath", beyond the plugins folder, that compiling and
+	 * running a *.java file from this tree (ij.plugin.Compiler) also searches - mirrored into the
+	 * shared, process-wide Menus.getExtraClassPathDirectories() registry that Compiler/IJ.
+	 * getClassLoader() actually read. Persisted across sessions - see CLASS_PATH_KEY. A path that
+	 * no longer exists on disk is silently dropped when restored (see the constructor).
+	 */
+	private static final String CLASS_PATH_KEY = "scriptexplorer.classpath";
+	private final List<String> classPathDirectories = new ArrayList<>();
 
 	/** The tree's folder/file icon size in pixels - user-configurable (16 or 32) via the settings menu, persisted across sessions. */
 	private static final String ICON_SIZE_KEY = "scriptexplorer.iconsize";
@@ -171,6 +194,42 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			sashForm.setWeights(new int[]{25, 75});
 			addRootDirectory(pluginsDirectory);
 			addRootDirectory(macrosDirectory);
+			String storedExtraRoots = Prefs.get(ROOT_DIRECTORIES_KEY, "");
+			boolean prunedStaleRoot = false;
+			if(storedExtraRoots.length() > 0) {
+				for(String path : storedExtraRoots.split("\n")) {
+					if(path.isEmpty()) {
+						continue;
+					}
+					if(new File(path).isDirectory()) {
+						extraRootDirectories.add(path);
+						addRootDirectory(path);
+					} else {
+						prunedStaleRoot = true; // removed from disk since the last session - drop it for good below
+					}
+				}
+			}
+			if(prunedStaleRoot) {
+				saveExtraRootDirectories();
+			}
+			String storedClassPath = Prefs.get(CLASS_PATH_KEY, "");
+			boolean prunedStaleClassPathEntry = false;
+			if(storedClassPath.length() > 0) {
+				for(String path : storedClassPath.split("\n")) {
+					if(path.isEmpty()) {
+						continue;
+					}
+					if(new File(path).isDirectory()) {
+						classPathDirectories.add(path);
+						Menus.addExtraClassPathDirectory(path);
+					} else {
+						prunedStaleClassPathEntry = true; // removed from disk since the last session - drop it for good below
+					}
+				}
+			}
+			if(prunedStaleClassPathEntry) {
+				saveClassPathDirectories();
+			}
 			hookTreeListeners();
 			hookDragAndDrop();
 			hookContextMenu();
@@ -690,6 +749,41 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		buildRootTreeItem(rootDirectory);
 	}
 
+	/**
+	 * Persists extraRootDirectories (see ROOT_DIRECTORIES_KEY). Called right away whenever a
+	 * location is added/removed/pruned - not just in close() like EXPANDED_PATHS_KEY - because
+	 * losing a location the user deliberately added or removed, if this Editor/ImageJ instance is
+	 * later killed rather than cleanly closed (see close()'s own comment on Prefs.set() needing
+	 * an explicit Prefs.savePreferences() when embedded), would be more disruptive than losing
+	 * which folders happened to be expanded.
+	 */
+	private void saveExtraRootDirectories() {
+
+		Prefs.set(ROOT_DIRECTORIES_KEY, String.join("\n", extraRootDirectories));
+		Prefs.savePreferences();
+	}
+
+	/** Persists classPathDirectories (see CLASS_PATH_KEY) - same reasoning/timing as saveExtraRootDirectories(). */
+	private void saveClassPathDirectories() {
+
+		Prefs.set(CLASS_PATH_KEY, String.join("\n", classPathDirectories));
+		Prefs.savePreferences();
+	}
+
+	/**
+	 * True for the plugins folder itself - it's already unconditionally on both the compile
+	 * classpath (Compiler.getClassPath()) and the runtime classloader (IJ.getClassLoader()'s
+	 * PluginClassLoader is rooted there), so "Add to Classpath" on it would be a redundant no-op.
+	 * The macros folder and plugins SUBfolders aren't included this way (PluginClassLoader only
+	 * scans one level of plugins subfolders, and the compiler only adds a file's own directory),
+	 * so those are still offered normally.
+	 */
+	private static boolean isDefaultClassPathDirectory(File folder) {
+
+		String pluginsDir = Menus.getPlugInsPath();
+		return pluginsDir != null && folder.getAbsolutePath().equals(new File(pluginsDir).getAbsolutePath());
+	}
+
 	private void buildRootTreeItem(String rootDirectory) {
 
 		File root = new File(rootDirectory);
@@ -708,9 +802,75 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private void refreshTree() {
 
 		captureExpandedPaths();
+		pruneMissingExtraRoots();
+		pruneMissingClassPathDirectories();
 		tree.removeAll();
 		for(String rootDirectory : rootDirectories) {
 			buildRootTreeItem(rootDirectory);
+		}
+	}
+
+	/**
+	 * Drops any "Add Location..." folder that no longer exists on disk. Without this, one
+	 * deleted from the OS while this window is already open would simply stop appearing in the
+	 * (necessarily file-backed) tree, but "Remove Location" requires selecting it there first -
+	 * leaving it stuck, invisible and unremovable, until the next restart (the constructor prunes
+	 * too, but only once, at startup).
+	 */
+	private void pruneMissingExtraRoots() {
+
+		boolean changed = false;
+		for(java.util.Iterator<String> it = extraRootDirectories.iterator(); it.hasNext();) {
+			String path = it.next();
+			if(!new File(path).isDirectory()) {
+				it.remove();
+				rootDirectories.remove(path);
+				changed = true;
+			}
+		}
+		if(changed) {
+			saveExtraRootDirectories();
+		}
+	}
+
+	/** Drops any "Add to Classpath" folder that no longer exists on disk - same reasoning as {@link #pruneMissingExtraRoots()}. */
+	private void pruneMissingClassPathDirectories() {
+
+		boolean changed = false;
+		for(java.util.Iterator<String> it = classPathDirectories.iterator(); it.hasNext();) {
+			String path = it.next();
+			if(!new File(path).isDirectory()) {
+				it.remove();
+				Menus.removeExtraClassPathDirectory(path);
+				changed = true;
+			}
+		}
+		if(changed) {
+			saveClassPathDirectories();
+		}
+	}
+
+	/**
+	 * Removes any "Add to Classpath" entry that is the given root itself, or nested inside it -
+	 * called right before "Remove Location" drops that root from the tree. Removing a Location
+	 * doesn't delete anything on disk, so pruneMissingClassPathDirectories() (which only drops
+	 * entries whose folder no longer EXISTS) would never catch this: the folder is still there,
+	 * just no longer reachable/selectable in the tree once its root is gone, which would
+	 * otherwise leave it stuck registered (still active for compiling/running) but unremovable.
+	 */
+	private void removeClassPathDirectoriesUnder(File root) {
+
+		boolean changed = false;
+		for(java.util.Iterator<String> it = classPathDirectories.iterator(); it.hasNext();) {
+			String path = it.next();
+			if(isWithin(new File(path), root)) {
+				it.remove();
+				Menus.removeExtraClassPathDirectory(path);
+				changed = true;
+			}
+		}
+		if(changed) {
+			saveClassPathDirectories();
 		}
 	}
 
@@ -862,20 +1022,27 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	 */
 	private void hookDragAndDrop() {
 
-		DropTarget dropTarget = new DropTarget(tree, DND.DROP_COPY);
+		/*
+		 * draggedFiles (an instance field - see hookDragAndDrop()'s own declaration site) is
+		 * populated by the DragSource below and read here to tell apart a drag that originated
+		 * from THIS tree (move: the source is removed) from one dropped in from the OS file
+		 * manager (copy: unchanged, existing behavior). It's only ever non-empty during a drag
+		 * gesture that started on this same tree, since dragStart() below clears it first and
+		 * dragFinished() clears it again right after the drop handler here has read it.
+		 */
+		DropTarget dropTarget = new DropTarget(tree, DND.DROP_COPY | DND.DROP_MOVE);
 		dropTarget.setTransfer(new Transfer[]{FileTransfer.getInstance()});
 		dropTarget.addDropListener(new DropTargetAdapter() {
 
 			@Override
 			public void dragOver(DropTargetEvent event) {
 
-				event.detail = DND.DROP_COPY;
+				event.detail = draggedFiles.isEmpty() ? DND.DROP_COPY : DND.DROP_MOVE;
 			}
 
 			@Override
 			public void drop(DropTargetEvent event) {
 
-				event.detail = DND.DROP_COPY;
 				if(!(event.data instanceof String[] paths)) {
 					return;
 				}
@@ -885,42 +1052,62 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 				if(targetDirectory == null) {
 					return;
 				}
-				for(String path : paths) {
-					copyFileInto(new File(path), targetDirectory);
+				if(draggedFiles.isEmpty()) {
+					event.detail = DND.DROP_COPY;
+					for(String path : paths) {
+						copyFileInto(new File(path), targetDirectory);
+					}
+				} else {
+					event.detail = DND.DROP_MOVE;
+					for(File source : draggedFiles) {
+						if(isWithin(targetDirectory, source)) {
+							IJ.error("Script Explorer", "Cannot move \"" + source.getName() + "\" into itself or one of its own subfolders.");
+							continue;
+						}
+						moveFileInto(source, targetDirectory);
+					}
 				}
 				refreshTree();
 			}
 		});
 		/*
-		 * The reverse direction: let the currently selected tree item be dragged OUT to an OS
-		 * location (Finder/Explorer, another app, ...). DND.DROP_COPY only, so the OS always
-		 * copies the file to wherever it's dropped rather than moving/removing it here.
+		 * The reverse direction: let the current selection be dragged OUT, either to an OS
+		 * location (Finder/Explorer, another app, ...), which always copies since the OS itself
+		 * decides and ignores draggedFiles, or back onto this same tree (a different folder),
+		 * which the drop handler above turns into a move using draggedFiles.
 		 */
-		DragSource dragSource = new DragSource(tree, DND.DROP_COPY);
+		DragSource dragSource = new DragSource(tree, DND.DROP_COPY | DND.DROP_MOVE);
 		dragSource.setTransfer(new Transfer[]{FileTransfer.getInstance()});
 		dragSource.addDragListener(new DragSourceAdapter() {
-
-			private File draggedFile;
 
 			@Override
 			public void dragStart(DragSourceEvent event) {
 
-				TreeItem[] selection = tree.getSelection();
-				if(selection.length == 1 && selection[0].getData() instanceof File file) {
-					draggedFile = file;
-					event.doit = true;
-				} else {
-					draggedFile = null;
-					event.doit = false;
+				draggedFiles.clear();
+				for(TreeItem item : tree.getSelection()) {
+					if(item.getData() instanceof File file) {
+						draggedFiles.add(file);
+					}
 				}
+				event.doit = !draggedFiles.isEmpty();
 			}
 
 			@Override
 			public void dragSetData(DragSourceEvent event) {
 
-				if(draggedFile != null && FileTransfer.getInstance().isSupportedType(event.dataType)) {
-					event.data = new String[]{draggedFile.getAbsolutePath()};
+				if(!draggedFiles.isEmpty() && FileTransfer.getInstance().isSupportedType(event.dataType)) {
+					String[] paths = new String[draggedFiles.size()];
+					for(int i = 0; i < paths.length; i++) {
+						paths[i] = draggedFiles.get(i).getAbsolutePath();
+					}
+					event.data = paths;
 				}
+			}
+
+			@Override
+			public void dragFinished(DragSourceEvent event) {
+
+				draggedFiles.clear();
 			}
 		});
 	}
@@ -952,6 +1139,38 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			}
 		} catch(IOException e) {
 			IJ.error("Script Explorer", "Could not copy \"" + source.getName() + "\" to " + targetDirectory.getAbsolutePath());
+		}
+	}
+
+	/**
+	 * Moves source (a file OR a whole folder) into targetDirectory, removing the original - used
+	 * by an internal (within this tree) drag-and-drop. Tries a plain rename first (fast, atomic
+	 * when source and target are on the same filesystem, which is the overwhelmingly common case
+	 * here); falls back to a recursive copy-then-delete for the rarer cross-filesystem case (e.g.
+	 * an added Location on a different drive - see the "Add Location..." context menu action).
+	 */
+	private void moveFileInto(File source, File targetDirectory) {
+
+		if(source == null || !source.exists() || targetDirectory == null) {
+			return;
+		}
+		File destination = new File(targetDirectory, source.getName());
+		if(destination.equals(source)) {
+			return; // dropped back into its own parent folder - nothing to do
+		}
+		try {
+			Files.move(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch(IOException e) {
+			try {
+				if(source.isDirectory()) {
+					copyDirectoryRecursively(source.toPath(), destination.toPath());
+				} else {
+					Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				}
+				deleteRecursively(source);
+			} catch(IOException e2) {
+				IJ.error("Script Explorer", "Could not move \"" + source.getName() + "\" to " + targetDirectory.getAbsolutePath());
+			}
 		}
 	}
 
@@ -1001,6 +1220,17 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 
 		Menu contextMenu = new Menu(tree);
 		tree.setMenu(contextMenu);
+		MenuItem refreshItem = new MenuItem(contextMenu, SWT.PUSH);
+		refreshItem.setText("Refresh");
+		refreshItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				refreshTree();
+			}
+		});
+		new MenuItem(contextMenu, SWT.SEPARATOR);
 		MenuItem newFolderItem = new MenuItem(contextMenu, SWT.PUSH);
 		newFolderItem.setText("New Folder...");
 		newFolderItem.addSelectionListener(new SelectionAdapter() {
@@ -1038,16 +1268,13 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		});
 		new MenuItem(contextMenu, SWT.SEPARATOR);
 		MenuItem copyItem = new MenuItem(contextMenu, SWT.PUSH);
-		copyItem.setText("Copy");
+		copyItem.setText("Copy\tCmd+C");
 		copyItem.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
-				TreeItem[] selection = tree.getSelection();
-				if(selection.length == 1 && selection[0].getData() instanceof File file) {
-					clipboardFile = file;
-				}
+				copySelectionToClipboard();
 			}
 		});
 		MenuItem pasteItem = new MenuItem(contextMenu, SWT.PUSH);
@@ -1060,13 +1287,18 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 				pasteClipboard();
 			}
 		});
-		/* Cmd+V (Ctrl+V on Windows/Linux) - same paste as the context menu item above, without having to open it first. */
+		/* Cmd+C/Cmd+V (Ctrl+C/Ctrl+V on Windows/Linux) - same as the context menu items above, without having to open it first. */
 		tree.addListener(SWT.KeyDown, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
 
-				if((event.stateMask & SWT.MOD1) != 0 && (event.character == 'v' || event.character == 'V')) {
+				if((event.stateMask & SWT.MOD1) == 0) {
+					return;
+				}
+				if(event.character == 'c' || event.character == 'C') {
+					copySelectionToClipboard();
+				} else if(event.character == 'v' || event.character == 'V') {
 					pasteClipboard();
 				}
 			}
@@ -1157,6 +1389,95 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 				createPluginJar();
 			}
 		});
+		new MenuItem(contextMenu, SWT.SEPARATOR);
+		MenuItem addLocationItem = new MenuItem(contextMenu, SWT.PUSH);
+		addLocationItem.setText("Add Location...");
+		addLocationItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				DirectoryDialog dd = new DirectoryDialog(getShell());
+				dd.setText("Add a folder to the Script Explorer");
+				String path = dd.open();
+				if(path == null) {
+					return;
+				}
+				String absolutePath = new File(path).getAbsolutePath();
+				for(String existing : rootDirectories) {
+					if(new File(existing).getAbsolutePath().equals(absolutePath)) {
+						IJ.error("Add Location", "\"" + absolutePath + "\" is already shown.");
+						return;
+					}
+				}
+				extraRootDirectories.add(absolutePath);
+				addRootDirectory(absolutePath);
+				saveExtraRootDirectories();
+			}
+		});
+		MenuItem removeLocationItem = new MenuItem(contextMenu, SWT.PUSH);
+		removeLocationItem.setText("Remove Location");
+		removeLocationItem.setToolTipText("Removes a folder added with \"Add Location...\" (not the built-in plugins/macros folders) from this list - does not delete anything on disk.");
+		removeLocationItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				TreeItem[] selection = tree.getSelection();
+				if(selection.length != 1 || !(selection[0].getData() instanceof File file)) {
+					return;
+				}
+				String path = file.getAbsolutePath();
+				if(!extraRootDirectories.remove(path)) {
+					return;
+				}
+				rootDirectories.remove(path);
+				saveExtraRootDirectories();
+				removeClassPathDirectoriesUnder(file);
+				refreshTree();
+			}
+		});
+		new MenuItem(contextMenu, SWT.SEPARATOR);
+		MenuItem addClassPathItem = new MenuItem(contextMenu, SWT.PUSH);
+		addClassPathItem.setText("Add to Classpath");
+		addClassPathItem.setToolTipText("Lets \"Compile and Run\" (and Create Plugin Jar) also find classes and jars in the selected folder, on top of the plugins folder.");
+		addClassPathItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				TreeItem[] selection = tree.getSelection();
+				if(selection.length != 1 || !(selection[0].getData() instanceof File folder) || !folder.isDirectory()) {
+					return;
+				}
+				String path = folder.getAbsolutePath();
+				if(classPathDirectories.contains(path)) {
+					return;
+				}
+				classPathDirectories.add(path);
+				Menus.addExtraClassPathDirectory(path);
+				saveClassPathDirectories();
+			}
+		});
+		MenuItem removeClassPathItem = new MenuItem(contextMenu, SWT.PUSH);
+		removeClassPathItem.setText("Remove from Classpath");
+		removeClassPathItem.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				TreeItem[] selection = tree.getSelection();
+				if(selection.length != 1 || !(selection[0].getData() instanceof File file)) {
+					return;
+				}
+				String path = file.getAbsolutePath();
+				if(!classPathDirectories.remove(path)) {
+					return;
+				}
+				Menus.removeExtraClassPathDirectory(path);
+				saveClassPathDirectories();
+			}
+		});
 		contextMenu.addMenuListener(new MenuAdapter() {
 
 			@Override
@@ -1168,12 +1489,18 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 				for(TreeItem item : selection) {
 					hasAnySelection = hasAnySelection && item.getData() instanceof File;
 				}
-				copyItem.setEnabled(hasSingleSelection);
+				copyItem.setEnabled(hasAnySelection);
 				renameItem.setEnabled(hasSingleSelection);
 				deleteItem.setEnabled(hasAnySelection);
 				createPluginJarItem.setEnabled(hasAnySelection);
 				String systemClipboardText = getSystemClipboardText();
-				pasteItem.setEnabled(clipboardFile != null || getSystemClipboardFiles() != null || (systemClipboardText != null && !systemClipboardText.isEmpty()));
+				pasteItem.setEnabled(!clipboardFiles.isEmpty() || getSystemClipboardFiles() != null || (systemClipboardText != null && !systemClipboardText.isEmpty()));
+				boolean isRemovableRoot = selection.length == 1 && selection[0].getParentItem() == null && selection[0].getData() instanceof File rootFile && extraRootDirectories.contains(rootFile.getAbsolutePath());
+				removeLocationItem.setEnabled(isRemovableRoot);
+				boolean isAddableFolder = selection.length == 1 && selection[0].getData() instanceof File selectedFolder && selectedFolder.isDirectory() && !classPathDirectories.contains(selectedFolder.getAbsolutePath()) && !isDefaultClassPathDirectory(selectedFolder);
+				addClassPathItem.setEnabled(isAddableFolder);
+				boolean isRemovableClassPathEntry = selection.length == 1 && selection[0].getData() instanceof File classPathFile && classPathDirectories.contains(classPathFile.getAbsolutePath());
+				removeClassPathItem.setEnabled(isRemovableClassPathEntry);
 			}
 		});
 	}
@@ -1417,11 +1744,16 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			}
 		}
 		String sourcePath = String.join(File.pathSeparator, sourceRoots);
+		/* Extra directories added via "Add to Classpath" (see Menus.getExtraClassPathDirectories()), so a plugin referencing a class/jar there can be packaged too. */
+		StringBuilder baseClassPath = new StringBuilder(System.getProperty("java.class.path"));
+		for(String extra : Menus.getExtraClassPathDirectories()) {
+			baseClassPath.append(File.pathSeparator).append(extra);
+		}
 		List<String> options = new ArrayList<>();
 		options.add("-d");
 		options.add(outputDir.getAbsolutePath());
 		options.add("-classpath");
-		options.add(sourceRoots.isEmpty() ? System.getProperty("java.class.path") : System.getProperty("java.class.path") + File.pathSeparator + sourcePath);
+		options.add(sourceRoots.isEmpty() ? baseClassPath.toString() : baseClassPath + File.pathSeparator + sourcePath);
 		if(!sourceRoots.isEmpty()) {
 			options.add("-sourcepath");
 			options.add(sourcePath);
@@ -1576,7 +1908,37 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	}
 
 	/**
-	 * Pastes clipboardFile (copied via this tree's own "Copy") if there is one; otherwise falls
+	 * Remembers the current selection for this tree's own "Paste" (clipboardFiles) AND puts the
+	 * same files onto the OS clipboard as a FileTransfer, so pasting into Finder/Explorer (or any
+	 * other app) copies them there too - the same Transfer type drag & drop already uses to
+	 * export files out of this tree (see hookDragAndDrop()), just via copy/paste instead of a
+	 * drag gesture. Shared by the "Copy" context menu item and the Cmd+C key binding.
+	 */
+	private void copySelectionToClipboard() {
+
+		clipboardFiles.clear();
+		for(TreeItem item : tree.getSelection()) {
+			if(item.getData() instanceof File file) {
+				clipboardFiles.add(file);
+			}
+		}
+		if(clipboardFiles.isEmpty()) {
+			return;
+		}
+		String[] paths = new String[clipboardFiles.size()];
+		for(int i = 0; i < paths.length; i++) {
+			paths[i] = clipboardFiles.get(i).getAbsolutePath();
+		}
+		Clipboard clipboard = new Clipboard(tree.getDisplay());
+		try {
+			clipboard.setContents(new Object[]{paths}, new Transfer[]{FileTransfer.getInstance()});
+		} finally {
+			clipboard.dispose();
+		}
+	}
+
+	/**
+	 * Pastes clipboardFiles (copied via this tree's own "Copy") if there are any; otherwise falls
 	 * back to whatever file(s) are currently on the OS clipboard (e.g. copied in Finder); and
 	 * failing that, to plain copied text (e.g. from a text editor), which is written out as a
 	 * new file (see pasteTextAsNewFile()). Always targets whichever item is currently selected
@@ -1591,8 +1953,10 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		if(targetDirectory == null) {
 			return;
 		}
-		if(clipboardFile != null) {
-			copyFileInto(clipboardFile, targetDirectory);
+		if(!clipboardFiles.isEmpty()) {
+			for(File file : clipboardFiles) {
+				copyFileInto(file, targetDirectory);
+			}
 			refreshTree();
 			return;
 		}

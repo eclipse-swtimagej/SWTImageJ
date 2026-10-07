@@ -209,7 +209,8 @@ public class Compiler implements PlugIn, FilenameFilter {
 
 	// Returns a string containing the Java classpath,
 	// the path to the directory containing the plugin,
-	// and paths to any .jar files in the plugins folder.
+	// paths to any .jar files in the plugins folder,
+	// and any extra classpath directories (see Menus.getExtraClassPathDirectories()).
 	String getClassPath(String path) {
 
 		long start = System.currentTimeMillis();
@@ -221,6 +222,10 @@ public class Compiler implements PlugIn, FilenameFilter {
 		String pluginsDir = Menus.getPlugInsPath();
 		if(pluginsDir != null)
 			addJars(pluginsDir, sb);
+		for(String extra : Menus.getExtraClassPathDirectories()) {
+			sb.append(File.pathSeparator + extra);
+			addJars(extra, sb);
+		}
 		return sb.toString();
 	}
 

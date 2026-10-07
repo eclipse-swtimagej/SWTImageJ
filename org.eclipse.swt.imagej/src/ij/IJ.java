@@ -2925,6 +2925,19 @@ public class IJ {
 					classLoader = new PluginClassLoader(pluginsDir, true);
 				else
 					classLoader = new PluginClassLoader(pluginsDir);
+				/*
+				 * Extra directories added beyond the plugins folder (see ScriptExplorer's "Add to
+				 * Classpath" context menu action and Menus.getExtraClassPathDirectories()) -
+				 * without this, a plugin compiled against one of them (Compiler.getClassPath()
+				 * already includes them) would fail to load at run time with a
+				 * ClassNotFoundException/NoClassDefFoundError, since this loader otherwise only
+				 * ever searches the plugins folder.
+				 */
+				for(String extra : Menus.getExtraClassPathDirectories()) {
+					File extraDir = new File(extra);
+					if(extraDir.isDirectory())
+						((PluginClassLoader)classLoader).addDirectory(extraDir);
+				}
 			}
 		}
 		return classLoader;

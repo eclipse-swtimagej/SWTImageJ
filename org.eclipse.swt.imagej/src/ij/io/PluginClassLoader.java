@@ -65,7 +65,8 @@ public class PluginClassLoader extends URLClassLoader {
 		addDirectory(f, "jars"); // add ImageJ/jars; requested by Wilhelm Burger
 	}
 
-	private void addDirectory(File f) {
+	/** Adds a directory (and any .jar/.zip files directly inside it) to this loader's search path - public so callers outside this package (see IJ.getClassLoader()) can add extra directories beyond the plugins folder this loader was constructed with. */
+	public void addDirectory(File f) {
 		//if (IJ.debugMode) IJ.log("PluginClassLoader.addDirectory: "+f);
 		try {
 			// Add first level subdirectories to search path

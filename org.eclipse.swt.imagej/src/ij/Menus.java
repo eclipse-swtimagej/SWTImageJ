@@ -1622,6 +1622,33 @@ public class Menus {
 		return macrosPath;
 	}
 
+	/**
+	 * Extra directories (e.g. added via ScriptExplorer's "Add to Classpath" context menu action)
+	 * that {@link ij.plugin.Compiler} includes when compiling a plugin and {@link IJ#getClassLoader()}
+	 * includes when running one, on top of the plugins directory - lets "Compile and Run"-style
+	 * plugins reference classes/jars that live outside the plugins folder.
+	 */
+	private static final java.util.List<String> extraClassPathDirectories = new ArrayList<String>();
+
+	/** @see #extraClassPathDirectories */
+	public static void addExtraClassPathDirectory(String directory) {
+
+		if(directory != null && !extraClassPathDirectories.contains(directory))
+			extraClassPathDirectories.add(directory);
+	}
+
+	/** @see #extraClassPathDirectories */
+	public static void removeExtraClassPathDirectory(String directory) {
+
+		extraClassPathDirectories.remove(directory);
+	}
+
+	/** @see #extraClassPathDirectories */
+	public static java.util.List<String> getExtraClassPathDirectories() {
+
+		return new ArrayList<String>(extraClassPathDirectories);
+	}
+
 	/** Returns the hashtable that associates commands with plugins. */
 	public static Hashtable getCommands() {
 
