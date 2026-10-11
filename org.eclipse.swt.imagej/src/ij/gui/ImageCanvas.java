@@ -455,7 +455,16 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	/* Changed for SWT! */
 	public void requestFocus() {
 
-		this.setFocus();
+		if(isDisposed())
+			return;
+		/*
+		 * Only take the focus inside the active shell. setFocus() activates (brings to
+		 * front) the shell of the canvas, e.g., the window of an embedding application
+		 * while a macro runs from another shell (Script Explorer, Editor)!
+		 */
+		Shell active = getDisplay().getActiveShell();
+		if(active == null || active == getShell())
+			this.setFocus();
 	}
 
 	/*
