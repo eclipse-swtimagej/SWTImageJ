@@ -2102,7 +2102,12 @@ public class Plot implements Cloneable {
 		}
 		Display.getDefault().syncExec(() -> {
 			pw = new PlotWindow(Plot.this); // note: this may set imp to null if pw has listValues and autoClose are
-			pw.getCanvas().getShell().pack(true); // set
+			/*
+			 * Only pack the own shell of the plot window. An embedded plot window has no shell
+			 * and the shell of the canvas is the window of the embedding application!
+			 */
+			if (pw.getShell() != null && !pw.getShell().isDisposed())
+				pw.getShell().pack(true);
 
 		});
 		if (IJ.isMacro() && imp != null) // wait for plot to be displayed
