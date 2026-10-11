@@ -88,7 +88,8 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 	GridBagConstraints c;
 	int y = 0;
 	boolean windowLevel, balance;
-	org.eclipse.swt.graphics.Font monoFont = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("Monospaced", 8, SWT.NORMAL));
+	/* Created when the dialog is built and disposed with the shell (see run())! */
+	org.eclipse.swt.graphics.Font monoFont;
 	org.eclipse.swt.graphics.Font sanFont = IJ.font10;
 	int channels = 7; // RGB
 	org.eclipse.swt.widgets.Combo choice;
@@ -129,10 +130,14 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 					ca.close();
 				} else {
 					instance.shell.setActive();
+					/* Already open: this instance is not used (see below)! */
+					shell.dispose();
 					return;
 				}
 			}
 			instance = ContrastAdjuster.this;
+			monoFont = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("Monospaced", 8, SWT.NORMAL));
+			shell.addDisposeListener(e -> monoFont.dispose());
 			IJ.register(ContrastAdjuster.class);
 			WindowManager.addWindow(ContrastAdjuster.this);
 			ij = IJ.getInstance();
@@ -256,6 +261,8 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 			shell.pack();
 			shell.setVisible(true);
 		});
+		if(shell.isDisposed())
+			return;
 		thread = new Thread(this, "ContrastAdjuster");
 		// thread.setPriority(thread.getPriority()-1);
 		thread.start();
