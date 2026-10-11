@@ -421,6 +421,21 @@ public class StackWindow extends ImageWindow
 		return true;
 	}
 
+	@Override
+	public boolean close(boolean disposeShell) {
+
+		if (!super.close(disposeShell))
+			return false;
+		/* Embedded: the selectors are children of the embedding parent and must be removed with the window! */
+		if (getShell() == null && comp != null) {
+			Display.getDefault().syncExec(() -> {
+				if (!comp.isDisposed())
+					removeScrollbars();
+			});
+		}
+		return true;
+	}
+
 	/** Displays the specified slice and updates the stack scrollbar. */
 	public void showSlice(int index) {
 

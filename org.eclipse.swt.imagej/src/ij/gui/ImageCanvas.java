@@ -200,6 +200,17 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		this(createComposite(imp), imp);
 	}
 
+	/* Keep the parent field valid if the canvas is moved to a new window (e.g., RGB to stack)! */
+	@Override
+	public boolean setParent(Composite newParent) {
+
+		boolean moved = super.setParent(newParent);
+		if(moved) {
+			parent = newParent;
+		}
+		return moved;
+	}
+
 	public ImageCanvas(final Composite parent, ImagePlus imp) {
 
 		super(parent, SWT.TRANSPARENT | SWT.DOUBLE_BUFFERED);
