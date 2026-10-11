@@ -2274,6 +2274,8 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		 * prompts to save unsaved changes first, same as closing an Editor normally would.
 		 */
 		tabItem.addDisposeListener(_ -> {
+			/* The tab is already being disposed: editor.close() must not dispose it again! */
+			tabItem.setControl(null);
 			editor.close();
 			if(!editor.getShell().isDisposed()) {
 				editor.getShell().dispose();

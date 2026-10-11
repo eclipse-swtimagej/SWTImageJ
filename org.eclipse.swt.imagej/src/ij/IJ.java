@@ -1945,7 +1945,9 @@ public class IJ {
 
 		if(title.equals("ImageJ") && ij != null) {
 			Display.getDefault().syncExec(() -> {
-				ij.getShell().setActive();
+				/* The ImageJ shell is invisible if ImageJ is embedded! */
+				if(ij.getShell().isVisible())
+					ij.getShell().setActive();
 			});
 			return;
 		}
@@ -1977,7 +1979,10 @@ public class IJ {
 
 		if(win instanceof WindowSwt) {
 			Display.getDefault().syncExec(() -> {
-				((WindowSwt)win).getShell().setActive();
+				org.eclipse.swt.widgets.Shell shell = ((WindowSwt)win).getShell();
+				/* An embedded window (e.g., an Editor in a tab) has an invisible shell! */
+				if(shell != null && !shell.isDisposed() && shell.isVisible())
+					shell.setActive();
 			});
 			// ((Frame) win).setState(Frame.NORMAL);
 		} else

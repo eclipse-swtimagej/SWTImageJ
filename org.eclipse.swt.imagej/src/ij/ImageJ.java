@@ -1426,7 +1426,9 @@ public class ImageJ implements ImageObserver, ShellListener, org.eclipse.swt.eve
 
 		if(shell != null && !shell.isDisposed()) {
 			Display.getDefault().syncExec(() -> {
-				shell.setActive();
+				/* The ImageJ shell is invisible if ImageJ is embedded! */
+				if(shell.isVisible())
+					shell.setActive();
 			});
 		}
 	}

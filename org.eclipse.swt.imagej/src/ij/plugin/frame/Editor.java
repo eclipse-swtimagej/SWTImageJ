@@ -2481,11 +2481,21 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		instance = this;
 	}
 
+	/* True while the shell itself is closing (the shell is disposed by SWT afterwards)! */
+	private boolean closingFromShell;
+	/* True after a successful close() (avoids a second cleanup, e.g., from a tab dispose listener)! */
+	private boolean closed;
+
 	/** Overrides shellClosed() in PlugInFrame. */
 	public void shellClosed(ShellEvent e) {
 
 		e.doit = false;
-		close();
+		closingFromShell = true;
+		try {
+			close();
+		} finally {
+			closingFromShell = false;
+		}
 		if(okayToClose) {
 			e.doit = true;
 			super.shellClosed(e);
@@ -2495,6 +2505,10 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	/** Overrides close() in PlugInFrame. */
 	public void close() {
 
+		if(closed) {
+			okayToClose = true;
+			return;
+		}
 		okayToClose = true;
 		if(shell == null || shell.isDisposed()) {
 			/*
@@ -2530,7 +2544,11 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			changes = false;
 			if(functionFinder != null)
 				functionFinder.close();
+		} else {
+			/* Canceled by the user: the editor stays open and needs its fonts! */
+			return;
 		}
+		closed = true;
 		if(markerAnnotationPainter != null && sourceViewer != null) {
 			/*
 			 * sourceViewer.removePainter(...) - NOT markerAnnotationPainter.dispose() directly -
@@ -2548,6 +2566,13 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 */
 			sourceViewer.removePainter(markerAnnotationPainter);
 		}
+		/*
+		 * If closed programmatically (e.g., the macro function close("*.ijm")) the widgets must
+		 * be removed, too. Else the editor stays visible and paints with the disposed fonts
+		 * below ("IllegalArgumentException: Argument not valid" in TextLayout.setFont)!
+		 */
+		if(!closingFromShell)
+			disposeWidgets();
 		if(font != null && !font.isDisposed())
 			font.dispose();
 		if(fontNew != null && !fontNew.isDisposed())
@@ -2960,6 +2985,26 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		Prefs.set(FONT_SIZE, fontSizeIndex);
 		Prefs.set(FONT_MONO, monospaced.getSelection());
 		IJ.showStatus("Font settings saved (size=" + sizes[fontSizeIndex] + ", monospaced=" + monospaced.getSelection() + ")");
+	}
+
+	/* Removes the (embedded) editor composite, its tab (e.g., Script Explorer) and the shell! */
+	private void disposeWidgets() {
+
+		if(composite != null && !composite.isDisposed()) {
+			Composite parent = composite.getParent();
+			if(parent instanceof org.eclipse.swt.custom.CTabFolder) {
+				for(org.eclipse.swt.custom.CTabItem item : ((org.eclipse.swt.custom.CTabFolder)parent).getItems()) {
+					if(item.getControl() == composite) {
+						item.dispose();
+						break;
+					}
+				}
+			}
+			if(!composite.isDisposed())
+				composite.dispose();
+		}
+		if(shell != null && !shell.isDisposed())
+			shell.dispose();
 	}
 
 	void setFont() {

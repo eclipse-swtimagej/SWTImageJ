@@ -830,20 +830,20 @@ public class WindowManager {
 				frame.setState(Frame.NORMAL);
 			frame.toFront();
 		} else if(fram instanceof ImageWindow) {
-			Display.getDefault().syncExec(() -> {
-				ImageWindow imageWindow = (ImageWindow)fram;
-				Shell shell = imageWindow.getShell();
-				if(shell != null) {
-					shell.setActive();
-				}
-			});
+			/* ImageWindow.toFront() also handles embedded windows (see ImageJHost)! */
+			((ImageWindow)fram).toFront();
 		} else if(fram instanceof Shell) {
 			Display.getDefault().syncExec(() -> {
-				((Shell)fram).setActive();
+				Shell shell = (Shell)fram;
+				/* Never activate an invisible (embedded) shell! */
+				if(!shell.isDisposed() && shell.isVisible())
+					shell.setActive();
 			});
 		} else if(fram instanceof WindowSwt) {
 			Display.getDefault().syncExec(() -> {
-				((WindowSwt)fram).getShell().setActive();
+				Shell shell = ((WindowSwt)fram).getShell();
+				if(shell != null && !shell.isDisposed() && shell.isVisible())
+					shell.setActive();
 			});
 		}
 	}
