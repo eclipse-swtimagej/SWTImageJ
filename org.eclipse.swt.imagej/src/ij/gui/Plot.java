@@ -2108,6 +2108,11 @@ public class Plot implements Cloneable {
 			 */
 			if (pw.getShell() != null && !pw.getShell().isDisposed())
 				pw.getShell().pack(true);
+			else if (pw.getCanvas() != null && !pw.getCanvas().isDisposed() && pw.parentComposite != null && !pw.parentComposite.isDisposed()) {
+				/* Embedded: fit the plot to the parent (the first resize happened before the plot was set)! */
+				pw.parentComposite.getParent().layout(true, true);
+				pw.resizeControl();
+			}
 
 		});
 		if (IJ.isMacro() && imp != null) // wait for plot to be displayed
