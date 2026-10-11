@@ -585,6 +585,14 @@ public class WindowManager {
 				IJ.wait(100);
 		}
 		Prefs.closingAll = false;
+		/*
+		 * GenericDialog instances are never registered with WindowManager (they're transient
+		 * dialogs, not tracked top-level windows), so nothing else here would ever dispose a
+		 * hidden-but-pending one (see GenericDialog#disposePendingShells()) - placed before the
+		 * ij.quitting() early return below so it always runs, unlike the window closes further
+		 * down.
+		 */
+		GenericDialog.disposeAllPendingShells();
 		Object[] nonImages = getNonImageWindows();
 		for(int i = 0; i < nonImages.length; i++) {
 			Object frame = nonImages[i];

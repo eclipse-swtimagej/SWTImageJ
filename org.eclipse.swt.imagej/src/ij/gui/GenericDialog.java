@@ -190,12 +190,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			} else {
 				shell = new Shell(Display.getDefault(), style);
 			}
-			/* Delete old GenericDialog which were made invisible only! */
-			if (oldShell.isEmpty() == false) {
-				Shell shell2 = oldShell.get(0);
-				shell2.close();
-				oldShell.clear();
-			}
+			/* Delete old GenericDialogs which were made invisible only! */
+			disposePendingShells();
 			GenericDialog.this.instance = GenericDialog.this;
 			shell.setText(title);
 			ImageJ ij = IJ.getInstance();
@@ -2530,6 +2526,37 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	public void dispose() {
 
 		shell.close();
+	}
+
+	/**
+	 * Disposes every shell queued in oldShell (hidden by shellClosed() once its values have been
+	 * read via getNextXxx(), but not disposed immediately since SWT - unlike AWT/Swing - throws
+	 * on any access to an already-disposed widget, and getNextXxx()/getCheckboxes()-style getters
+	 * may still be called afterward). Called both here, before building the next dialog, and
+	 * from disposeAllPendingShells() as an application-shutdown safety net, so a shell doesn't
+	 * leak indefinitely if no further GenericDialog ever gets constructed to trigger this.
+	 */
+	private static void disposePendingShells() {
+
+		for (Shell oldOne : oldShell) {
+			if (!oldOne.isDisposed()) {
+				oldOne.close();
+			}
+		}
+		oldShell.clear();
+	}
+
+	/**
+	 * Call on application shutdown (see ij.WindowManager#closeAllWindows()) to dispose whatever
+	 * GenericDialog shell is still hidden-but-pending, in case the last one shown in a session is
+	 * never followed by another that would otherwise trigger its disposal (see
+	 * disposePendingShells()).
+	 */
+	public static void disposeAllPendingShells() {
+
+		if (!oldShell.isEmpty()) {
+			Display.getDefault().syncExec(GenericDialog::disposePendingShells);
+		}
 	}
 
 	/**
