@@ -206,13 +206,21 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 		ps = new Dimension(buttonWidth * NUM_BUTTONS - (buttonWidth - gapSize), buttonHeight);
 	}
 
+	/* Recreate the popup menus if the shell has been disposed or the toolbar was moved to another shell! */
+	private void ensurePopupMenus() {
+
+		if (switchPopup == null || switchPopup.isDisposed() || switchPopup.getParent() != getShell())
+			addPopupMenus();
+	}
+
 	void addPopupMenus() {
 
-		Display display = Display.getDefault();
-		Shell shell = display.getActiveShell();
-		if (shell == null) {
-			shell = parent.getShell();
+		org.eclipse.swt.widgets.Menu[] old = {rectPopup, ovalPopup, pointPopup, linePopup, zoomPopup, pickerPopup, switchPopup};
+		for (org.eclipse.swt.widgets.Menu m : old) {
+			if (m != null && !m.isDisposed())
+				m.dispose();
 		}
+		Shell shell = getShell();
 		rectPopup = new org.eclipse.swt.widgets.Menu(shell, SWT.POP_UP);
 		/*
 		 * if (Menus.getFontSize() != 0) rectPopup.setFont(Menus.getFont());
@@ -1039,11 +1047,40 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 	@Override
 	public void paintControl(PaintEvent e) {
 
+		updateThemeColors();
 		GC gc = e.gc;
 		SWTGraphics2D g = new SWTGraphics2D(gc);
 		drawButtons(g);
 		g.dispose();
 
+	}
+
+	private org.eclipse.swt.graphics.RGB themeBackground, themeForeground;
+
+	/*
+	 * Use the colors of this control (e.g., set by an embedding application with a
+	 * dark theme) instead of the system colors!
+	 */
+	private void updateThemeColors() {
+
+		org.eclipse.swt.graphics.RGB b = getBackground().getRGB();
+		org.eclipse.swt.graphics.RGB f = getForeground().getRGB();
+		if (b.equals(themeBackground) && f.equals(themeForeground))
+			return;
+		themeBackground = b;
+		themeForeground = f;
+		gray = new Color(b.red, b.green, b.blue);
+		toolColor = new Color(f.red, f.green, f.blue);
+		boolean dark = (0.299 * b.red + 0.587 * b.green + 0.114 * b.blue) < 128;
+		if (dark) {
+			brighter = new Color(Math.min(255, b.red + 45), Math.min(255, b.green + 45), Math.min(255, b.blue + 45));
+			darker = new Color(Math.min(255, b.red + 30), Math.min(255, b.green + 30), Math.min(255, b.blue + 30));
+			evenDarker = new Color(Math.max(0, b.red - 25), Math.max(0, b.green - 25), Math.max(0, b.blue - 25));
+		} else {
+			brighter = gray.brighter();
+			darker = Display.isSystemDarkTheme() ? new Color(110, 110, 110) : new Color(180, 180, 180);
+			evenDarker = new Color(110, 110, 110);
+		}
 	}
 
 	public boolean setTool(String name) {
@@ -1649,6 +1686,7 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 
 	public void mousePressed(final org.eclipse.swt.events.MouseEvent e) {
 
+		ensurePopupMenus();
 		boolean disablePopup = false;
 		org.eclipse.swt.graphics.Point ev = this.toDisplay(e.x, e.y);
 		int x = e.x;
