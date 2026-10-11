@@ -29,3 +29,4 @@ Automatic-Module-Name: net.openchrom.imagej.editor
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.e4.core.contexts
 Bundle-ClassPath: .
+Eclipse-BuddyPolicy: registered
