@@ -1,6 +1,7 @@
 package ij.process;
 
 import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 
 /** This class converts an ImageProcessor to another data type. */
 public class TypeConverter {
@@ -349,7 +350,20 @@ public class TypeConverter {
 			return ip;
 		else {
 			ImageProcessor ip2 = ip.convertToByte(doScaling);
-			return new ColorProcessor(ip2.createSwtImage());
+			/*
+			 * Converted with the current LUT without an SWT image (which was never
+			 * disposed and needs the display thread)!
+			 */
+			IndexColorModel icm = (IndexColorModel)ip2.getCurrentColorModel();
+			int mapSize = icm.getMapSize();
+			int[] lut = new int[256];
+			for(int i = 0; i < 256; i++)
+				lut[i] = i < mapSize ? icm.getRGB(i) & 0xffffff : 0;
+			byte[] pixels8 = (byte[])ip2.getPixels();
+			int[] pixels32 = new int[width * height];
+			for(int i = 0; i < pixels32.length; i++)
+				pixels32[i] = 0xff000000 | lut[pixels8[i] & 0xff];
+			return new ColorProcessor(width, height, pixels32);
 		}
 	}
 }
