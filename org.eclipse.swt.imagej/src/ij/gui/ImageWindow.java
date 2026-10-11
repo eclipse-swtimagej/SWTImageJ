@@ -1035,9 +1035,12 @@ public class ImageWindow implements MouseWheelListener {
 				msg += "\nWARNING: This image is locked.\nProbably, processing is unfinished (slow or still previewing).";
 			// toFront();
 			if(embeddedParent == null) {
-				if(shell != null && !shell.isDisposed()) {
-					shell.setActive();
-				}
+				/* close() can be called from any thread (plugins, scripts)! */
+				Display.getDefault().syncExec(() -> {
+					if(shell != null && !shell.isDisposed()) {
+						shell.setActive();
+					}
+				});
 				YesNoCancelDialog d = new YesNoCancelDialog("ImageJ", msg);
 				if(d.cancelPressed())
 					return false;
