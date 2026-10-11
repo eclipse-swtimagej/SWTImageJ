@@ -128,6 +128,7 @@ public class IJ {
 	public static final char angstromSymbol = '\u00C5';
 	public static final char degreeSymbol = '\u00B0';
 	private static ImageJ ij;
+	private static ij.swt.ImageJHost host;
 	private static ProgressBar progressBar;
 	private static TextPanel textPanel;
 	private static String osname, osarch;
@@ -565,6 +566,21 @@ public class IJ {
 	 * subsequent showStatus() calls in the current thread (without "!" in the
 	 * message) are suppressed.
 	 */
+	/**
+	 * Registers callbacks for an application which embeds ImageJ (e.g., to embed
+	 * image windows in tabs or views). Pass null to remove the host.
+	 */
+	public static void setHost(ij.swt.ImageJHost imageJHost) {
+
+		host = imageJHost;
+	}
+
+	/** Returns the registered host or null. */
+	public static ij.swt.ImageJHost getHost() {
+
+		return host;
+	}
+
 	public static void showStatus(String s) {
 
 		if((Interpreter.getInstance() == null && statusBarThread == null) || (statusBarThread != null && Thread.currentThread() != statusBarThread))
@@ -578,6 +594,8 @@ public class IJ {
 		if(doProtect || !protectStatusBar) {
 			if(ij != null)
 				ij.showStatus(s);
+			if(host != null)
+				host.showStatus(s);
 			ImagePlus imp = WindowManager.getCurrentImage();
 			ImageCanvas ic = imp != null ? imp.getCanvas() : null;
 			if(ic != null)

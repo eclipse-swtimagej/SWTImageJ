@@ -121,6 +121,8 @@ public class ImageWindow implements MouseWheelListener {
 		Display.getDefault().syncExec(() -> {
 			if(shell != null && !shell.isDisposed())
 				shell.setText(string);
+			else if(embeddedParent != null && IJ.getHost() != null)
+				IJ.getHost().titleChanged(this, string);
 		});
 	}
 
@@ -135,7 +137,12 @@ public class ImageWindow implements MouseWheelListener {
 
 		AtomicReference<Boolean> visible = new AtomicReference<Boolean>();
 		Display.getDefault().syncExec(() -> {
-			visible.set(shell.isVisible());
+			if(shell != null) {
+				visible.set(!shell.isDisposed() && shell.isVisible());
+			} else {
+				/* An embedded window is visible as long as it exists! */
+				visible.set(parentComposite != null && !parentComposite.isDisposed());
+			}
 		});
 		return visible.get();
 	}
@@ -144,7 +151,8 @@ public class ImageWindow implements MouseWheelListener {
 
 		Display.getDefault().syncExec(() -> {
 			Shell shell = getShell();
-			shell.setVisible(true);
+			if(shell != null && !shell.isDisposed())
+				shell.setVisible(true);
 		});
 	}
 
@@ -152,7 +160,8 @@ public class ImageWindow implements MouseWheelListener {
 	public void show() {
 
 		Display.getDefault().syncExec(() -> {
-			shell.setVisible(true);
+			if(shell != null && !shell.isDisposed())
+				shell.setVisible(true);
 		});
 	}
 
@@ -268,6 +277,10 @@ public class ImageWindow implements MouseWheelListener {
 			Display.getDefault().syncExec(() -> {
 				shell.setActive();
 			});
+		} else if(IJ.getHost() != null) {
+			Display.getDefault().syncExec(() -> {
+				IJ.getHost().toFront(this);
+			});
 		}
 	}
 
@@ -346,6 +359,16 @@ public class ImageWindow implements MouseWheelListener {
 		this.imp = imp;
 		boolean openAsHyperStack = imp.getOpenAsHyperStack();
 		embeddedParent = imp.getEditorParent();
+		if(embeddedParent != null && embeddedParent.isDisposed()) {
+			embeddedParent = null;
+		}
+		/* An embedding application can provide a parent (e.g., a tab)! */
+		if(embeddedParent == null && IJ.getHost() != null) {
+			embeddedParent = IJ.getHost().getImageParent(imp);
+			if(embeddedParent != null) {
+				imp.setEditorParent(embeddedParent);
+			}
+		}
 		/* We create a shell if we don't have another parent! */
 		if(embeddedParent == null) {
 			createShell();
@@ -1046,6 +1069,12 @@ public class ImageWindow implements MouseWheelListener {
 				} else {
 					// Will be opened again when an image is replaced (e.g., RGB to RGB stack)
 					shell.setVisible(false);
+				}
+			} else if(parentComposite != null && !parentComposite.isDisposed()) {
+				/* Remove the embedded window. A replacing window creates a new composite! */
+				parentComposite.dispose();
+				if(!embeddedParent.isDisposed()) {
+					embeddedParent.layout();
 				}
 			}
 			if(imp != null)
