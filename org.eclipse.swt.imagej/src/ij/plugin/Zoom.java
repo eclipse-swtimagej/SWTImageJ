@@ -284,7 +284,10 @@ public class Zoom implements PlugIn {
 		Composite embeddedParent = imp.getEditorParent();
 		Rectangle bounds;
 		if(embeddedParent != null) {
-			bounds = GUI.getMaxWindowBounds(embeddedParent.getShell());
+			/* Macros run outside the SWT thread! */
+			java.util.concurrent.atomic.AtomicReference<org.eclipse.swt.widgets.Shell> embeddedShell = new java.util.concurrent.atomic.AtomicReference<>();
+			org.eclipse.swt.widgets.Display.getDefault().syncExec(() -> embeddedShell.set(embeddedParent.getShell()));
+			bounds = GUI.getMaxWindowBounds(embeddedShell.get());
 		} else {
 			bounds = GUI.getMaxWindowBounds(win.getShell());
 		}
@@ -310,7 +313,7 @@ public class Zoom implements PlugIn {
 		ic.setMagnification(mag);
 		double newWidth = width * mag;
 		double newHeight = height * mag;
-		org.eclipse.swt.graphics.Point size = ic.getSize();
+		org.eclipse.swt.graphics.Point size = ic.getCanvasSize();
 		if(newWidth >= size.x && newHeight >= size.y) {
 			srcWidth = (int)Math.round(size.x / mag);
 			srcHeight = (int)Math.round(size.y / mag);
