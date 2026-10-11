@@ -302,6 +302,7 @@ public class Zoom implements PlugIn {
 			ic.setMagnification(mag);
 			ic.setSize((int)(srcWidth * mag), (int)(srcHeight * mag));
 			win.setSize(canvasWidth, canvasHeight);
+			layoutEmbedded(win, embeddedParent);
 			return;
 		}
 		if(x >= width)
@@ -339,8 +340,25 @@ public class Zoom implements PlugIn {
 			ic.setSourceRect(new org.eclipse.swt.graphics.Rectangle(0, 0, srcWidth, srcHeight));
 			win.pack();
 		}
+		layoutEmbedded(win, embeddedParent);
 		ic.repaint();
 		IJ.wait(100);
+	}
+
+	/*
+	 * An embedded window has no shell which is resized (see win.setSize(), win.pack()) - lay out
+	 * the window in its parent instead (as after a resize of the parent) to center the image!
+	 */
+	private static void layoutEmbedded(ImageWindow win, Composite embeddedParent) {
+
+		if(embeddedParent == null || win == null)
+			return;
+		org.eclipse.swt.widgets.Display.getDefault().syncExec(() -> {
+			if(embeddedParent.isDisposed() || win.parentComposite == null || win.parentComposite.isDisposed())
+				return;
+			win.resizeControl();
+			embeddedParent.layout(true, true);
+		});
 	}
 
 	private void scaleToFit(ImagePlus imp) {
