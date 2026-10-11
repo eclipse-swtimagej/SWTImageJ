@@ -891,7 +891,13 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		setType(type);
 		this.img = ip.createImage();
 		disposeImgSwt();
-		this.imgSwt = ip.createSwtImage();
+		/*
+		 * Create the native SWT image only for a displayed image. Else it is created on
+		 * demand (getSwtImage(), e.g., in show()) - an image which is never displayed (e.g.,
+		 * IJ.openImage() in a script) would otherwise leak a not disposed SWT image!
+		 */
+		if(win != null)
+			this.imgSwt = ip.createSwtImage();
 		if(win != null) {
 			if(dimensionsChanged)
 				win = new ImageWindow(this);
@@ -967,7 +973,13 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		setType(type);
 		this.img = ip.createImage();
 		disposeImgSwt();
-		this.imgSwt = ip.createSwtImage();
+		/*
+		 * Create the native SWT image only for a displayed image. Else it is created on
+		 * demand (getSwtImage(), e.g., in show()) - an image which is never displayed (e.g.,
+		 * IJ.openImage() in a script) would otherwise leak a not disposed SWT image!
+		 */
+		if(win != null)
+			this.imgSwt = ip.createSwtImage();
 		if(win != null) {
 			if(dimensionsChanged)
 				win = new ImageWindow(this);
