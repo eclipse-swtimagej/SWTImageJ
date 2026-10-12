@@ -1,6 +1,8 @@
 package ij.swt;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A text editor of the application that embeds SWTImageJ (e.g., an editor of
@@ -11,6 +13,10 @@ import java.io.File;
  * The methods can be called from any thread. Implementations must access their
  * widgets in the SWT UI thread (e.g., with Display.syncExec). Two instances for
  * the same editor should be equal (equals and hashCode).
+ * <p>
+ * Editors can support markers with quick fixes ({@link #supportsMarkers()}).
+ * These markers are kept separate from the editor's own markers (e.g., compiler
+ * problems), which are not changed or removed by these methods.
  */
 public interface CodeEditor {
 
@@ -57,5 +63,56 @@ public interface CodeEditor {
 	default boolean isOpen() {
 
 		return true;
+	}
+
+	/** Returns true if the editor supports {@link #addMarker(CodeMarker)} and the other marker methods. */
+	default boolean supportsMarkers() {
+
+		return false;
+	}
+
+	/**
+	 * Adds a marker which moves with later text changes. Returns false if markers
+	 * are not supported or the range is outside of the text.
+	 */
+	default boolean addMarker(CodeMarker marker) {
+
+		return false;
+	}
+
+	/** Removes a marker added with {@link #addMarker(CodeMarker)}; returns false if it is not present. */
+	default boolean removeMarker(CodeMarker marker) {
+
+		return false;
+	}
+
+	/**
+	 * Returns true if the marker is still present (e.g., not removed, applied, or
+	 * deleted with its text).
+	 */
+	default boolean hasMarker(CodeMarker marker) {
+
+		return false;
+	}
+
+	/** Returns the present markers added with {@link #addMarker(CodeMarker)}. */
+	default List<CodeMarker> getMarkers() {
+
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Replaces the marked text with the replacement of the quick fix and removes
+	 * the marker. Returns false if the marker is not present, has no quick fix or
+	 * the marked text has been changed since the marker was added.
+	 */
+	default boolean applyQuickFix(CodeMarker marker) {
+
+		return false;
+	}
+
+	/** Removes all markers added with {@link #addMarker(CodeMarker)}. */
+	default void clearMarkers() {
+
 	}
 }
