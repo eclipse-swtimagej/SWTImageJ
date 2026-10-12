@@ -298,7 +298,8 @@ public class ImageConverter {
   		ImagePlus imp2 = converter.RGBToLab(imp);
   		org.eclipse.swt.graphics.Point loc = null;
   		ImageWindow win = imp.getWindow();
-		if (win!=null)
+		/* An embedded window (e.g., in a tab) has no shell! */
+		if (win!=null && win.getShell()!=null)
 			loc = win.getShell().getLocation();
 		ImageWindow.setNextLocation(loc);
 		imp2.show();
