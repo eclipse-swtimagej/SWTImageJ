@@ -197,22 +197,26 @@ public class ImageWindow implements MouseWheelListener {
 		}
 	}
 
-	/* Compatibility methods since we have no Frame here! */
+	/*
+	 * Compatibility methods since we have no Frame here! Embedded windows return the size of
+	 * their composite in the host (callers like Orthogonal_Views, the Tile command or
+	 * RotatedRectRoi expect a size, never null). Returns (0,0) if the window is disposed.
+	 */
 	public Point getSize() {
 
-		if(embeddedParent != null) {
-			return null;
-		}
 		AtomicReference<Point> size = new AtomicReference<Point>();
 		Display dis = Display.getDefault();
 		dis.syncExec(new Runnable() {
 
 			public void run() {
 
-				size.set(parentComposite.getSize());
+				if(parentComposite != null && !parentComposite.isDisposed()) {
+					size.set(parentComposite.getSize());
+				}
 			}
 		});
-		return size.get();
+		Point p = size.get();
+		return p == null ? new Point(0, 0) : p;
 	}
 
 	/* Compatibility methods since we have no Frame here! */

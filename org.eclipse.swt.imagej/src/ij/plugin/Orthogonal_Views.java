@@ -17,6 +17,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Display;
 
 import ij.CommandListener;
@@ -204,13 +205,25 @@ public class Orthogonal_Views
 			return imp.getStack();
 	}
 
+	/* Replaces shellClosed for embedded windows: closes the views when the image tab is closed! */
+	private final org.eclipse.swt.events.DisposeListener embeddedDisposeListener = e -> Display.getDefault().asyncExec(() -> {
+		if (!done)
+			disposeMethod();
+	});
+
 	private void addListeners(ImageCanvas canvas) {
 		canvas.addMouseListener(this);
 		canvas.addMouseMoveListener(this);
 		canvas.addKeyListener(this);
-		win.getShell().addShellListener(this);
-		win.getShell().addMouseWheelListener(this);
-		win.getShell().addFocusListener(this);
+		Shell shell = win.getShell();
+		if (shell != null) {
+			shell.addShellListener(this);
+			shell.addMouseWheelListener(this);
+			shell.addFocusListener(this);
+		} else {
+			/* Embedded windows (e.g., in a tab of a host application) have no shell! */
+			canvas.addDisposeListener(embeddedDisposeListener);
+		}
 		ImagePlus.addImageListener(this);
 		Executer.addCommandListener(this);
 	}
@@ -666,7 +679,8 @@ public class Orthogonal_Views
 			xz_image.setOverlay(null);
 			ImageWindow win1 = xz_image.getWindow();
 			if (win1 != null) {
-				win1.getShell().removeMouseMoveListener(Orthogonal_Views.this);
+				if (win1.getShell() != null)
+					win1.getShell().removeMouseMoveListener(Orthogonal_Views.this);
 				ImageCanvas ic = win1.getCanvas();
 				if (ic != null) {
 					ic.removeKeyListener(Orthogonal_Views.this);
@@ -680,7 +694,8 @@ public class Orthogonal_Views
 			yz_image.setOverlay(null);
 			ImageWindow win2 = yz_image.getWindow();
 			if (win2 != null) {
-				win2.getShell().removeMouseMoveListener(Orthogonal_Views.this);
+				if (win2.getShell() != null)
+					win2.getShell().removeMouseMoveListener(Orthogonal_Views.this);
 				ImageCanvas ic = win2.getCanvas();
 				if (ic != null) {
 					ic.removeKeyListener(Orthogonal_Views.this);
@@ -693,7 +708,10 @@ public class Orthogonal_Views
 			yz_image.close();
 			ImagePlus.removeImageListener(Orthogonal_Views.this);
 			Executer.removeCommandListener(Orthogonal_Views.this);
-			if (win.getShell().isDisposed() == false) {
+			if (win.getShell() == null) {
+				if (canvas.isDisposed() == false)
+					canvas.removeDisposeListener(embeddedDisposeListener);
+			} else if (win.getShell().isDisposed() == false) {
 				win.getShell().removeShellListener(Orthogonal_Views.this);
 				win.getShell().removeMouseWheelListener(Orthogonal_Views.this);
 				win.getShell().removeFocusListener(Orthogonal_Views.this);
