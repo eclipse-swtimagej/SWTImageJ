@@ -310,6 +310,8 @@ class ColorCanvas extends org.eclipse.swt.widgets.Canvas implements PaintListene
 		addMouseMoveListener(this);
 		addKeyListener(IJ.getInstance());
 		addPaintListener(this);
+		/* The last image created by paint must be disposed with the canvas! */
+		addDisposeListener(e -> ip.disposeImageSwt());
 		setSize(width, height);
 		this.scale = scale;
 	}
