@@ -29,12 +29,14 @@ public class ProgressBar extends org.eclipse.swt.widgets.Canvas implements Paint
 	private boolean batchMode;
 	private Color barColor = Color.gray;
 	private Color fillColor = new Color(204, 204, 255);
+	private Color dotColor = Color.BLACK;
 	Display display = Display.getCurrent();
 	org.eclipse.swt.graphics.Color bg = ij.swt.Color.backGround;
-	private Color gray = new Color(bg.getBlue(), bg.getGreen(), bg.getRed());
+	private Color gray = new Color(bg.getRed(), bg.getGreen(), bg.getBlue());
 	private Color backgroundColor = gray;
 	private Color frameBrighter = backgroundColor.brighter();
 	private Color frameDarker = backgroundColor.darker();
+	private org.eclipse.swt.graphics.RGB themeBackground;
 	private boolean dualDisplay = false;
 	private double slowX = 0.0;// box
 	private double fastX = 0.0;// dot
@@ -164,11 +166,39 @@ public class ProgressBar extends org.eclipse.swt.widgets.Canvas implements Paint
 	@Override
 	public void paintControl(PaintEvent event) {
 
+		updateThemeColors();
 		GC gc = event.gc;
 		SWTGraphics2D g = new SWTGraphics2D(gc);
 		paint(g);
 		g.dispose();
 		// gc.dispose();
+	}
+
+	/*
+	 * Use the background of this control (e.g., set by an embedding application
+	 * with a dark theme) instead of the system color!
+	 */
+	private void updateThemeColors() {
+
+		org.eclipse.swt.graphics.RGB b = getBackground().getRGB();
+		if(b.equals(themeBackground))
+			return;
+		themeBackground = b;
+		backgroundColor = new Color(b.red, b.green, b.blue);
+		boolean dark = (0.299 * b.red + 0.587 * b.green + 0.114 * b.blue) < 128;
+		if(dark) {
+			fillColor = new Color(Math.min(255, b.red + 30), Math.min(255, b.green + 30), Math.min(255, b.blue + 40));
+			frameDarker = new Color(Math.max(0, b.red - 25), Math.max(0, b.green - 25), Math.max(0, b.blue - 25));
+			frameBrighter = new Color(Math.min(255, b.red + 55), Math.min(255, b.green + 55), Math.min(255, b.blue + 55));
+			barColor = new Color(150, 150, 150);
+			dotColor = Color.WHITE;
+		} else {
+			fillColor = new Color(204, 204, 255);
+			frameDarker = backgroundColor.darker();
+			frameBrighter = backgroundColor.brighter();
+			barColor = Color.gray;
+			dotColor = Color.BLACK;
+		}
 	}
 
 	public void paint(Graphics g) {
@@ -192,7 +222,7 @@ public class ProgressBar extends org.eclipse.swt.widgets.Canvas implements Paint
 		g.fillRect(x, y, barEnd, height);
 		if(dualDisplay && fastX > 0) {
 			int dotPos = (int)(width * fastX);
-			g.setColor(Color.BLACK);
+			g.setColor(dotColor);
 			if(dotPos > 1 && dotPos < width - 7)
 				g.fillOval(dotPos, y + 3, 7, 7);
 		}
