@@ -459,6 +459,16 @@ public class ImageWindow implements MouseWheelListener {
 			/* For SWT we have to set the parent! Changed, see above! */
 			// ic.setParent(parentComposite);
 			previousWindow.close(false);
+			/*
+			 * Embedded: the size was fitted while the previous window (e.g., with the
+			 * stack sliders) still shared the parent. Fit again now that it is removed!
+			 */
+			if(embeddedParent != null && !embeddedParent.isDisposed() && !(this instanceof StackWindow || this instanceof PlotWindow) && !ic.isDisposed()) {
+				embeddedParent.layout(true, true);
+				if(!ic.isFitToParent())
+					ic.fitToWindow();
+				parentComposite.layout(true, true);
+			}
 			imp.changes = changes;
 			if(unlocked)
 				imp.unlock();
