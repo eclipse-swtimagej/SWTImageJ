@@ -744,6 +744,14 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 		if(win == null)
 			return;
+		/*
+		 * An embedded window (e.g., in a tab) has no shell and doesn't get an activation
+		 * event. Same as after the timeout below, but without waiting!
+		 */
+		if(win.getShell() == null) {
+			WindowManager.setTempCurrentImage(this);
+			return;
+		}
 		if(EventQueue.isDispatchThread()) { // 'activated' is set in the EventQueue, we can't wait for it in the
 											// EventQueue
 			WindowManager.setTempCurrentImage(this);

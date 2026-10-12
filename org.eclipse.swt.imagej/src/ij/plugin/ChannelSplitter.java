@@ -45,13 +45,11 @@ public class ChannelSplitter implements PlugIn {
 		rImp.setIJMenuBar(false);
 		rImp.show();
 		rImp.setSlice(pos);
-		if (IJ.isMacOSX()) IJ.wait(500);
 		ImagePlus gImp = new ImagePlus(title+" (green)", channels[1]);
 		gImp.setCalibration(cal);
 		gImp.setIJMenuBar(false);
 		gImp.show();
 		gImp.setSlice(pos);
-		if (IJ.isMacOSX()) IJ.wait(500);
 		ImagePlus bImp = new ImagePlus(title+" (blue)", channels[2]);
 		bImp.setCalibration(cal);
 		bImp.show();
