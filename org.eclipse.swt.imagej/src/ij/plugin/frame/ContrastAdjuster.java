@@ -137,7 +137,7 @@ public class ContrastAdjuster extends PlugInDialog implements Runnable, Selectio
 			}
 			instance = ContrastAdjuster.this;
 			monoFont = new org.eclipse.swt.graphics.Font(Display.getDefault(), new FontData("Monospaced", 8, SWT.NORMAL));
-			shell.addDisposeListener(e -> monoFont.dispose());
+			shell.addDisposeListener(_ -> monoFont.dispose());
 			IJ.register(ContrastAdjuster.class);
 			WindowManager.addWindow(ContrastAdjuster.this);
 			ij = IJ.getInstance();
