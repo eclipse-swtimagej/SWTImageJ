@@ -17,8 +17,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import ij.CommandListener;
 import ij.CompositeImage;
@@ -51,10 +51,7 @@ import ij.process.ShortProcessor;
  * 
  * @author Dimiter Prodanov
  */
-public class Orthogonal_Views
-		implements PlugIn, org.eclipse.swt.events.MouseListener, org.eclipse.swt.events.MouseMoveListener,
-		org.eclipse.swt.events.KeyListener, SelectionListener, ImageListener, ShellListener,
-		org.eclipse.swt.events.MouseWheelListener, org.eclipse.swt.events.FocusListener, CommandListener, Runnable {
+public class Orthogonal_Views implements PlugIn, org.eclipse.swt.events.MouseListener, org.eclipse.swt.events.MouseMoveListener, org.eclipse.swt.events.KeyListener, SelectionListener, ImageListener, ShellListener, org.eclipse.swt.events.MouseWheelListener, org.eclipse.swt.events.FocusListener, CommandListener, Runnable {
 
 	private ImageWindow win;
 	private ImagePlus imp;
@@ -92,37 +89,38 @@ public class Orthogonal_Views
 	final static String CROSS = "|OV|";
 
 	public void run(String arg) {
+
 		imp = IJ.getImage();
 		boolean isStack = imp.getStackSize() > 1;
 		hyperstack = imp.isHyperStack();
-		if ((hyperstack || imp.isComposite()) && imp.getNSlices() <= 1)
+		if((hyperstack || imp.isComposite()) && imp.getNSlices() <= 1)
 			isStack = false;
-		if (instance != null) {
-			if (imp == instance.imp) {
+		if(instance != null) {
+			if(imp == instance.imp) {
 				instance.disposeMethod();
 				return;
-			} else if (isStack) {
+			} else if(isStack) {
 				instance.disposeMethod();
-				if (IJ.isMacro())
+				if(IJ.isMacro())
 					IJ.wait(1000);
 			} else {
 				ImageWindow win = instance.imp != null ? instance.imp.getWindow() : null;
-				if (win != null)
+				if(win != null)
 					win.toFront();
 				return;
 			}
 		}
-		if (!isStack) {
+		if(!isStack) {
 			IJ.error("Orthogonal Views", "This command requires a stack, or a hyperstack with Z>1.");
 			return;
 		}
 		yz_image = WindowManager.getImage(yzID);
 		rgb = imp.getBitDepth() == 24 || hyperstack;
 		int yzBitDepth = hyperstack ? 24 : imp.getBitDepth();
-		if (yz_image == null || yz_image.getHeight() != imp.getHeight() || yz_image.getBitDepth() != yzBitDepth)
+		if(yz_image == null || yz_image.getHeight() != imp.getHeight() || yz_image.getBitDepth() != yzBitDepth)
 			yz_image = imp.createImagePlus();
 		xz_image = WindowManager.getImage(xzID);
-		if (xz_image == null || xz_image.getWidth() != imp.getWidth() || xz_image.getBitDepth() != yzBitDepth)
+		if(xz_image == null || xz_image.getWidth() != imp.getWidth() || xz_image.getBitDepth() != yzBitDepth)
 			xz_image = imp.createImagePlus();
 		instance = this;
 		int mode = imp.getCompositeMode();
@@ -138,8 +136,8 @@ public class Orthogonal_Views
 		ax = 1.0;
 		ay = caly / calx;
 		az = calz / calx;
-		if (az > 100) {
-			IJ.error("Z spacing (" + (int) az + ") is too large.");
+		if(az > 100) {
+			IJ.error("Z spacing (" + (int)az + ") is too large.");
 			return;
 		}
 		win = imp.getWindow();
@@ -151,14 +149,14 @@ public class Orthogonal_Views
 		magnification = canvas.getMagnification();
 		imp.deleteRoi();
 		Rectangle r = canvas.getSrcRect();
-		if (imp.getID() == previousID)
+		if(imp.getID() == previousID)
 			crossLoc = new Point(previousX, previousY);
 		else
 			crossLoc = new Point(r.x + r.width / 2, r.y + r.height / 2);
 		imageStack = getStack();
 		calibrate();
-		if (createProcessors(imageStack)) {
-			if (ip.isColorLut() || ip.isInvertedLut()) {
+		if(createProcessors(imageStack)) {
+			if(ip.isColorLut() || ip.isInvertedLut()) {
 				ColorModel cm = ip.getColorModel();
 				fp1.setColorModel(cm);
 				fp2.setColorModel(cm);
@@ -172,7 +170,8 @@ public class Orthogonal_Views
 	}
 
 	private ImageStack getStack() {
-		if (imp.isHyperStack()) {
+
+		if(imp.isHyperStack()) {
 			int slices = imp.getNSlices();
 			int c = imp.getChannel();
 			int z = imp.getSlice();
@@ -180,14 +179,14 @@ public class Orthogonal_Views
 			int mode = imp.getCompositeMode();
 			rgb = mode == IJ.COMPOSITE;
 			ColorModel cm = rgb ? null : imp.getProcessor().getColorModel();
-			if (cm != null && fp1 != null && fp1.getBitDepth() != 24) {
+			if(cm != null && fp1 != null && fp1.getBitDepth() != 24) {
 				fp1.setColorModel(cm);
 				fp2.setColorModel(cm);
 			}
 			ImageStack stack = imp.getStack();
 			ImageStack stack2 = new ImageStack(imp.getWidth(), imp.getHeight());
-			for (int i = 1; i <= slices; i++) {
-				if (rgb) {
+			for(int i = 1; i <= slices; i++) {
+				if(rgb) {
 					imp.setPositionWithoutUpdate(c, i, t);
 					stack2.addSlice(null, new ColorProcessor(imp.getImage()));
 				} else {
@@ -195,7 +194,7 @@ public class Orthogonal_Views
 					stack2.addSlice(null, stack.getProcessor(index));
 				}
 			}
-			if (rgb)
+			if(rgb)
 				imp.setPosition(c, z, t);
 			currentChannel = c;
 			currentFrame = t;
@@ -206,17 +205,18 @@ public class Orthogonal_Views
 	}
 
 	/* Replaces shellClosed for embedded windows: closes the views when the image tab is closed! */
-	private final org.eclipse.swt.events.DisposeListener embeddedDisposeListener = e -> Display.getDefault().asyncExec(() -> {
-		if (!done)
+	private final org.eclipse.swt.events.DisposeListener embeddedDisposeListener = _ -> Display.getDefault().asyncExec(() -> {
+		if(!done)
 			disposeMethod();
 	});
 
 	private void addListeners(ImageCanvas canvas) {
+
 		canvas.addMouseListener(this);
 		canvas.addMouseMoveListener(this);
 		canvas.addKeyListener(this);
 		Shell shell = win.getShell();
-		if (shell != null) {
+		if(shell != null) {
 			shell.addShellListener(this);
 			shell.addMouseWheelListener(this);
 			shell.addFocusListener(this);
@@ -229,6 +229,7 @@ public class Orthogonal_Views
 	}
 
 	private void calibrate() {
+
 		String xunit = cal.getXUnit();
 		String yunit = cal.getYUnit();
 		String zunit = cal.getZUnit();
@@ -238,7 +239,7 @@ public class Orthogonal_Views
 		cal_yz.setXUnit(zunit);
 		cal_yz.setYUnit(yunit);
 		cal_yz.setZUnit(xunit);
-		if (rotateYZ) {
+		if(rotateYZ) {
 			cal_yz.pixelHeight = o_depth / az;
 			cal_yz.pixelWidth = o_height;
 			cal_yz.setXUnit(yunit);
@@ -247,7 +248,7 @@ public class Orthogonal_Views
 			cal_yz.pixelWidth = o_depth / az;
 			cal_yz.pixelHeight = o_height;
 		}
-		if (flipXZ)
+		if(flipXZ)
 			cal_yz.setInvertY(true);
 		yz_image.setCalibration(cal_yz);
 		yz_image.setIJMenuBar(false);
@@ -256,45 +257,46 @@ public class Orthogonal_Views
 		cal_xz.setZUnit(yunit);
 		cal_xz.pixelWidth = o_width;
 		cal_xz.pixelHeight = o_depth / az;
-		if (flipXZ)
+		if(flipXZ)
 			cal_xz.setInvertY(true);
 		xz_image.setCalibration(cal_xz);
 		xz_image.setIJMenuBar(false);
 	}
 
 	private void updateMagnification(int x, int y) {
+
 		Display.getDefault().syncExec(() -> {
 
 			double magnification = win.getCanvas().getMagnification();
 			int z = imp.getSlice() - 1;
 			ImageWindow xz_win = xz_image.getWindow();
-			if (xz_win == null)
+			if(xz_win == null)
 				return;
 			ImageCanvas xz_ic = xz_win.getCanvas();
 			double xz_mag = xz_ic.getMagnification();
 			double arat = az / ax;
-			int zcoord = (int) (arat * z);
-			if (flipXZ)
-				zcoord = (int) (arat * (imp.getNSlices() - z));
-			while (xz_mag < magnification) {
+			int zcoord = (int)(arat * z);
+			if(flipXZ)
+				zcoord = (int)(arat * (imp.getNSlices() - z));
+			while(xz_mag < magnification) {
 				xz_ic.zoomIn(xz_ic.screenX(x), xz_ic.screenY(zcoord));
 				xz_mag = xz_ic.getMagnification();
 			}
-			while (xz_mag > magnification) {
+			while(xz_mag > magnification) {
 				xz_ic.zoomOut(xz_ic.screenX(x), xz_ic.screenY(zcoord));
 				xz_mag = xz_ic.getMagnification();
 			}
 			ImageWindow yz_win = yz_image.getWindow();
-			if (yz_win == null)
+			if(yz_win == null)
 				return;
 			ImageCanvas yz_ic = yz_win.getCanvas();
 			double yz_mag = yz_ic.getMagnification();
-			zcoord = (int) (arat * z);
-			while (yz_mag < magnification) {
+			zcoord = (int)(arat * z);
+			while(yz_mag < magnification) {
 				yz_ic.zoomIn(yz_ic.screenX(zcoord), yz_ic.screenY(y));
 				yz_mag = yz_ic.getMagnification();
 			}
-			while (yz_mag > magnification) {
+			while(yz_mag > magnification) {
 				yz_ic.zoomOut(yz_ic.screenX(zcoord), yz_ic.screenY(y));
 				yz_mag = yz_ic.getMagnification();
 			}
@@ -303,59 +305,60 @@ public class Orthogonal_Views
 	}
 
 	void updateViews(Point p, ImageStack is) {
+
 		Display.getDefault().syncExec(() -> {
-			if (fp1 == null)
+			if(fp1 == null)
 				return;
 			updateXZView(p, is);
 
 			double arat = az / ax;
 			int width2 = fp1.getWidth();
-			int height2 = (int) Math.round(fp1.getHeight() * az);
-			if (height2 < 1)
+			int height2 = (int)Math.round(fp1.getHeight() * az);
+			if(height2 < 1)
 				height2 = 1;
-			if (width2 != fp1.getWidth() || height2 != fp1.getHeight()) {
+			if(width2 != fp1.getWidth() || height2 != fp1.getHeight()) {
 				fp1.setInterpolate(true);
 				ImageProcessor sfp1 = fp1.resize(width2, height2);
-				if (!rgb)
+				if(!rgb)
 					sfp1.setMinAndMax(min, max);
 				xz_image.setProcessor("XZ " + p.y, sfp1);
 			} else {
-				if (!rgb)
+				if(!rgb)
 					fp1.setMinAndMax(min, max);
 				xz_image.setProcessor("XZ " + p.y, fp1);
 			}
 
-			if (rotateYZ)
+			if(rotateYZ)
 				updateYZView(p, is);
 			else
 				updateZYView(p, is);
 
-			width2 = (int) Math.round(fp2.getWidth() * az);
-			if (width2 < 1)
+			width2 = (int)Math.round(fp2.getWidth() * az);
+			if(width2 < 1)
 				width2 = 1;
 			height2 = fp2.getHeight();
 			String title = "YZ ";
-			if (rotateYZ) {
+			if(rotateYZ) {
 				width2 = fp2.getWidth();
-				height2 = (int) Math.round(fp2.getHeight() * az);
-				if (height2 < 1)
+				height2 = (int)Math.round(fp2.getHeight() * az);
+				if(height2 < 1)
 					height2 = 1;
 				title = "ZY ";
 			}
-			if (width2 != fp2.getWidth() || height2 != fp2.getHeight()) {
+			if(width2 != fp2.getWidth() || height2 != fp2.getHeight()) {
 				fp2.setInterpolate(true);
 				ImageProcessor sfp2 = fp2.resize(width2, height2);
-				if (!rgb)
+				if(!rgb)
 					sfp2.setMinAndMax(min, max);
 				yz_image.setProcessor(title + p.x, sfp2);
 			} else {
-				if (!rgb)
+				if(!rgb)
 					fp2.setMinAndMax(min, max);
 				yz_image.setProcessor(title + p.x, fp2);
 			}
 
 			calibrate();
-			if (yz_image.getWindow() == null) {
+			if(yz_image.getWindow() == null) {
 				yz_image.show();
 				ImageCanvas ic = yz_image.getCanvas();
 				ic.addKeyListener(Orthogonal_Views.this);
@@ -367,7 +370,7 @@ public class Orthogonal_Views
 				ImageCanvas ic = yz_image.getWindow().getCanvas();
 				ic.setCustomRoi(true);
 			}
-			if (xz_image.getWindow() == null) {
+			if(xz_image.getWindow() == null) {
 				xz_image.show();
 				ImageCanvas ic = xz_image.getCanvas();
 				ic.addKeyListener(Orthogonal_Views.this);
@@ -385,35 +388,36 @@ public class Orthogonal_Views
 	}
 
 	void arrangeWindows(boolean sticky) {
+
 		ImageWindow xyWin = imp.getWindow();
-		if (xyWin == null)
+		if(xyWin == null)
 			return;
 		org.eclipse.swt.graphics.Point loc = xyWin.getLocation();
-		if ((xyX != loc.x) || (xyY != loc.y)) {
+		if((xyX != loc.x) || (xyY != loc.y)) {
 			xyX = loc.x;
 			xyY = loc.y;
 			ImageWindow yzWin = null;
 			long start = System.currentTimeMillis();
-			while (yzWin == null && (System.currentTimeMillis() - start) <= 2500L) {
+			while(yzWin == null && (System.currentTimeMillis() - start) <= 2500L) {
 				yzWin = yz_image.getWindow();
-				if (yzWin == null)
+				if(yzWin == null)
 					IJ.wait(50);
 			}
-			if (yzWin != null)
+			if(yzWin != null)
 				yzWin.setLocation(xyX + xyWin.getWidth(), xyY);
 			ImageWindow xzWin = null;
 			start = System.currentTimeMillis();
-			while (xzWin == null && (System.currentTimeMillis() - start) <= 2500L) {
+			while(xzWin == null && (System.currentTimeMillis() - start) <= 2500L) {
 				xzWin = xz_image.getWindow();
-				if (xzWin == null)
+				if(xzWin == null)
 					IJ.wait(50);
 			}
-			if (xzWin != null)
+			if(xzWin != null)
 				xzWin.setLocation(xyX, xyY + xyWin.getHeight());
-			if (firstTime) {
+			if(firstTime) {
 				imp.getWindow().toFront();
-				if (!sliceSet && imp.getSlice() == 1) {
-					if (hyperstack)
+				if(!sliceSet && imp.getSlice() == 1) {
+					if(hyperstack)
 						imp.setPosition(imp.getChannel(), imp.getNSlices() / 2, imp.getFrame());
 					else
 						imp.setSlice(imp.getNSlices() / 2);
@@ -424,49 +428,51 @@ public class Orthogonal_Views
 	}
 
 	/**
-	 * @param is - used to get the dimensions of the new ImageProcessors
+	 * @param is
+	 *            - used to get the dimensions of the new ImageProcessors
 	 * @return
 	 */
 	boolean createProcessors(ImageStack is) {
+
 		ImageProcessor ip = is.getProcessor(1);
 		int width = is.getWidth();
 		int height = is.getHeight();
 		int ds = is.getSize();
 		double arat = 1.0;// az/ax;
 		double brat = 1.0;// az/ay;
-		int za = (int) (ds * arat);
-		int zb = (int) (ds * brat);
+		int za = (int)(ds * arat);
+		int zb = (int)(ds * brat);
 
-		if (ip instanceof FloatProcessor) {
+		if(ip instanceof FloatProcessor) {
 			fp1 = new FloatProcessor(width, za);
-			if (rotateYZ)
+			if(rotateYZ)
 				fp2 = new FloatProcessor(height, zb);
 			else
 				fp2 = new FloatProcessor(zb, height);
 			return true;
 		}
 
-		if (ip instanceof ByteProcessor) {
+		if(ip instanceof ByteProcessor) {
 			fp1 = new ByteProcessor(width, za);
-			if (rotateYZ)
+			if(rotateYZ)
 				fp2 = new ByteProcessor(height, zb);
 			else
 				fp2 = new ByteProcessor(zb, height);
 			return true;
 		}
 
-		if (ip instanceof ShortProcessor) {
+		if(ip instanceof ShortProcessor) {
 			fp1 = new ShortProcessor(width, za);
-			if (rotateYZ)
+			if(rotateYZ)
 				fp2 = new ShortProcessor(height, zb);
 			else
 				fp2 = new ShortProcessor(zb, height);
 			return true;
 		}
 
-		if (ip instanceof ColorProcessor) {
+		if(ip instanceof ColorProcessor) {
 			fp1 = new ColorProcessor(width, za);
-			if (rotateYZ)
+			if(rotateYZ)
 				fp2 = new ColorProcessor(height, zb);
 			else
 				fp2 = new ColorProcessor(zb, height);
@@ -477,17 +483,18 @@ public class Orthogonal_Views
 	}
 
 	void updateXZView(Point p, ImageStack is) {
+
 		int width = is.getWidth();
 		int size = is.getSize();
 		ImageProcessor ip = is.getProcessor(1);
 
 		int y = p.y;
 		// XZ
-		if (ip instanceof ShortProcessor) {
+		if(ip instanceof ShortProcessor) {
 			short[] newpix = new short[width * size];
-			for (int i = 0; i < size; i++) {
+			for(int i = 0; i < size; i++) {
 				Object pixels = is.getPixels(i + 1);
-				if (flipXZ)
+				if(flipXZ)
 					System.arraycopy(pixels, width * y, newpix, width * (size - i - 1), width);
 				else
 					System.arraycopy(pixels, width * y, newpix, width * i, width);
@@ -496,11 +503,11 @@ public class Orthogonal_Views
 			return;
 		}
 
-		if (ip instanceof ByteProcessor) {
+		if(ip instanceof ByteProcessor) {
 			byte[] newpix = new byte[width * size];
-			for (int i = 0; i < size; i++) {
+			for(int i = 0; i < size; i++) {
 				Object pixels = is.getPixels(i + 1);
-				if (flipXZ)
+				if(flipXZ)
 					System.arraycopy(pixels, width * y, newpix, width * (size - i - 1), width);
 				else
 					System.arraycopy(pixels, width * y, newpix, width * i, width);
@@ -509,11 +516,11 @@ public class Orthogonal_Views
 			return;
 		}
 
-		if (ip instanceof FloatProcessor) {
+		if(ip instanceof FloatProcessor) {
 			float[] newpix = new float[width * size];
-			for (int i = 0; i < size; i++) {
+			for(int i = 0; i < size; i++) {
 				Object pixels = is.getPixels(i + 1);
-				if (flipXZ)
+				if(flipXZ)
 					System.arraycopy(pixels, width * y, newpix, width * (size - i - 1), width);
 				else
 					System.arraycopy(pixels, width * y, newpix, width * i, width);
@@ -522,11 +529,11 @@ public class Orthogonal_Views
 			return;
 		}
 
-		if (ip instanceof ColorProcessor) {
+		if(ip instanceof ColorProcessor) {
 			int[] newpix = new int[width * size];
-			for (int i = 0; i < size; i++) {
+			for(int i = 0; i < size; i++) {
 				Object pixels = is.getPixels(i + 1);
-				if (flipXZ)
+				if(flipXZ)
 					System.arraycopy(pixels, width * y, newpix, width * (size - i - 1), width);
 				else
 					System.arraycopy(pixels, width * y, newpix, width * i, width);
@@ -538,98 +545,100 @@ public class Orthogonal_Views
 	}
 
 	void updateYZView(Point p, ImageStack is) {
+
 		int width = is.getWidth();
 		int height = is.getHeight();
 		int ds = is.getSize();
 		ImageProcessor ip = is.getProcessor(1);
 		int x = p.x;
 
-		if (ip instanceof FloatProcessor) {
+		if(ip instanceof FloatProcessor) {
 			float[] newpix = new float[ds * height];
-			for (int i = 0; i < ds; i++) {
-				float[] pixels = (float[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int j = 0; j < height; j++)
+			for(int i = 0; i < ds; i++) {
+				float[] pixels = (float[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int j = 0; j < height; j++)
 					newpix[(ds - i - 1) * height + j] = pixels[x + j * width];
 			}
 			fp2.setPixels(newpix);
 		}
 
-		if (ip instanceof ByteProcessor) {
+		if(ip instanceof ByteProcessor) {
 			byte[] newpix = new byte[ds * height];
-			for (int i = 0; i < ds; i++) {
-				byte[] pixels = (byte[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int j = 0; j < height; j++)
+			for(int i = 0; i < ds; i++) {
+				byte[] pixels = (byte[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int j = 0; j < height; j++)
 					newpix[(ds - i - 1) * height + j] = pixels[x + j * width];
 			}
 			fp2.setPixels(newpix);
 		}
 
-		if (ip instanceof ShortProcessor) {
+		if(ip instanceof ShortProcessor) {
 			short[] newpix = new short[ds * height];
-			for (int i = 0; i < ds; i++) {
-				short[] pixels = (short[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int j = 0; j < height; j++)
+			for(int i = 0; i < ds; i++) {
+				short[] pixels = (short[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int j = 0; j < height; j++)
 					newpix[(ds - i - 1) * height + j] = pixels[x + j * width];
 			}
 			fp2.setPixels(newpix);
 		}
 
-		if (ip instanceof ColorProcessor) {
+		if(ip instanceof ColorProcessor) {
 			int[] newpix = new int[ds * height];
-			for (int i = 0; i < ds; i++) {
-				int[] pixels = (int[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int j = 0; j < height; j++)
+			for(int i = 0; i < ds; i++) {
+				int[] pixels = (int[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int j = 0; j < height; j++)
 					newpix[(ds - i - 1) * height + j] = pixels[x + j * width];
 			}
 			fp2.setPixels(newpix);
 		}
-		if (!flipXZ)
+		if(!flipXZ)
 			fp2.flipVertical();
 
 	}
 
 	void updateZYView(Point p, ImageStack is) {
+
 		int width = is.getWidth();
 		int height = is.getHeight();
 		int ds = is.getSize();
 		ImageProcessor ip = is.getProcessor(1);
 		int x = p.x;
 
-		if (ip instanceof FloatProcessor) {
+		if(ip instanceof FloatProcessor) {
 			float[] newpix = new float[ds * height];
-			for (int i = 0; i < ds; i++) {
-				float[] pixels = (float[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int y = 0; y < height; y++)
+			for(int i = 0; i < ds; i++) {
+				float[] pixels = (float[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int y = 0; y < height; y++)
 					newpix[i + y * ds] = pixels[x + y * width];
 			}
 			fp2.setPixels(newpix);
 		}
 
-		if (ip instanceof ByteProcessor) {
+		if(ip instanceof ByteProcessor) {
 			byte[] newpix = new byte[ds * height];
-			for (int i = 0; i < ds; i++) {
-				byte[] pixels = (byte[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int y = 0; y < height; y++)
+			for(int i = 0; i < ds; i++) {
+				byte[] pixels = (byte[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int y = 0; y < height; y++)
 					newpix[i + y * ds] = pixels[x + y * width];
 			}
 			fp2.setPixels(newpix);
 		}
 
-		if (ip instanceof ShortProcessor) {
+		if(ip instanceof ShortProcessor) {
 			short[] newpix = new short[ds * height];
-			for (int i = 0; i < ds; i++) {
-				short[] pixels = (short[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int y = 0; y < height; y++)
+			for(int i = 0; i < ds; i++) {
+				short[] pixels = (short[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int y = 0; y < height; y++)
 					newpix[i + y * ds] = pixels[x + y * width];
 			}
 			fp2.setPixels(newpix);
 		}
 
-		if (ip instanceof ColorProcessor) {
+		if(ip instanceof ColorProcessor) {
 			int[] newpix = new int[ds * height];
-			for (int i = 0; i < ds; i++) {
-				int[] pixels = (int[]) is.getPixels(i + 1);// toFloatPixels(pixels);
-				for (int y = 0; y < height; y++)
+			for(int i = 0; i < ds; i++) {
+				int[] pixels = (int[])is.getPixels(i + 1);// toFloatPixels(pixels);
+				for(int y = 0; y < height; y++)
 					newpix[i + y * ds] = pixels[x + y * width];
 			}
 			fp2.setPixels(newpix);
@@ -639,6 +648,7 @@ public class Orthogonal_Views
 
 	/** draws the crosses on the images */
 	void drawCross(ImagePlus imp, Point p, GeneralPath path) {
+
 		int width = imp.getWidth();
 		int height = imp.getHeight();
 		float x = p.x;
@@ -654,23 +664,24 @@ public class Orthogonal_Views
 	 * SWT!
 	 */
 	void disposeMethod() {
+
 		Display.getDefault().syncExec(() -> {
-			synchronized (this) {
+			synchronized(this) {
 				done = true;
 				notify();
 			}
 			Overlay overlay = imp.getOverlay();
-			if (overlay != null) {
+			if(overlay != null) {
 				overlay.remove(CROSS);
 				ImageCanvas ic = imp.getCanvas();
-				if (ic != null)
+				if(ic != null)
 					ic.setCustomRoi(true);
-				if (overlay.size() == 0)
+				if(overlay.size() == 0)
 					imp.setOverlay(null);
 				else
 					imp.draw();
 			}
-			if (canvas.isDisposed() == false) {
+			if(canvas.isDisposed() == false) {
 				canvas.removeMouseListener(Orthogonal_Views.this);
 				canvas.removeMouseMoveListener(Orthogonal_Views.this);
 				canvas.removeKeyListener(Orthogonal_Views.this);
@@ -678,11 +689,11 @@ public class Orthogonal_Views
 			}
 			xz_image.setOverlay(null);
 			ImageWindow win1 = xz_image.getWindow();
-			if (win1 != null) {
-				if (win1.getShell() != null)
+			if(win1 != null) {
+				if(win1.getShell() != null)
 					win1.getShell().removeMouseMoveListener(Orthogonal_Views.this);
 				ImageCanvas ic = win1.getCanvas();
-				if (ic != null) {
+				if(ic != null) {
 					ic.removeKeyListener(Orthogonal_Views.this);
 					ic.removeMouseListener(Orthogonal_Views.this);
 					ic.removeMouseMoveListener(Orthogonal_Views.this);
@@ -693,11 +704,11 @@ public class Orthogonal_Views
 			xz_image.close();
 			yz_image.setOverlay(null);
 			ImageWindow win2 = yz_image.getWindow();
-			if (win2 != null) {
-				if (win2.getShell() != null)
+			if(win2 != null) {
+				if(win2.getShell() != null)
 					win2.getShell().removeMouseMoveListener(Orthogonal_Views.this);
 				ImageCanvas ic = win2.getCanvas();
-				if (ic != null) {
+				if(ic != null) {
 					ic.removeKeyListener(Orthogonal_Views.this);
 					ic.removeMouseListener(Orthogonal_Views.this);
 					ic.removeMouseMoveListener(Orthogonal_Views.this);
@@ -708,10 +719,10 @@ public class Orthogonal_Views
 			yz_image.close();
 			ImagePlus.removeImageListener(Orthogonal_Views.this);
 			Executer.removeCommandListener(Orthogonal_Views.this);
-			if (win.getShell() == null) {
-				if (canvas.isDisposed() == false)
+			if(win.getShell() == null) {
+				if(canvas.isDisposed() == false)
 					canvas.removeDisposeListener(embeddedDisposeListener);
-			} else if (win.getShell().isDisposed() == false) {
+			} else if(win.getShell().isDisposed() == false) {
 				win.getShell().removeShellListener(Orthogonal_Views.this);
 				win.getShell().removeMouseWheelListener(Orthogonal_Views.this);
 				win.getShell().removeFocusListener(Orthogonal_Views.this);
@@ -728,7 +739,8 @@ public class Orthogonal_Views
 
 	@Override
 	public void mouseMove(org.eclipse.swt.events.MouseEvent e) {
-		if (drag == true) {
+
+		if(drag == true) {
 			mouseDragged(e);
 		}
 
@@ -742,6 +754,7 @@ public class Orthogonal_Views
 
 	@Override
 	public void mouseDown(org.eclipse.swt.events.MouseEvent e) {
+
 		drag = true;
 		mousePressed(e);
 
@@ -749,52 +762,58 @@ public class Orthogonal_Views
 
 	@Override
 	public void mouseUp(org.eclipse.swt.events.MouseEvent e) {
+
 		drag = false;
 		mouseReleased(e);
 
 	}
 
 	public void mouseClicked(MouseEvent e) {
+
 	}
 
 	public void mouseEntered(MouseEvent e) {
+
 	}
 
 	public void mouseExited(MouseEvent e) {
+
 	}
 
 	public void mousePressed(org.eclipse.swt.events.MouseEvent e) {
+
 		ImageCanvas xyCanvas = imp.getCanvas();
-		startingSrcRect = (Rectangle) xyCanvas.getSrcRect().clone();
+		startingSrcRect = (Rectangle)xyCanvas.getSrcRect().clone();
 
 	}
 
 	public void mouseDragged(org.eclipse.swt.events.MouseEvent e) {
-		if (IJ.spaceBarDown()) // scrolling?
+
+		if(IJ.spaceBarDown()) // scrolling?
 			return;
-		if (e.getSource().equals(canvas)) {
+		if(e.getSource().equals(canvas)) {
 			crossLoc = canvas.getCursorLoc();
-		} else if (e.getSource().equals(xz_image.getCanvas())) {
+		} else if(e.getSource().equals(xz_image.getCanvas())) {
 			crossLoc.x = xz_image.getCanvas().getCursorLoc().x;
 			int pos = xz_image.getCanvas().getCursorLoc().y;
-			int z = (int) Math.round(pos / az);
+			int z = (int)Math.round(pos / az);
 			int slice = flipXZ ? imp.getNSlices() - z : z + 1;
-			if (hyperstack)
+			if(hyperstack)
 				imp.setPosition(imp.getChannel(), slice, imp.getFrame());
 			else
 				imp.setSlice(slice);
-		} else if (e.getSource().equals(yz_image.getCanvas())) {
+		} else if(e.getSource().equals(yz_image.getCanvas())) {
 			int pos;
-			if (rotateYZ) {
+			if(rotateYZ) {
 				crossLoc.y = yz_image.getCanvas().getCursorLoc().x;
 				pos = yz_image.getCanvas().getCursorLoc().y;
 			} else {
 				crossLoc.y = yz_image.getCanvas().getCursorLoc().y;
 				pos = yz_image.getCanvas().getCursorLoc().x;
 			}
-			int z = (int) Math.round(pos / az);
+			int z = (int)Math.round(pos / az);
 			int slice = flipXZ ? imp.getNSlices() - z : z + 1;
-			if (hyperstack)
+			if(hyperstack)
 				imp.setPosition(imp.getChannel(), slice, imp.getFrame());
 			else
 				imp.setSlice(slice);
@@ -806,22 +825,22 @@ public class Orthogonal_Views
 
 		ImageCanvas ic = imp.getCanvas();
 		Rectangle srcRect = ic.getSrcRect();
-		if (srcRect.x != startingSrcRect.x || srcRect.y != startingSrcRect.y) {
+		if(srcRect.x != startingSrcRect.x || srcRect.y != startingSrcRect.y) {
 			// user has scrolled xy image
 			int dy = srcRect.y - startingSrcRect.y;
 			ImageCanvas yzic = yz_image.getCanvas();
 			Rectangle yzSrcRect = yzic.getSrcRect();
-			if (rotateYZ) {
+			if(rotateYZ) {
 				yzSrcRect.x += dy;
-				if (yzSrcRect.x < 0)
+				if(yzSrcRect.x < 0)
 					yzSrcRect.x = 0;
-				if (yzSrcRect.x > yz_image.getWidth() - yzSrcRect.width)
+				if(yzSrcRect.x > yz_image.getWidth() - yzSrcRect.width)
 					yzSrcRect.y = yz_image.getWidth() - yzSrcRect.width;
 			} else {
 				yzSrcRect.y += dy;
-				if (yzSrcRect.y < 0)
+				if(yzSrcRect.y < 0)
 					yzSrcRect.y = 0;
-				if (yzSrcRect.y > yz_image.getHeight() - yzSrcRect.height)
+				if(yzSrcRect.y > yz_image.getHeight() - yzSrcRect.height)
 					yzSrcRect.y = yz_image.getHeight() - yzSrcRect.height;
 			}
 			yzic.repaint();
@@ -829,9 +848,9 @@ public class Orthogonal_Views
 			ImageCanvas xzic = xz_image.getCanvas();
 			Rectangle xzSrcRect = xzic.getSrcRect();
 			xzSrcRect.x += dx;
-			if (xzSrcRect.x < 0)
+			if(xzSrcRect.x < 0)
 				xzSrcRect.x = 0;
-			if (xzSrcRect.x > xz_image.getWidth() - xzSrcRect.width)
+			if(xzSrcRect.x > xz_image.getWidth() - xzSrcRect.width)
 				xzSrcRect.x = xz_image.getWidth() - xzSrcRect.width;
 			xzic.repaint();
 		}
@@ -839,61 +858,64 @@ public class Orthogonal_Views
 
 	/** Refresh the output windows. */
 	synchronized void update() {
+
 		notify();
 	}
 
 	private void exec() {
-		if (canvas == null)
+
+		if(canvas == null)
 			return;
 		int width = imp.getWidth();
 		int height = imp.getHeight();
-		if (hyperstack) {
+		if(hyperstack) {
 			int mode = IJ.COMPOSITE;
-			if (imp.isComposite()) {
-				mode = ((CompositeImage) imp).getMode();
-				if (mode != currentMode)
+			if(imp.isComposite()) {
+				mode = ((CompositeImage)imp).getMode();
+				if(mode != currentMode)
 					imageStack = null;
 			}
-			if (imageStack != null) {
+			if(imageStack != null) {
 				int c = imp.getChannel();
 				int t = imp.getFrame();
-				if ((mode != IJ.COMPOSITE && c != currentChannel) || t != currentFrame)
+				if((mode != IJ.COMPOSITE && c != currentChannel) || t != currentFrame)
 					imageStack = null;
 			}
 		}
 		ImageStack is = imageStack;
-		if (is == null)
+		if(is == null)
 			is = imageStack = getStack();
 		double arat = az / ax;
 		double brat = az / ay;
 		Point p = crossLoc;
-		if (p.y >= height)
+		if(p.y >= height)
 			p.y = height - 1;
-		if (p.x >= width)
+		if(p.x >= width)
 			p.x = width - 1;
-		if (p.x < 0)
+		if(p.x < 0)
 			p.x = 0;
-		if (p.y < 0)
+		if(p.y < 0)
 			p.y = 0;
 		updateViews(p, is);
 		GeneralPath path = new GeneralPath();
 		drawCross(imp, p, path);
-		if (!done) {
-			if (imp.getOverlay() == null)
+		if(!done) {
+			if(imp.getOverlay() == null)
 				imp.setOverlay(new Overlay());
 			setOverlay(imp, path);
 		}
 		canvas.setCustomRoi(true);
 		updateCrosses(p.x, p.y, arat, brat);
-		if (syncZoom)
+		if(syncZoom)
 			updateMagnification(p.x, p.y);
 		arrangeWindows(sticky);
 		initialized = true;
 	}
 
 	private void setOverlay(ImagePlus imp, GeneralPath path) {
+
 		Overlay overlay = imp.getOverlay();
-		if (overlay == null)
+		if(overlay == null)
 			overlay = new Overlay();
 		Roi roi = new ShapeRoi(path);
 		roi.setStrokeColor(color);
@@ -904,36 +926,38 @@ public class Orthogonal_Views
 	}
 
 	private void updateCrosses(int x, int y, double arat, double brat) {
+
 		Point p;
 		int z = imp.getNSlices();
 		int zlice = imp.getSlice() - 1;
-		int zcoord = (int) Math.round(arat * zlice);
-		if (flipXZ)
-			zcoord = (int) Math.round(arat * (z - zlice));
+		int zcoord = (int)Math.round(arat * zlice);
+		if(flipXZ)
+			zcoord = (int)Math.round(arat * (z - zlice));
 		ImageCanvas xzCanvas = xz_image.getCanvas();
 		p = new Point(x, zcoord);
 		GeneralPath path = new GeneralPath();
 		drawCross(xz_image, p, path);
-		if (!done)
+		if(!done)
 			setOverlay(xz_image, path);
-		if (rotateYZ) {
-			if (flipXZ)
-				zcoord = (int) Math.round(brat * (z - zlice));
+		if(rotateYZ) {
+			if(flipXZ)
+				zcoord = (int)Math.round(brat * (z - zlice));
 			else
-				zcoord = (int) Math.round(brat * (zlice));
+				zcoord = (int)Math.round(brat * (zlice));
 			p = new Point(y, zcoord);
 		} else {
-			zcoord = (int) Math.round(arat * zlice);
+			zcoord = (int)Math.round(arat * zlice);
 			p = new Point(zcoord, y);
 		}
 		path = new GeneralPath();
 		drawCross(yz_image, p, path);
-		if (!done)
+		if(!done)
 			setOverlay(yz_image, path);
 		IJ.showStatus(imp.getLocationAsString(crossLoc.x, crossLoc.y));
 	}
 
 	public void mouseMoved(MouseEvent e) {
+
 	}
 
 	@Override
@@ -943,60 +967,67 @@ public class Orthogonal_Views
 	}
 
 	public void keyPressed(org.eclipse.swt.events.KeyEvent e) {
+
 		int key = e.keyCode;
-		if (key == SWT.ESC) {
+		if(key == SWT.ESC) {
 			IJ.beep();
 			disposeMethod();
-		} else if (IJ.shiftKeyDown()) {
+		} else if(IJ.shiftKeyDown()) {
 			int width = imp.getWidth(), height = imp.getHeight();
-			switch (key) {
-			case SWT.LEFT:
-				crossLoc.x--;
-				if (crossLoc.x < 0)
-					crossLoc.x = 0;
-				break;
-			case SWT.RIGHT:
-				crossLoc.x++;
-				if (crossLoc.x >= width)
-					crossLoc.x = width - 1;
-				break;
-			case SWT.UP:
-				crossLoc.y--;
-				if (crossLoc.y < 0)
-					crossLoc.y = 0;
-				break;
-			case SWT.DOWN:
-				crossLoc.y++;
-				if (crossLoc.y >= height)
-					crossLoc.y = height - 1;
-				break;
-			default:
-				return;
+			switch(key) {
+				case SWT.LEFT:
+					crossLoc.x--;
+					if(crossLoc.x < 0)
+						crossLoc.x = 0;
+					break;
+				case SWT.RIGHT:
+					crossLoc.x++;
+					if(crossLoc.x >= width)
+						crossLoc.x = width - 1;
+					break;
+				case SWT.UP:
+					crossLoc.y--;
+					if(crossLoc.y < 0)
+						crossLoc.y = 0;
+					break;
+				case SWT.DOWN:
+					crossLoc.y++;
+					if(crossLoc.y >= height)
+						crossLoc.y = height - 1;
+					break;
+				default:
+					return;
 			}
 			update();
 		}
 	}
 
 	public void keyReleased(KeyEvent e) {
+
 	}
 
 	public void keyTyped(KeyEvent e) {
+
 	}
 
 	public void actionPerformed(ActionEvent ev) {
+
 	}
 
 	public void imageClosed(ImagePlus imp) {
+
 		/*
 		 * if (!done) dispose();
 		 */
 	}
 
 	public void imageOpened(ImagePlus imp) {
+
 	}
 
 	public void imageUpdated(ImagePlus imp) {
-		if (imp == this.imp) {
+
+		if(imp == this.imp) {
 			ImageProcessor ip = imp.getProcessor();
 			min = ip.getMin();
 			max = ip.getMax();
@@ -1005,36 +1036,37 @@ public class Orthogonal_Views
 	}
 
 	public String commandExecuting(String command) {
-		if (command.equals("In") || command.equals("Out")) {
+
+		if(command.equals("In") || command.equals("Out")) {
 			ImagePlus cimp = WindowManager.getCurrentImage();
-			if (cimp == null)
+			if(cimp == null)
 				return command;
-			if (cimp == imp) {
+			if(cimp == imp) {
 				ImageCanvas ic = imp.getCanvas();
-				if (ic == null)
+				if(ic == null)
 					return null;
 				int x = ic.screenX(crossLoc.x);
 				int y = ic.screenY(crossLoc.y);
-				if (command.equals("In")) {
+				if(command.equals("In")) {
 					ic.zoomIn(x, y);
-					if (ic.getMagnification() <= 1.0)
+					if(ic.getMagnification() <= 1.0)
 						imp.repaintWindow();
 				} else {
 					ic.zoomOut(x, y);
-					if (ic.getMagnification() < 1.0)
+					if(ic.getMagnification() < 1.0)
 						imp.repaintWindow();
 				}
 				xyX = crossLoc.x;
 				xyY = crossLoc.y;
 				update();
 				return null;
-			} else if (cimp == xz_image || cimp == yz_image) {
+			} else if(cimp == xz_image || cimp == yz_image) {
 				syncZoom = false;
 				return command;
 			} else
 				return command;
-		} else if (command.equals("Flip Vertically") && xz_image != null) {
-			if (xz_image == WindowManager.getCurrentImage()) {
+		} else if(command.equals("Flip Vertically") && xz_image != null) {
+			if(xz_image == WindowManager.getCurrentImage()) {
 				flipXZ = !flipXZ;
 				update();
 				return null;
@@ -1046,6 +1078,7 @@ public class Orthogonal_Views
 
 	@Override
 	public void shellActivated(ShellEvent arg0) {
+
 		arrangeWindows(sticky);
 
 	}
@@ -1066,15 +1099,15 @@ public class Orthogonal_Views
 
 	@Override
 	public void shellClosed(ShellEvent e) {
+
 		e.doit = false;
-		if (!done)
+		if(!done)
 			disposeMethod();
 		e.doit = true;
 	}
 
 	/*
 	 * public void windowClosing(WindowEvent e) { if (!done) dispose(); }
-	 * 
 	 * public void windowDeactivated(WindowEvent e) { }
 	 */
 
@@ -1083,6 +1116,7 @@ public class Orthogonal_Views
 	 */
 	@Override
 	public void shellDeiconified(ShellEvent arg0) {
+
 		arrangeWindows(sticky);
 
 	}
@@ -1094,64 +1128,75 @@ public class Orthogonal_Views
 	}
 
 	public void windowIconified(WindowEvent e) {
+
 	}
 
 	public void windowOpened(WindowEvent e) {
+
 	}
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
+
 		adjustmentValueChanged(e);
 
 	}
 
 	public void adjustmentValueChanged(SelectionEvent e) {
+
 		update();
 	}
 
 	@Override
 	public void mouseScrolled(org.eclipse.swt.events.MouseEvent e) {
+
 		mouseWheelMoved(e);
 
 	}
 
 	public void mouseWheelMoved(org.eclipse.swt.events.MouseEvent e) {
-		if (e.getSource().equals(xz_image.getWindow())) {
+
+		if(e.getSource().equals(xz_image.getWindow())) {
 			crossLoc.y += e.count;
-		} else if (e.getSource().equals(yz_image.getWindow())) {
+		} else if(e.getSource().equals(yz_image.getWindow())) {
 			crossLoc.x += e.count;
 		}
 		update();
 	}
 
 	public void focusGained(FocusEvent e) {
+
 		ImageCanvas ic = imp.getCanvas();
-		if (ic != null)
+		if(ic != null)
 			canvas.requestFocus();
 		arrangeWindows(sticky);
 	}
 
 	public void focusLost(FocusEvent e) {
+
 		arrangeWindows(sticky);
 	}
 
 	public static ImagePlus getImage() {
-		if (instance != null)
+
+		if(instance != null)
 			return instance.imp;
 		else
 			return null;
 	}
 
 	public static int getImageID() {
+
 		ImagePlus img = getImage();
 		return img != null ? img.getID() : 0;
 	}
 
 	/** Returns the IDs of the XY, YZ and XZ images as an int array. */
 	public static int[] getImageIDs() {
+
 		int[] ids = new int[3];
 		Orthogonal_Views instance2 = getInstance();
-		if (instance2 == null)
+		if(instance2 == null)
 			return ids;
 		ids[0] = instance2.imp.getID();
 		ids[1] = instance2.yz_image.getID();
@@ -1160,27 +1205,32 @@ public class Orthogonal_Views
 	}
 
 	public static void stop() {
-		if (instance != null)
+
+		if(instance != null)
 			instance.disposeMethod();
 	}
 
 	public static void start() {
-		if (instance == null)
+
+		if(instance == null)
 			IJ.run("Orthogonal Views");
 	}
 
 	public static synchronized boolean isOrthoViewsImage(ImagePlus imp) {
-		if (imp == null || instance == null)
+
+		if(imp == null || instance == null)
 			return false;
 		else
 			return imp == instance.imp || imp == instance.xz_image || imp == instance.yz_image;
 	}
 
 	public static Orthogonal_Views getInstance() {
+
 		return instance;
 	}
 
 	public int[] getCrossLoc() {
+
 		int[] loc = new int[3];
 		loc[0] = crossLoc.x;
 		loc[1] = crossLoc.y;
@@ -1189,38 +1239,42 @@ public class Orthogonal_Views
 	}
 
 	public void setCrossLoc(int x, int y, int z) {
+
 		crossLoc.setLocation(x, y);
 		int slice = z + 1;
-		if (slice != imp.getSlice()) {
-			if (hyperstack)
+		if(slice != imp.getSlice()) {
+			if(hyperstack)
 				imp.setPosition(imp.getChannel(), slice, imp.getFrame());
 			else
 				imp.setSlice(slice);
 			sliceSet = true;
 		}
-		while (!initialized) {
+		while(!initialized) {
 			IJ.wait(10);
 		}
 		update();
 	}
 
 	public ImagePlus getXZImage() {
+
 		return xz_image;
 	}
 
 	public ImagePlus getYZImage() {
+
 		return yz_image;
 	}
 
 	public void run() {
-		while (!done) {
-			synchronized (this) {
+
+		while(!done) {
+			synchronized(this) {
 				try {
 					wait();
-				} catch (InterruptedException e) {
+				} catch(InterruptedException e) {
 				}
 			}
-			if (!done)
+			if(!done)
 				exec();
 		}
 	}
