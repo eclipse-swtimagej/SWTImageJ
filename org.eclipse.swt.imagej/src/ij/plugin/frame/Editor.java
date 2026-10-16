@@ -216,6 +216,9 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	/** Explicit font family chosen via the "Font..." picker, or null to use the Monospaced Font checkbox. */
 	private String fontFamily = Prefs.get(FONT_NAME, "").trim().length() > 0 ? Prefs.get(FONT_NAME, "") : null;
 	private LineNumberRulerColumn lnrc;
+	/* The text background the ruler colors were adjusted to (null: not yet)! */
+	private org.eclipse.swt.graphics.RGB rulerTextBackground;
+	private int rulerColumns;
 	protected JavaLineStyler lineStyler;
 	protected MacroLineStyler lineMacroStyler;
 	protected CompletionEditor completionEditor;
@@ -432,6 +435,13 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			overviewRuler.getControl().setBackground(rulerBackground);
 			sourceViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 7, 1));
 			ta = sourceViewer.getTextWidget();
+			/*
+			 * An embedding application can style the text widget dark with a CSS theme (e.g., the
+			 * dark theme of a RCP application) while the system colors of the rulers stay light. The rulers
+			 * follow the text colors if the text background is dark (checked when the text is
+			 * painted, so a later theme change is followed, too)!
+			 */
+			ta.addListener(SWT.Paint, e -> syncRulerColors(ruler, overviewRuler.getControl(), rulerBackground));
 			/* Add a context menu to the StyledText widget if set! */
 			if(contextMenu) {
 				mb = new Menu(ta.getShell(), SWT.POP_UP);
@@ -3462,5 +3472,54 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public void widgetDefaultSelected(SelectionEvent arg0) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/*
+	 * Adjusts the colors of all ruler columns (annotations, line numbers and the folding column
+	 * which ProjectionSupport adds later) to the text widget if its background is dark, else the
+	 * default colors!
+	 */
+	private void syncRulerColors(CompositeRuler ruler, org.eclipse.swt.widgets.Control overview, org.eclipse.swt.graphics.Color defaultBackground) {
+
+		if(ta == null || ta.isDisposed()) {
+			return;
+		}
+		org.eclipse.swt.graphics.RGB bg = ta.getBackground().getRGB();
+		/* The folding column can be added after the first check: count the columns, too! */
+		int columns = 0;
+		for(java.util.Iterator<?> it = ruler.getDecoratorIterator(); it.hasNext(); it.next()) {
+			columns++;
+		}
+		if(bg.equals(rulerTextBackground) && columns == rulerColumns) {
+			return;
+		}
+		rulerTextBackground = bg;
+		rulerColumns = columns;
+		boolean dark = (bg.red * 299 + bg.green * 587 + bg.blue * 114) / 1000 < 128;
+		org.eclipse.swt.graphics.Color background = dark ? new org.eclipse.swt.graphics.Color(bg) : defaultBackground;
+		for(java.util.Iterator<?> it = ruler.getDecoratorIterator(); it.hasNext();) {
+			Object column = it.next();
+			if(column instanceof LineNumberRulerColumn) {
+				LineNumberRulerColumn numbers = (LineNumberRulerColumn)column;
+				if(dark) {
+					org.eclipse.swt.graphics.RGB fg = ta.getForeground().getRGB();
+					/* The line numbers in a muted tone between text and background! */
+					numbers.setBackground(background);
+					numbers.setForeground(new org.eclipse.swt.graphics.Color((fg.red + bg.red) / 2, (fg.green + bg.green) / 2, (fg.blue + bg.blue) / 2));
+				} else {
+					numbers.setBackground(null);
+					numbers.setForeground(Color.darkGray);
+				}
+				numbers.redraw();
+			} else if(column instanceof org.eclipse.jface.text.source.IVerticalRulerColumn) {
+				org.eclipse.swt.widgets.Control control = ((org.eclipse.jface.text.source.IVerticalRulerColumn)column).getControl();
+				if(control != null && !control.isDisposed()) {
+					control.setBackground(background);
+					control.redraw();
+				}
+			}
+		}
+		overview.setBackground(background);
+		overview.redraw();
 	}
 }
