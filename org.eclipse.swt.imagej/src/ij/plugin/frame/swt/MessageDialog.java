@@ -4,7 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-/* Changed for Bio7! A modal dialog base on SWT as a replacement for the ImageJ message dialog! */
+/* Changed for SWT! A modal dialog base on SWT as a replacement for the ImageJ message dialog! */
 
 public class MessageDialog {
 
@@ -14,15 +14,13 @@ public class MessageDialog {
 	public MessageDialog(Shell parent, String title, String message) {
 
 		Display.getDefault().syncExec(() -> {
-
 			MessageBox messageBox = new MessageBox(parent, SWT.ICON_WARNING);
 			messageBox.setText(title);
 			messageBox.setMessage(message);
 			result = messageBox.open();
-			if (result == SWT.OK) {
+			if(result == SWT.OK) {
 				escapePressed = true;
 			}
-
 		});
 	}
 

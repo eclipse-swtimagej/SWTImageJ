@@ -34,6 +34,7 @@ public class OpenDialog {
 
 	/** Displays a file open dialog with 'title' as the title. */
 	public OpenDialog(String title) {
+
 		this(title, null);
 	}
 
@@ -43,23 +44,24 @@ public class OpenDialog {
 	 * ImageJ default directory.
 	 */
 	public OpenDialog(String title, String path) {
+
 		String macroOptions = Macro.getOptions();
-		if (macroOptions != null && (path == null || path.equals(""))) {
+		if(macroOptions != null && (path == null || path.equals(""))) {
 			path = Macro.getValue(macroOptions, title, path);
-			if (path == null || path.equals(""))
+			if(path == null || path.equals(""))
 				path = Macro.getValue(macroOptions, "path", path);
-			if ((path == null || path.equals("")) && title != null && title.equals("Open As String"))
+			if((path == null || path.equals("")) && title != null && title.equals("Open As String"))
 				path = Macro.getValue(macroOptions, "OpenAsString", path);
 			path = lookupPathVariable(path);
 		}
-		if (path == null || path.equals("")) {
+		if(path == null || path.equals("")) {
 			IJ.showStatus(title);
-			if (Prefs.useJFileChooser)
+			if(Prefs.useJFileChooser)
 				open(title, getDefaultDirectory(), null);
 			else
 				open(title, getDefaultDirectory(), null);
 			IJ.showStatus("");
-			if (name != null)
+			if(name != null)
 				setDefaultDirectory(dir);
 			this.title = title;
 			recordPath = true;
@@ -75,11 +77,12 @@ public class OpenDialog {
 	 * name.
 	 */
 	public OpenDialog(String title, String defaultDir, String defaultName) {
+
 		String path = null;
 		String macroOptions = Macro.getOptions();
-		if (macroOptions != null)
+		if(macroOptions != null)
 			path = Macro.getValue(macroOptions, title, path);
-		if (path != null)
+		if(path != null)
 			decodePath(path);
 		else {
 			/*
@@ -92,12 +95,13 @@ public class OpenDialog {
 	}
 
 	public static String lookupPathVariable(String path) {
-		if (path != null && path.indexOf(".") == -1 && !((new File(path)).exists())) {
-			if (path.startsWith("&"))
+
+		if(path != null && path.indexOf(".") == -1 && !((new File(path)).exists())) {
+			if(path.startsWith("&"))
 				path = path.substring(1);
 			Interpreter interp = Interpreter.getInstance();
 			String path2 = interp != null ? interp.getStringVariable(path) : null;
-			if (path2 != null)
+			if(path2 != null)
 				path = path2;
 		}
 		return path;
@@ -105,8 +109,9 @@ public class OpenDialog {
 
 	// Uses JFileChooser to display file open dialog box.
 	void jOpen(String title, String path, String fileName) {
+
 		Java2.setSystemLookAndFeel();
-		if (EventQueue.isDispatchThread())
+		if(EventQueue.isDispatchThread())
 			jOpenDispatchThread(title, path, fileName);
 		else
 			jOpenInvokeAndWait(title, path, fileName);
@@ -115,6 +120,7 @@ public class OpenDialog {
 	// Uses the JFileChooser class to display the dialog box.
 	// Assumes we are running on the event dispatch thread
 	void jOpenDispatchThread(String title, String path, final String fileName) {
+
 		/*
 		 * JFileChooser fc = new JFileChooser(); fc.setDialogTitle(title);
 		 * fc.setDragEnabled(true); //fc.setTransferHandler(new DragAndDropHandler(fc));
@@ -130,6 +136,7 @@ public class OpenDialog {
 
 	// Run JFileChooser on event dispatch thread to avoid deadlocks
 	void jOpenInvokeAndWait(final String title, final String path, final String fileName) {
+
 		/*
 		 * final boolean isMacro = Thread.currentThread().getName().endsWith("Macro$");
 		 * try { EventQueue.invokeAndWait(new Runnable() { public void run() {
@@ -146,40 +153,35 @@ public class OpenDialog {
 		 */
 	}
 
-	/* Changed for Bio7 Linux to Swt! */
+	/* Changed for Swt! */
 	void open(String title, final String path, final String fileName) {
 
 		Display.getDefault().syncExec(() -> {
 			Shell s = new Shell(SWT.EMBEDDED);
 			fd = new org.eclipse.swt.widgets.FileDialog(s, SWT.OPEN);
 			fd.setText("Load");
-			if (path != null)
+			if(path != null)
 				fd.setFilterPath(path);
-			if (fileName != null)
+			if(fileName != null)
 				fd.setFileName(fileName);
-
 			name = fd.open();
-			if (name != null) {
+			if(name != null) {
 				File file = new File(name);
-
 				name = file.getName();
 				dir = fd.getFilterPath() + File.separator;
 			} else {
-
 				Macro.abort();
 				return;
-
 			}
-
 		});
-
 	}
 
 	void decodePath(String path) {
+
 		int i = path.lastIndexOf('/');
-		if (i == -1)
+		if(i == -1)
 			i = path.lastIndexOf('\\');
-		if (i > 0) {
+		if(i > 0) {
 			dir = path.substring(0, i + 1);
 			name = path.substring(i + 1);
 		} else {
@@ -190,14 +192,16 @@ public class OpenDialog {
 
 	/** Returns the selected directory. */
 	public String getDirectory() {
+
 		lastDir = dir;
 		return dir;
 	}
 
 	/** Returns the selected file name. */
 	public String getFileName() {
-		if (name != null) {
-			if (IJ.recording() && recordPath && dir != null)
+
+		if(name != null) {
+			if(IJ.recording() && recordPath && dir != null)
 				Recorder.recordPath(title, dir + name);
 			lastName = name;
 		}
@@ -206,7 +210,8 @@ public class OpenDialog {
 
 	/** Returns the selected file path or null if the dialog was canceled. */
 	public String getPath() {
-		if (getFileName() == null)
+
+		if(getFileName() == null)
 			return null;
 		else
 			return getDirectory() + getFileName();
@@ -219,9 +224,10 @@ public class OpenDialog {
 	 * called.
 	 */
 	public static String getDefaultDirectory() {
-		if (Prefs.commandLineMacro() && !defaultDirectorySet)
+
+		if(Prefs.commandLineMacro() && !defaultDirectorySet)
 			return IJ.getDir("cwd");
-		if (defaultDirectory == null)
+		if(defaultDirectory == null)
 			defaultDirectory = Prefs.getDefaultDirectory();
 		return defaultDirectory;
 	}
@@ -232,6 +238,7 @@ public class OpenDialog {
 	 * @see ij.plugin.frame.Editor#setDefaultDirectory
 	 */
 	public static void setDefaultDirectory(String dir) {
+
 		dir = IJ.addSeparator(dir);
 		defaultDirectory = dir;
 		defaultDirectorySet = true;
@@ -242,6 +249,7 @@ public class OpenDialog {
 	 * saved, or null if a file has not been opened or saved.
 	 */
 	public static String getLastDirectory() {
+
 		return lastDir;
 	}
 
@@ -249,6 +257,7 @@ public class OpenDialog {
 	 * Sets the path to the directory containing the last file opened by the user.
 	 */
 	public static void setLastDirectory(String dir) {
+
 		lastDir = dir;
 	}
 
@@ -258,12 +267,13 @@ public class OpenDialog {
 	 * opened a file.
 	 */
 	public static String getLastName() {
+
 		return lastName;
 	}
 
 	/** Sets the name of the last file opened by the user. */
 	public static void setLastName(String name) {
+
 		lastName = name;
 	}
-
 }

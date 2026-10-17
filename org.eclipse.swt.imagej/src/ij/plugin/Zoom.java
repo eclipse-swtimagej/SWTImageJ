@@ -281,7 +281,8 @@ public class Zoom implements PlugIn {
 			y = 0;
 		String options = IJ.macroRunning() ? Macro.getOptions() : null;
 		boolean legacyMacro = areaSelection && options != null && options.contains("x=") && !options.contains("width=");
-		Composite embeddedParent = imp.getEditorParent();
+		/* Embedded by ImagePlus.getEditorParent() or by the IJ host (e.g., a RCP)! */
+		Composite embeddedParent = win != null && win.getEmbeddedParent() != null ? win.getEmbeddedParent() : imp.getEditorParent();
 		Rectangle bounds;
 		if(embeddedParent != null) {
 			/* Macros run outside the SWT thread! */

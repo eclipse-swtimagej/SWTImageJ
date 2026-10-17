@@ -846,6 +846,15 @@ public class ImageWindow implements MouseWheelListener {
 		return null;
 	}
 
+	/**
+	 * Returns the composite in which this window is embedded (by ImagePlus.getEditorParent() or the
+	 * IJ host), null for a separate window.
+	 */
+	public Composite getEmbeddedParent() {
+
+		return embeddedParent;
+	}
+
 	public double getInitialMagnification() {
 
 		return initialMagnification;
@@ -1213,6 +1222,14 @@ public class ImageWindow implements MouseWheelListener {
 	public void maximize() {
 
 		Display.getDefault().syncExec(() -> {
+			/* An embedded window has no shell to maximize: the image fills the embedding composite! */
+			if(embeddedParent != null) {
+				if(!embeddedParent.isDisposed() && parentComposite != null && !parentComposite.isDisposed()) {
+					getCanvas().fitToWindow();
+					resizeControl();
+				}
+				return;
+			}
 			if(GenericDialog.getInstance() != null && IJ.isMacOSX() && IJ.isJava18())
 				return; // workaround for OSX/Java 8 maximize bug
 			Rectangle rect = getMaximumBounds();

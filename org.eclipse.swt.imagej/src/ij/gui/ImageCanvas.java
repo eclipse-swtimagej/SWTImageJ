@@ -138,6 +138,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	private boolean drawNames;
 	private AtomicBoolean paintPending;
 	private boolean scaleToFit;
+	/* The image could not be fitted because the parent had no size yet (e.g., a hidden view)! */
+	private boolean fitPending;
 	private boolean painted;
 	private boolean hideZoomIndicator;
 	private boolean flattening;
@@ -1516,7 +1518,7 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			// from being larger than maximized size
 			resetMaxBoundsCount++;
 		}
-		if(scaleToFit || IJ.altKeyDown()) {
+		if(scaleToFit || fitPending || IJ.altKeyDown()) {
 			fitToWindow();
 			return;
 		}
@@ -1537,31 +1539,45 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		}
 	}
 
-	/* Changed for SWT! */
+	/*
+	 * Changed for SWT! Fits the whole image into the window (or the embedding composite). The
+	 * magnification is calculated from the image size (not from the current source rectangle,
+	 * which is smaller when zoomed in). Without a size of the parent yet (e.g., in a hidden view)
+	 * the image is fitted on the next resize!
+	 */
 	public void fitToWindow() {
 
 		ImageWindow window = imp.getWindow();
+		if(window == null || window.parentComposite == null)
+			return;
 		AtomicReference<Rectangle> clientArea = new AtomicReference<Rectangle>();
 		Display.getDefault().syncExec(() -> {
-			clientArea.set(window.parentComposite.getClientArea());
+			if(!window.parentComposite.isDisposed())
+				clientArea.set(window.parentComposite.getClientArea());
 		});
-		double w = clientArea.get().width;
-		double h = clientArea.get().height;
-		double wRec = srcRect.width;
-		double hRec = srcRect.height;
-		double xmag = (double)(w / wRec);
-		double ymag = (double)(h / hRec);
+		if(clientArea.get() == null || clientArea.get().width <= 0 || clientArea.get().height <= 0) {
+			fitPending = true;
+			return;
+		}
+		fitPending = false;
+		double xmag = clientArea.get().width / (double)imageWidth;
+		double ymag = clientArea.get().height / (double)imageHeight;
 		setMagnification(Math.min(xmag, ymag));
 		int width = (int)(imageWidth * magnification);
 		int height = (int)(imageHeight * magnification);
-		if(width == dstWidth && height == dstHeight)
-			return;
+		boolean fullImage = srcRect.x == 0 && srcRect.y == 0 && srcRect.width == imageWidth && srcRect.height == imageHeight;
 		srcRect = new Rectangle(0, 0, imageWidth, imageHeight);
+		if(width == dstWidth && height == dstHeight && fullImage) {
+			repaint();
+			return;
+		}
 		setSize(width, height);
 		window.scResizeEvent(width, height);
 		Display.getDefault().syncExec(() -> {
-			layout();
+			if(!isDisposed())
+				layout();
 		});
+		repaint();
 	}
 
 	public double outofBoundsMag() {
@@ -1918,21 +1934,12 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	/** Implements the Image/Zoom/Original Scale command. */
 	public void unzoom() {
 
-		Display.getDefault().syncExec(() -> {
-			double imag = imp.getWindow().getInitialMagnification();
-			if(magnification == imag)
-				return;
-			srcRect = new Rectangle(0, 0, imageWidth, imageHeight);
-			ImageWindow win = imp.getWindow();
-			setSize((int)(imageWidth * imag), (int)(imageHeight * imag));
-			setMagnification(imag);
-			setMaxBounds();
-			// win.pack();
-			setMaxBounds();
-			// repaint();
-			/* SWT redraw! */
-			redraw();
-		});
+		/*
+		 * Changed for SWT: the window (or the embedding composite) is not resized, the image is
+		 * shown as it was opened - the whole image fitted into the window (see ImageWindow)!
+		 */
+		fitToWindow();
+		setMaxBounds();
 	}
 
 	/** Implements the Image/Zoom/View 100% command. */
@@ -1940,9 +1947,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 		if(magnification == 1.0)
 			return;
-		double imag = imp.getWindow().getInitialMagnification();
-		if(magnification != imag)
-			unzoom();
+		/* Starts from the original (fitted) scale! */
+		unzoom();
 		if(magnification == 1.0)
 			return;
 		if(magnification < 1.0) {
