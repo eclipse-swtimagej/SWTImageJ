@@ -441,7 +441,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * follow the text colors if the text background is dark (checked when the text is
 			 * painted, so a later theme change is followed, too)!
 			 */
-			ta.addListener(SWT.Paint, e -> syncRulerColors(ruler, overviewRuler.getControl(), rulerBackground));
+			ta.addListener(SWT.Paint, _ -> syncRulerColors(ruler, overviewRuler.getControl(), rulerBackground));
 			/* Add a context menu to the StyledText widget if set! */
 			if(contextMenu) {
 				mb = new Menu(ta.getShell(), SWT.POP_UP);
