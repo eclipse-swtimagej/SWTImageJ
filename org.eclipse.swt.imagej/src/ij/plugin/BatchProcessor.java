@@ -1,6 +1,7 @@
 package ij.plugin;
 
 import java.awt.Dimension;
+import java.util.concurrent.atomic.AtomicReference;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -71,8 +72,11 @@ public class BatchProcessor implements PlugIn, Runnable {
 
 	public void run(String arg) {
 
-		Display.getDefault().syncExec(() -> {
-
+		/*
+		 * Not in the SWT thread: the NonBlockingGenericDialog waits in this thread and
+		 * the batch processing should not block the user interface (like in AWT)!
+		 */
+		{
 			if (arg.equals("stack")) {
 				virtualStack = IJ.getImage();
 				if (virtualStack.getStackSize() == 1) {
@@ -90,7 +94,7 @@ public class BatchProcessor implements PlugIn, Runnable {
 				return;
 			String inputPath = null;
 			if (virtualStack == null) {
-				inputPath = inputDir.getText();
+				inputPath = text(inputDir);
 				if (inputPath.equals("")) {
 					error("Please choose an input folder");
 					return;
@@ -102,7 +106,7 @@ public class BatchProcessor implements PlugIn, Runnable {
 					return;
 				}
 			}
-			String outputPath = outputDir.getText();
+			String outputPath = text(outputDir);
 			outputPath = addSeparator(outputPath);
 			File f2 = new File(outputPath);
 			if (!outputPath.equals("") && (!f2.exists() || !f2.isDirectory())) {
@@ -123,21 +127,32 @@ public class BatchProcessor implements PlugIn, Runnable {
 				processFolder(inputPath, outputPath);
 			IJ.showProgress(1, 1);
 			if (virtualStack == null)
-				Prefs.set("batch.input", inputDir.getText());
-			Prefs.set("batch.output", outputDir.getText());
+				Prefs.set("batch.input", text(inputDir));
+			Prefs.set("batch.output", text(outputDir));
 			Prefs.set("batch.format", format);
-			macro = gd.getTextArea1().getText();
+			macro = text(gd.getTextArea1());
 			if (!macro.equals(""))
 				IJ.saveString(macro, IJ.getDirectory("macros") + MACRO_FILE_NAME);
+		}
+	}
 
+	/* The text of a text field (read in the SWT thread)! */
+	private static String text(Text text) {
+
+		AtomicReference<String> result = new AtomicReference<String>("");
+		Display.getDefault().syncExec(() -> {
+			if (text != null && !text.isDisposed())
+				result.set(text.getText());
 		});
+		return result.get();
 	}
 
 	boolean showDialog() {
 
 		validateFormat();
 		gd = GUI.newNonBlockingDialog("Batch Process");
-		addPanels(gd);
+		/* The panels and buttons are created in the SWT thread (the GenericDialog methods use the SWT thread)! */
+		Display.getDefault().syncExec(() -> addPanels(gd));
 		gd.setInsets(15, 0, 5);
 		gd.addChoice("Output_format:", formats, format);
 		gd.setInsets(0, 0, 5);
@@ -147,20 +162,20 @@ public class BatchProcessor implements PlugIn, Runnable {
 		gd.setInsets(15, 10, 0);
 		Dimension screen = IJ.getScreenSize();
 		gd.addTextAreas(macro, null, screen.width <= 600 ? 10 : 15, 60);
-		addButtons(gd);
+		Display.getDefault().syncExec(() -> addButtons(gd));
 		gd.setOKLabel("Process");
 		Vector choices = gd.getChoices();
 		org.eclipse.swt.widgets.Combo choice = (org.eclipse.swt.widgets.Combo) choices.elementAt(1);
 		if (virtualStack != null)
 			gd.addHelp(help);
-		choice.addSelectionListener(new SelectionAdapter() {
+		Display.getDefault().syncExec(() -> choice.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
 				itemStateChanged(e);
 			}
-		});
+		}));
 		gd.setShellSize(new Point(400, 600));
 		gd.showDialog();
 		format = gd.getNextChoice();

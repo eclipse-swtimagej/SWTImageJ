@@ -32,6 +32,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -139,6 +140,10 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	private boolean showDialogCalled;
 	private boolean optionsRecorded; // have dialogListeners been called to record options?
 	private org.eclipse.swt.widgets.Label lastLabelAdded;
+	/* The last text field (or the panel of a numeric field with units) for addToSameRow()! */
+	private Control lastFieldAdded;
+	/* The labels and fields (numeric and string fields) for the layout in rows (see layoutFieldsInRows())! */
+	private final java.util.List<Control[]> fieldRows = new java.util.ArrayList<Control[]>();
 	private int[] windowIDs;
 	private String[] windowTitles;
 	protected Shell shell;
@@ -261,11 +266,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			String label2 = label;
 			if (label2.indexOf('_') != -1)
 				label2 = label2.replace('_', ' ');
-			org.eclipse.swt.widgets.Label fieldLabel = makeLabel(label2);
-			GenericDialog.this.lastLabelAdded = fieldLabel;
-			if (addToSameRow) {
-				// c.insets.left = 0;
-				addToSameRow = false;
+			/* addToSameRow(): the field is added to the row of the previous field (like AWT)! */
+			Composite row = addToSameRow ? sameRow() : null;
+			addToSameRow = false;
+			Composite parent = row != null ? row : shell;
+			if (row == null || label2.trim().length() > 0) {
+				org.eclipse.swt.widgets.Label fieldLabel = row != null ? makeLabel(label2, row) : makeLabel(label2);
+				GenericDialog.this.lastLabelAdded = fieldLabel;
 			}
 			if (numberField == null) {
 				numberField = new Vector(5);
@@ -286,8 +293,9 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			firstNumericField = false;
 			Text tf;
 			if (units == null || units.equals("")) {
-				tf = new Text(shell, SWT.SINGLE | SWT.BORDER);
-				tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+				tf = new Text(parent, SWT.SINGLE | SWT.BORDER);
+				tf.setLayoutData(row != null ? sameRowData(columns) : new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+				lastFieldAdded = tf;
 				tf.setText(defaultString);
 				tf.setMessage(label);
 				// if (IJ.isLinux()) tf.setBackground(Color.white);
@@ -300,16 +308,20 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				defaultText.addElement(tf.getText());
 				tf.setEditable(true);
 			} else {
-				Composite panel = new Composite(shell, SWT.NONE);
-				GridLayout layout = new GridLayout(2, true);
+				/* The field (with the width of the columns like in AWT) and the units! */
+				Composite panel = new Composite(parent, SWT.NONE);
+				GridLayout layout = new GridLayout(2, false);
 				panel.setLayout(layout);
 				layout.marginHeight = 0;
 				layout.marginWidth = 0;
 				panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				lastFieldAdded = panel;
 				tf = new Text(panel, SWT.BORDER | SWT.SINGLE);
 				tf.setText(defaultString);
 				tf.setMessage(label);
-				tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				GridData fieldData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+				fieldData.widthHint = sameRowData(columns).widthHint;
+				tf.setLayoutData(fieldData);
 				tf.addModifyListener(GenericDialog.this);
 				tf.addFocusListener(GenericDialog.this);
 				tf.addKeyListener(GenericDialog.this);
@@ -320,10 +332,153 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				Label lab = new Label(panel, SWT.NONE);
 				lab.setText(" " + units);
 			}
+			if (row != null)
+				((GridLayout) row.getLayout()).numColumns = row.getChildren().length;
+			else
+				fieldRows.add(new Control[] { lastLabelAdded, lastFieldAdded });
 			if (IJ.recording() || macro)
 				saveLabel(tf, label);
 
 		});
+	}
+
+	/*
+	 * addToSameRow(): moves the label and the field added last into one row (a
+	 * composite at their position), so the next field is added to this row like
+	 * in the AWT GridBagLayout of ImageJ (e.g., the units of the Properties dialog).
+	 * Returns null (the default layout) if the field added last is not the last
+	 * control of the dialog.
+	 */
+	private Composite sameRow() {
+
+		Label previousLabel = lastLabelAdded;
+		Control previousField = lastFieldAdded;
+		if (previousLabel == null || previousField == null || previousLabel.isDisposed() || previousField.isDisposed())
+			return null;
+		Control[] children = shell.getChildren();
+		Control top = topControl(previousField);
+		if (children.length == 0 || top == null || children[children.length - 1] != top)
+			return null;
+		/* A row created before (a third field in the same row)! */
+		if (top instanceof Composite && Boolean.TRUE.equals(top.getData(SAME_ROW)))
+			return (Composite) top;
+		Control labelTop = topControl(previousLabel);
+		if (labelTop == null)
+			return null;
+		Composite row = new Composite(shell, SWT.NONE);
+		row.setData(SAME_ROW, Boolean.TRUE);
+		GridLayout layout = new GridLayout(2, false);
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		row.setLayout(layout);
+		row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		row.moveAbove(labelTop);
+		/* The panel of a string field (label and field) is empty after the move! */
+		Composite oldPanel = previousLabel.getParent() != shell ? previousLabel.getParent() : null;
+		previousLabel.setParent(row);
+		previousLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		previousField.setParent(row);
+		previousField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		if (oldPanel != null && !oldPanel.isDisposed() && oldPanel.getChildren().length == 0)
+			oldPanel.dispose();
+		alignSameRows(row);
+		return row;
+	}
+
+	/*
+	 * The labels of the adjacent rows (e.g., pixel width, height and depth) get the
+	 * same width, so the fields are aligned like in a grid!
+	 */
+	private void alignSameRows(Composite row) {
+
+		Control[] children = shell.getChildren();
+		int index = java.util.Arrays.asList(children).indexOf(row);
+		int first = index, last = index;
+		while (first > 0 && Boolean.TRUE.equals(children[first - 1].getData(SAME_ROW)))
+			first--;
+		while (last < children.length - 1 && Boolean.TRUE.equals(children[last + 1].getData(SAME_ROW)))
+			last++;
+		int width = 0;
+		for (int i = first; i <= last; i++) {
+			Control label = ((Composite) children[i]).getChildren()[0];
+			width = Math.max(width, label.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+		}
+		for (int i = first; i <= last; i++) {
+			Control label = ((Composite) children[i]).getChildren()[0];
+			GridData data = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			data.widthHint = width;
+			label.setLayoutData(data);
+		}
+	}
+
+	private static final String SAME_ROW = "ij.gui.GenericDialog.sameRow";
+
+	/*
+	 * Displays the labels of the numeric and string fields left of the fields (in
+	 * a row like the fields added with addToSameRow()) and aligns the fields of all
+	 * rows like the AWT GridBagLayout of ImageJ (e.g., the Properties dialog).
+	 */
+	private void layoutFieldsInRows() {
+
+		for (Control[] pair : fieldRows) {
+			Control label = pair[0], field = pair[1];
+			if (label == null || field == null || label.isDisposed() || field.isDisposed())
+				continue;
+			if (Boolean.TRUE.equals(label.getParent().getData(SAME_ROW)))
+				continue;
+			Control top = topControl(label);
+			if (top == null)
+				continue;
+			Composite row = new Composite(shell, SWT.NONE);
+			row.setData(SAME_ROW, Boolean.TRUE);
+			GridLayout layout = new GridLayout(2, false);
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			row.setLayout(layout);
+			row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			row.moveAbove(top);
+			Composite oldPanel = label.getParent() != shell ? label.getParent() : null;
+			label.setParent(row);
+			field.setParent(row);
+			field.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			if (oldPanel != null && !oldPanel.isDisposed() && oldPanel.getChildren().length == 0)
+				oldPanel.dispose();
+		}
+		/* The same width of the labels of all rows! */
+		int width = 0;
+		for (Control child : shell.getChildren()) {
+			if (Boolean.TRUE.equals(child.getData(SAME_ROW)))
+				width = Math.max(width, ((Composite) child).getChildren()[0].computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+		}
+		for (Control child : shell.getChildren()) {
+			if (Boolean.TRUE.equals(child.getData(SAME_ROW))) {
+				GridData data = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+				data.widthHint = width;
+				((Composite) child).getChildren()[0].setLayoutData(data);
+			}
+		}
+	}
+
+	/* The child of the shell which contains the control! */
+	private Control topControl(Control control) {
+
+		Control c = control;
+		while (c != null && c.getParent() != shell)
+			c = c.getParent();
+		return c;
+	}
+
+	/* The layout of a field added to the same row (the width of the columns)! */
+	private GridData sameRowData(int columns) {
+
+		GridData data = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+		GC gc = new GC(shell);
+		try {
+			data.widthHint = (int) (Math.max(columns, 4) * gc.getFontMetrics().getAverageCharacterWidth()) + 12;
+		} finally {
+			gc.dispose();
+		}
+		return data;
 	}
 
 	private Label makeLabel(String label) {
@@ -423,20 +578,28 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 		defaultText.set(defaultTextt);
 		Display.getDefault().syncExec(() -> {
 
-			Composite panel;
-			if (panelAdd == null) {
-				panel = new Composite(shell, SWT.NONE);
-				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
-				panel.setLayoutData(gd_composite);
-			} else {
-				panel = panelAdd;
-			}
 			if (addToSameRow && label.get().equals("_"))
 				label.set("");
 			String label2 = label.get();
 			if (label2.indexOf('_') != -1)
 				label2 = label2.replace('_', ' ');
-			if (addToSameRow) {
+			/* addToSameRow(): the field is added to the row of the previous field (like AWT)! */
+			Composite row = addToSameRow && panelAdd == null ? sameRow() : null;
+			Composite panel;
+			if (row != null) {
+				panel = row;
+			} else if (panelAdd == null) {
+				panel = new Composite(shell, SWT.NONE);
+				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+				panel.setLayoutData(gd_composite);
+			} else {
+				panel = panelAdd;
+			}
+			if (row != null) {
+				addToSameRow = false;
+				if (label2.trim().length() > 0)
+					GenericDialog.this.lastLabelAdded = makeLabel(label2, row);
+			} else if (addToSameRow) {
 				Label fieldLabel = makeLabel(label2, panel);
 				GenericDialog.this.lastLabelAdded = fieldLabel;
 				GridLayout layout = new GridLayout(2, true);
@@ -458,8 +621,13 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			Text tf = null;
 			if (panel != null) {
 				tf = new Text(panel, SWT.SINGLE | SWT.BORDER);
-				tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+				tf.setLayoutData(row != null ? sameRowData(columns) : new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 			}
+			if (row != null)
+				((GridLayout) row.getLayout()).numColumns = row.getChildren().length;
+			else if (panelAdd == null && !addToSameRow && label2.trim().length() > 0)
+				fieldRows.add(new Control[] { lastLabelAdded, tf });
+			lastFieldAdded = tf;
 			/*
 			 * Important note: In SWT an exception is thrown if the setText(defaultText) is
 			 * is null. In AWT a TextField will add a "" String if the default text is
@@ -958,6 +1126,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			choice.addElement(thisChoice);
 			int index = thisChoice.getSelectionIndex();
 			defaultChoiceIndexes.addElement(Integer.valueOf(index));
+			if (label2.trim().length() > 0)
+				fieldRows.add(new Control[] { fieldLabel, thisChoice });
 			if (IJ.recording() || macro)
 				saveLabel(thisChoice, label);
 
@@ -990,12 +1160,12 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			theLabel = null;
 			if (text.indexOf('\n') >= 0) {
 				theLabel = new Label(shell, SWT.WRAP);
-				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
+				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 				theLabel.setLayoutData(gd_composite);
 				theLabel.setText(text);
 			} else {
 				theLabel = new Label(shell, SWT.NONE);
-				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
+				GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 				theLabel.setLayoutData(gd_composite);
 				theLabel.setText(text);
 			}
@@ -1030,7 +1200,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			if (textArea1 != null)
 				return;
 			Composite panel = new Composite(shell, SWT.NONE);
-			GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 8);
+			GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 			panel.setLayoutData(gd_composite);
 			if (text2 != null) {
 				panel.setLayout(new GridLayout(2, true));
@@ -1167,8 +1337,14 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 			if (addToSameRow) {
 			} else {
 			}
+			/* The slider fills the width of the dialog, the text field has the width of the columns! */
 			Composite panel = new Composite(shell, SWT.NONE);
-			panel.setLayout(new GridLayout(3, false));
+			GridLayout panelLayout = new GridLayout(2, false);
+			panelLayout.marginHeight = 0;
+			panelLayout.marginWidth = 0;
+			panel.setLayout(panelLayout);
+			panel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			fieldRows.add(new Control[] { fieldLabel, panel });
 			if (slider == null) {
 				slider = new Vector(5);
 				sliderIndexes = new Vector(5);
@@ -1176,6 +1352,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				sliderDigits = new Vector(5);
 			}
 			Slider s = new Slider(panel, SWT.NONE);
+			s.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			s.setThumb(1);
 			s.setSelection((int) defaultValue);
 			s.setMinimum((int) minValue);
@@ -1224,7 +1401,7 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 				columns = 1;
 			// IJ.log("scale=" + scale + ", columns=" + columns + ", digits=" + digits);
 			Text tf = new Text(panel, SWT.BORDER | SWT.MULTI);
-			tf.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			tf.setLayoutData(sameRowData(columns));
 			tf.setText(IJ.d2s(defaultValue / scale));
 			tf.addModifyListener(GenericDialog.this);
 			tf.addSelectionListener(new SelectionAdapter() {
@@ -1867,6 +2044,8 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 
 		Display.getDefault().syncExec(() -> {
 
+			/* The labels are displayed left of the fields (like in AWT)! */
+			layoutFieldsInRows();
 			Composite buttons = new Composite(shell, SWT.NONE);
 			showDialogCalled = true;
 			addToSameRow = false;
@@ -2538,12 +2717,18 @@ public class GenericDialog implements WindowSwt, org.eclipse.swt.events.ModifyLi
 	 */
 	private static void disposePendingShells() {
 
-		for (Shell oldOne : oldShell) {
+		/*
+		 * A copy: a close() of a hidden NonBlockingGenericDialog adds the shell to the
+		 * list again (its shellClosed() hides the shell again), so the shells are
+		 * disposed (the dialogs have been closed and their values read)!
+		 */
+		java.util.List<Shell> shells = new java.util.ArrayList<Shell>(oldShell);
+		oldShell.clear();
+		for (Shell oldOne : shells) {
 			if (!oldOne.isDisposed()) {
-				oldOne.close();
+				oldOne.dispose();
 			}
 		}
-		oldShell.clear();
 	}
 
 	/**

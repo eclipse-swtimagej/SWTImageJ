@@ -166,8 +166,11 @@ public class NonBlockingGenericDialog extends GenericDialog {
 	public void keyPressed(org.eclipse.swt.events.KeyEvent e) {
 
 		super.keyPressed(e);
-		if(wasOKed() || wasCanceled())
-			notify();
+		/*
+		 * No notify(): the SWT dialog does not wait (see showDialog()). A notify()
+		 * without the lock of this dialog throws an IllegalMonitorStateException, e.g.,
+		 * when the dialog is closed with the Enter or Escape key!
+		 */
 	}
 
 	@Override

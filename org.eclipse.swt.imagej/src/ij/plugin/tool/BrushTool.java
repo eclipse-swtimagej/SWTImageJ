@@ -288,14 +288,21 @@ public class BrushTool extends PlugInTool implements Runnable {
 
 		Options() {
 
+			/*
+			 * The NonBlockingGenericDialog must not be created in the SWT thread (it waits
+			 * in this thread)! Only an open dialog is displayed in the SWT thread.
+			 */
+			java.util.concurrent.atomic.AtomicBoolean open = new java.util.concurrent.atomic.AtomicBoolean();
 			Display.getDefault().syncExec(() -> {
 				if(gd != null) {
 					gd.getShell().setVisible(true);
-					return;
+					open.set(true);
 				}
-				options = Options.this;
-				showDialog();
 			});
+			if(open.get())
+				return;
+			options = Options.this;
+			showDialog();
 		}
 
 		public void showDialog() {
@@ -316,8 +323,14 @@ public class BrushTool extends PlugInTool implements Runnable {
 				gd.setLocation(loc.x, loc.y);
 			}
 			gd.showDialog();
-			org.eclipse.swt.graphics.Point p = gd.getShell().getLocation();
-			Prefs.saveLocation(LOC_KEY, new java.awt.Point(p.x, p.y));
+			/* The location of the (closed) dialog is read in the SWT thread! */
+			GenericDialog dialog = gd;
+			Display.getDefault().syncExec(() -> {
+				if(dialog.getShell() != null && !dialog.getShell().isDisposed()) {
+					org.eclipse.swt.graphics.Point p = dialog.getShell().getLocation();
+					Prefs.saveLocation(LOC_KEY, new java.awt.Point(p.x, p.y));
+				}
+			});
 			gd = null;
 		}
 

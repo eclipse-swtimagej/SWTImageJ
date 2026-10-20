@@ -8,6 +8,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageDataProvider;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -45,6 +50,11 @@ public class StackWindow extends ImageWindow
 	private Composite compositeZSlices;
 	private Composite compositeTFrames;
 	private Composite compositeSelector;
+	/* The button which starts and stops the animation (with a play or pause icon)! */
+	private Button animationButton;
+	private Image playImage, pauseImage;
+	/* The buttons of the sliders (c, z, t), all with the same size! */
+	private final java.util.List<Button> sliderButtons = new java.util.ArrayList<Button>();
 
 	public StackWindow(ImagePlus imp) {
 
@@ -132,6 +142,7 @@ public class StackWindow extends ImageWindow
 			hyperStack = false;
 		if (cSelector != null || zSelector != null || tSelector != null)
 			removeScrollbars();
+		sliderButtons.clear();
 		ImageJ ij = IJ.getInstance();
 		// IJ.log("StackWindow: "+hyperStack+" "+nChannels+" "+nSlices+" "+nFrames+"
 		// "+imp);
@@ -147,6 +158,7 @@ public class StackWindow extends ImageWindow
 			compositeCChannels.setLayout(gl_composite);
 			button = new Button(compositeCChannels, SWT.NONE);
 			button.setText("c");
+			sliderButtons.add(button);
 			cSelector = new Slider(compositeCChannels, SWT.NONE);
 			cSelector.setThumb(1);
 			cSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -187,6 +199,7 @@ public class StackWindow extends ImageWindow
 			gl_composite.marginWidth = 0;
 			compositeZSlices.setLayout(gl_composite);
 			Button button = new Button(compositeZSlices, SWT.NONE);
+			sliderButtons.add(button);
 			zSelector = new Slider(compositeZSlices, SWT.NONE);
 			zSelector.setThumb(1);
 			zSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -204,34 +217,11 @@ public class StackWindow extends ImageWindow
 			});
 			sliceSelector = zSelector;
 			button.setText("" + label);
+			/* Only the time (t) starts the animation, the z and c buttons are labels! */
 			if (label == 't') {
 				animationSelector = zSelector;
-				button.setText(">");
-				// button.setImage(null);
+				setAnimationButton(button);
 			}
-			// if (label == 't') {
-			button.addSelectionListener(new SelectionAdapter() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-
-					Display.getDefault().syncExec(() -> {
-
-						if ((e.stateMask & SWT.ALT) != 0) {
-							IJ.doCommand("Animation Options...");
-							return;
-						}
-						IJ.doCommand("Start Animation [\\]");
-						if (getAnimate()) {
-							button.setText(">");
-						} else {
-							button.setText("||");
-						}
-
-					});
-				}
-			});
-			// }
 			// add(zSelector);
 			// sliderHeight += zSelector.getPreferredSize().height + ImageWindow.VGAP;
 			/*
@@ -252,24 +242,8 @@ public class StackWindow extends ImageWindow
 			gl_composite.marginWidth = 0;
 			compositeTFrames.setLayout(gl_composite);
 			Button button = new Button(compositeTFrames, SWT.NONE);
-			button.setText("t");
-			button.addSelectionListener(new SelectionAdapter() {
-
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-
-					if ((e.stateMask & SWT.ALT) != 0) {
-						IJ.doCommand("Animation Options...");
-						return;
-					}
-					IJ.doCommand("Start Animation [\\]");
-					if (getAnimate()) {
-						button.setText(">");
-					} else {
-						button.setText("||");
-					}
-				}
-			});
+			sliderButtons.add(button);
+			setAnimationButton(button);
 			animationSelector = tSelector = new Slider(compositeTFrames, SWT.NONE);
 			tSelector.setThumb(1);
 			tSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -295,9 +269,32 @@ public class StackWindow extends ImageWindow
 			 * tSelector.setUnitIncrement(1); tSelector.setBlockIncrement(blockIncrement);
 			 */
 		}
+		equalizeSliderButtons();
 		ImageWindow win = imp.getWindow();
 		if (win != null)
 			win.setSliderHeight(sliderHeight);
+	}
+
+	/* The c, z and t (play/pause) buttons get the size of the largest button! */
+	private void equalizeSliderButtons() {
+
+		int width = 0, height = 0;
+		for (Button b : sliderButtons) {
+			org.eclipse.swt.graphics.Point size = b.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+			width = Math.max(width, size.x);
+			height = Math.max(height, size.y);
+		}
+		for (Button b : sliderButtons) {
+			/*
+			 * macOS draws a push button with an image (no text) with another bezel. A font
+			 * gives all buttons the same (flexible) bezel!
+			 */
+			b.setFont(b.getFont());
+			GridData data = new GridData(SWT.CENTER, SWT.CENTER, false, false);
+			data.widthHint = width;
+			data.heightHint = height;
+			b.setLayoutData(data);
+		}
 	}
 
 	/** Enables or disables the sliders. Used when locking/unlocking an image. */
@@ -593,12 +590,88 @@ public class StackWindow extends ImageWindow
 	public void setAnimate(boolean b) {
 
 		Display.getDefault().syncExec(() -> {
-			if (running2 != b && animationSelector != null)
-				// System.out.println("running");
-				// animationSelector.updatePlayPauseIcon();
+			if (running2 != b && animationSelector != null) {
 				running2 = b;
-
+				updateAnimationButton();
+			}
 		});
+	}
+
+	/*
+	 * The button starts and stops the animation (Alt+click: the animation
+	 * options). The icon is changed when the animation is started or stopped!
+	 */
+	private void setAnimationButton(Button b) {
+
+		animationButton = b;
+		b.setText("");
+		b.setToolTipText("Start/stop the animation (Alt+click: Animation Options)");
+		b.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				if ((e.stateMask & SWT.ALT) != 0) {
+					IJ.doCommand("Animation Options...");
+					return;
+				}
+				IJ.doCommand("Start Animation [\\]");
+			}
+		});
+		b.addDisposeListener(_ -> {
+			if (playImage != null)
+				playImage.dispose();
+			if (pauseImage != null)
+				pauseImage.dispose();
+			playImage = pauseImage = null;
+		});
+		updateAnimationButton();
+	}
+
+	private void updateAnimationButton() {
+
+		if (animationButton == null || animationButton.isDisposed())
+			return;
+		if (playImage == null) {
+			RGB color = animationButton.getForeground().getRGB();
+			playImage = new Image(animationButton.getDisplay(), animationIcon(false, color));
+			pauseImage = new Image(animationButton.getDisplay(), animationIcon(true, color));
+		}
+		animationButton.setImage(running2 ? pauseImage : playImage);
+	}
+
+	/* A play (triangle) or pause (two bars) icon, drawn for each zoom (antialiased)! */
+	private static ImageDataProvider animationIcon(boolean pause, RGB color) {
+
+		return zoom -> {
+			int size = Math.max(8, 12 * zoom / 100);
+			ImageData data = new ImageData(size, size, 24, new PaletteData(0xFF0000, 0xFF00, 0xFF));
+			int pixel = data.palette.getPixel(color);
+			int samples = 4;
+			for (int y = 0; y < size; y++) {
+				for (int x = 0; x < size; x++) {
+					data.setPixel(x, y, pixel);
+					int inside = 0;
+					for (int sy = 0; sy < samples; sy++) {
+						for (int sx = 0; sx < samples; sx++) {
+							double px = (x + (sx + 0.5) / samples) / size;
+							double py = (y + (sy + 0.5) / samples) / size;
+							boolean in;
+							if (pause) {
+								in = py >= 0.15 && py <= 0.85 && ((px >= 0.22 && px <= 0.42) || (px >= 0.58 && px <= 0.78));
+							} else {
+								/* The triangle (0.25,0.12), (0.25,0.88), (0.85,0.5)! */
+								in = px >= 0.25 && Math.abs(py - 0.5) <= 0.38 * (0.85 - px) / 0.6;
+							}
+							if (in)
+								inside++;
+						}
+					}
+					data.setAlpha(x, y, 255 * inside / (samples * samples));
+				}
+			}
+			return data;
+		};
 	}
 
 	public boolean getAnimate() {

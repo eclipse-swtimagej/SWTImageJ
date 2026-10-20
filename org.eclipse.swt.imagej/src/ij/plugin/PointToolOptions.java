@@ -41,15 +41,20 @@ public class PointToolOptions implements PlugIn, DialogListener {
 
 	public void run(String arg) {
 
+		/*
+		 * The NonBlockingGenericDialog must not be created in the SWT thread (it waits
+		 * in this thread)! Only an open dialog is activated in the SWT thread.
+		 */
+		java.util.concurrent.atomic.AtomicBoolean active = new java.util.concurrent.atomic.AtomicBoolean();
 		Display.getDefault().syncExec(() -> {
 			if (gd != null && gd.isVisible() && !IJ.isMacro()) {
 				gd.getShell().setActive();
 				update();
-			} else
-				showDialog();
-
+				active.set(true);
+			}
 		});
-
+		if (!active.get())
+			showDialog();
 	}
 
 	void showDialog() {
