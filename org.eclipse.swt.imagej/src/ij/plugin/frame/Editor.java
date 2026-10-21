@@ -219,6 +219,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	/* The text background the ruler colors were adjusted to (null: not yet)! */
 	private org.eclipse.swt.graphics.RGB rulerTextBackground;
 	private int rulerColumns;
+	/** The Color most recently created and applied by syncRulerColors() - disposed there before a replacement is created. */
+	private org.eclipse.swt.graphics.Color rulerSyncedBackground;
 	protected JavaLineStyler lineStyler;
 	protected MacroLineStyler lineMacroStyler;
 	protected CompletionEditor completionEditor;
@@ -441,7 +443,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 			 * follow the text colors if the text background is dark (checked when the text is
 			 * painted, so a later theme change is followed, too)!
 			 */
-			ta.addListener(SWT.Paint, _ -> syncRulerColors(ruler, overviewRuler.getControl(), rulerBackground));
+			ta.addListener(SWT.Paint, _ -> syncRulerColors(ruler, overviewRuler.getControl()));
 			/* Add a context menu to the StyledText widget if set! */
 			if(contextMenu) {
 				mb = new Menu(ta.getShell(), SWT.POP_UP);
@@ -529,7 +531,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 			@Override
 			public void documentAboutToBeChanged(DocumentEvent event) {
-				// TODO Auto-generated method stub
 
 			}
 		});
@@ -3313,7 +3314,6 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 	@Override
 	public void mouseDown(org.eclipse.swt.events.MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -3470,16 +3470,22 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 
 	@Override
 	public void widgetDefaultSelected(SelectionEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	/*
 	 * Adjusts the colors of all ruler columns (annotations, line numbers and the folding column
-	 * which ProjectionSupport adds later) to the text widget if its background is dark, else the
-	 * default colors!
+	 * which ProjectionSupport adds later) to match the text widget's own background exactly -
+	 * previously only the dark-mode branch did this (building a Color from ta's own background
+	 * RGB); the light-mode branch instead fell back to the generic SWT.COLOR_WIDGET_BACKGROUND
+	 * system color, which on most platforms is a light grey, not the pure white ta actually uses -
+	 * visibly mismatched background seam on light themes, "since a while" tracking back to when
+	 * that fallback was introduced. Always deriving the color from ta's live background instead
+	 * matches exactly in either mode, with no light/dark special case needed for the color itself
+	 * (only the line-number foreground still varies - a readable muted blend on dark backgrounds,
+	 * plain dark grey otherwise).
 	 */
-	private void syncRulerColors(CompositeRuler ruler, org.eclipse.swt.widgets.Control overview, org.eclipse.swt.graphics.Color defaultBackground) {
+	private void syncRulerColors(CompositeRuler ruler, org.eclipse.swt.widgets.Control overview) {
 
 		if(ta == null || ta.isDisposed()) {
 			return;
@@ -3496,18 +3502,21 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 		rulerTextBackground = bg;
 		rulerColumns = columns;
 		boolean dark = (bg.red * 299 + bg.green * 587 + bg.blue * 114) / 1000 < 128;
-		org.eclipse.swt.graphics.Color background = dark ? new org.eclipse.swt.graphics.Color(bg) : defaultBackground;
+		if(rulerSyncedBackground != null && !rulerSyncedBackground.isDisposed()) {
+			rulerSyncedBackground.dispose();
+		}
+		org.eclipse.swt.graphics.Color background = new org.eclipse.swt.graphics.Color(bg);
+		rulerSyncedBackground = background;
 		for(java.util.Iterator<?> it = ruler.getDecoratorIterator(); it.hasNext();) {
 			Object column = it.next();
 			if(column instanceof LineNumberRulerColumn) {
 				LineNumberRulerColumn numbers = (LineNumberRulerColumn)column;
+				numbers.setBackground(background);
 				if(dark) {
 					org.eclipse.swt.graphics.RGB fg = ta.getForeground().getRGB();
 					/* The line numbers in a muted tone between text and background! */
-					numbers.setBackground(background);
 					numbers.setForeground(new org.eclipse.swt.graphics.Color((fg.red + bg.red) / 2, (fg.green + bg.green) / 2, (fg.blue + bg.blue) / 2));
 				} else {
-					numbers.setBackground(null);
 					numbers.setForeground(Color.darkGray);
 				}
 				numbers.redraw();
