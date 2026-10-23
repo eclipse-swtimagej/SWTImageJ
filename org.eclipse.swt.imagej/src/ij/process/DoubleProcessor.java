@@ -247,7 +247,7 @@ public class DoubleProcessor extends ImageProcessor {
 	public org.eclipse.swt.graphics.Image createImageSwt() {
 
 		disposeImageSwt();
-		if(imageSwt == null || cm != cm2) {
+		if(imageSwt == null || cm != cmSwt) {
 			if(cm == null)
 				cm = getDefaultColorModel();
 			IndexColorModel colorModel = (IndexColorModel)cm;
@@ -260,7 +260,7 @@ public class DoubleProcessor extends ImageProcessor {
 			ImageData data = new ImageData(getWidth(), getHeight(), colorModel.getPixelSize(), palette);
 			data.setPixels(0, 0, width * height, pixels8, 0);
 			imageSwt = new org.eclipse.swt.graphics.Image(Display.getDefault(), data);
-			cm2 = cm;
+			cmSwt = cm;
 		}
 		lutAnimation = false;
 		return imageSwt;

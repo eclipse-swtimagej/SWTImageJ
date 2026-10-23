@@ -83,10 +83,39 @@ public class SWTUtils {
 	 *            between the awt font and the newly created swt font.
 	 * @return a {@code FontData} object.
 	 */
+	/**
+	 * The font family which Java uses for a logical font name (SansSerif, Serif,
+	 * Monospaced, Dialog, DialogInput) on this platform, else the family itself.
+	 * The native toolkits do not know the logical names (e.g., the ImageJ ROI
+	 * labels are drawn with SansSerif): SWT would use a fallback font which looks
+	 * different from (and smaller than) the AWT version of ImageJ.
+	 */
+	public static String physicalFamily(String family) {
+
+		if(family == null) {
+			return null;
+		}
+		String platform = SWT.getPlatform();
+		boolean mac = "cocoa".equals(platform);
+		boolean win = "win32".equals(platform);
+		switch(family.toLowerCase(java.util.Locale.ROOT)) {
+			case "sansserif":
+			case "dialog":
+				return mac ? "Lucida Grande" : win ? "Arial" : "DejaVu Sans";
+			case "serif":
+				return mac ? "Times" : win ? "Times New Roman" : "DejaVu Serif";
+			case "monospaced":
+			case "dialoginput":
+				return mac ? "Menlo" : win ? "Courier New" : "DejaVu Sans Mono";
+			default:
+				return family;
+		}
+	}
+
 	public static FontData toSwtFontData(Device device, java.awt.Font font, boolean ensureSameSize) {
 
 		FontData fontData = new FontData();
-		fontData.setName(font.getFamily());
+		fontData.setName(physicalFamily(font.getFamily()));
 		// SWT and AWT share the same style constants.
 		fontData.setStyle(font.getStyle());
 		// convert the font size (in pt for awt) to height in pixels for swt

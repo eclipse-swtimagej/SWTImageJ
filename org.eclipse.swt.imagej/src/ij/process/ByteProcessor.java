@@ -196,7 +196,7 @@ public class ByteProcessor extends ImageProcessor {
 		disposeImageSwt();
 		// }
 		/* imageSwt variable in abstract superclass! */
-		if(imageSwt == null || cm != cm2) {
+		if(imageSwt == null || cm != cmSwt) {
 			if(cm == null)
 				cm = getDefaultColorModel();
 			IndexColorModel colorModel = (IndexColorModel)cm;
@@ -217,7 +217,7 @@ public class ByteProcessor extends ImageProcessor {
 			data.setPixels(0, 0, width * height, pixels, 0);
 			/* imageSwt variable in abstract superclass! */
 			imageSwt = new org.eclipse.swt.graphics.Image(Display.getDefault(), data);
-			cm2 = cm;
+			cmSwt = cm;
 			// Constructs a new indexed palette given an array of RGB values.
 			/*
 			 * PaletteData palette = new PaletteData(rgbs); ImageData data = new

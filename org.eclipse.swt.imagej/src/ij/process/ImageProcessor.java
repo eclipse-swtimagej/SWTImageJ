@@ -137,6 +137,8 @@ public abstract class ImageProcessor implements Cloneable {
 	protected BufferedImage fmImage;
 	protected Graphics2D fmGraphics;
 	protected ColorModel cm2;
+	/* The color model of the SWT image (cm2 is used for the AWT image)! */
+	protected ColorModel cmSwt;
 	protected SampleModel sampleModel;
 	protected static IndexColorModel defaultColorModel;
 	protected boolean minMaxSet;

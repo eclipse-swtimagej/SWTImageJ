@@ -143,7 +143,7 @@ public class IntProcessor extends ColorProcessor {
 		// raster = Raster.createWritableRaster(sm, db, null);
 		disposeImageSwt();
 		// }
-		if(imageSwt == null || cm != cm2) {
+		if(imageSwt == null || cm != cmSwt) {
 			if(cm == null)
 				cm = getDefaultColorModel();
 			IndexColorModel colorModel = (IndexColorModel)cm;
@@ -157,7 +157,7 @@ public class IntProcessor extends ColorProcessor {
 			data.setPixels(0, 0, width * height, pixels, 0);
 			/* imageSwt variable in abstract superclass! */
 			imageSwt = new org.eclipse.swt.graphics.Image(device, data);
-			cm2 = cm;
+			cmSwt = cm;
 			// data.transparentPixel = colorModel.getTransparentPixel();
 			// WritableRaster raster = bufferedImage.getRaster();
 			/*

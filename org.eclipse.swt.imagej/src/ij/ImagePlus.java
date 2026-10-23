@@ -453,6 +453,8 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 			}
 		}
 		if(win != null) {
+			/* The AWT image (see getImage()) is created again, e.g., with a new LUT! */
+			img = null;
 			win.getCanvas().setImageUpdated();
 			if(listeners.size() > 0)
 				notifyListeners(UPDATED);
@@ -604,8 +606,8 @@ public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 		if(ip != null) {
 			disposeImgSwt();
 			imgSwt = ip.createSwtImage();
-			/* Necessary for SWT? Probably not! */
-			// img = ip.createImage();
+			/* The AWT image (see getImage()) is created again with the new LUT! */
+			img = null;
 		}
 	}
 

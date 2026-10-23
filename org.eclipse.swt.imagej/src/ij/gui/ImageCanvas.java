@@ -122,10 +122,12 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	 * smoother instead of jagged/blurry - see PlotCanvas.getDisplaySwtImage(). This does
 	 * NOT affect normal image windows - their pixels must never be smoothed/scaled here,
 	 * since that would misrepresent the actual pixel data during image analysis.
-	 * Turn off for faster Plot rendering/updates.
+	 * Turn off for faster Plot rendering/updates. Enabled by default only on a
+	 * Retina/HiDPI display: on a standard display the downscaled copy is blurrier
+	 * than the plot itself.
 	 */
 	public static final String HIDPI_AWARE_KEY = "canvas.hidpiAware";
-	public static boolean hiDpiAwareRendering = Prefs.get(HIDPI_AWARE_KEY, true);
+	public static boolean hiDpiAwareRendering = Prefs.get(HIDPI_AWARE_KEY, DPIUtil.getDeviceZoom() > 100);
 	public int dstWidth;
 	public int dstHeight;
 	protected int xMouseStart;
@@ -866,7 +868,6 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			slice = (int)Tools.parseDouble(label.substring(0, 6), 0);
 		return slice;
 	}
-
 	/*
 	 * ImageCanvas overlay drawing: visibility culling + label suppression,
 	 * both switchable at runtime.
@@ -884,7 +885,6 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	 * Both are additionally gated on the overlay being large (CULL_THRESHOLD) and
 	 * on not flattening, for the reasons noted at the call site.
 	 */
-	
 
 	private void drawOverlay(Overlay overlay, Graphics g) {
 
@@ -1210,21 +1210,22 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 				Rectangle markerRect = new Rectangle(x2 - crossSize2, y2 - crossSize2, crossSize, crossSize);
 				/*
 				 * crossSize above is fixed, based only on the marker's own point size setting -
-				 * never on the label font. The label's drawn position (x - 1 + xoffset,
-				 * y - 3 + yoffset, matching the drawString() call below) drifts further away
+				 * never on the label font. The label's drawn position (x + xoffset,
+				 * y - 2 + yoffset, matching the drawString() call below) drifts further away
 				 * from the marker as the font grows (yoffset includes h, the font's own
 				 * ascent+descent), so at larger font sizes the visible label text moves well
 				 * outside this fixed-size hit box, making it unclickable. Union in the text's
 				 * own bounding box too, so either the marker or its (possibly much larger)
 				 * label can be clicked to select the ROI.
 				 */
-				Rectangle textRect = new Rectangle(x - 1 + xoffset - 3, y - 3 + yoffset - h + 1, w + 4, h);
+				Rectangle textRect = new Rectangle(x + xoffset - 3, y - 2 + yoffset - h + 1, w + 4, h);
 				labelRects[index] = markerRect.union(textRect);
 			} else
 				labelRects[index] = new Rectangle(x - 3, y - h + 1, w + 4, h);
 		}
 		g.setColor(labelColor);
-		g.drawString(label, x - 1 + xoffset, y - 3 + yoffset);
+		/* The position of the AWT version: the label is centered in its background! */
+		g.drawString(label, x + xoffset, y - 2 + yoffset);
 		g.setColor(defaultColor);
 	}
 
@@ -2113,7 +2114,6 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 	@Override
 	public void mouseDoubleClick(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -2418,7 +2418,6 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 
 	@Override
 	public void mouseHover(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 

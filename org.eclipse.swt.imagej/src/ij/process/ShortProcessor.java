@@ -270,7 +270,7 @@ public class ShortProcessor extends ImageProcessor {
 		disposeImageSwt();
 		// }
 		/* imageSwt variable in abstract superclass! */
-		if(imageSwt == null || cm != cm2) {
+		if(imageSwt == null || cm != cmSwt) {
 			if(cm == null)
 				cm = getDefaultColorModel();
 			IndexColorModel colorModel = (IndexColorModel)cm;
@@ -291,7 +291,7 @@ public class ShortProcessor extends ImageProcessor {
 			data.setPixels(0, 0, width * height, pixels8, 0);
 			/* imageSwt variable in abstract superclass! */
 			imageSwt = new org.eclipse.swt.graphics.Image(Display.getDefault(), data);
-			cm2 = cm;
+			cmSwt = cm;
 		}
 		lutAnimation = false;
 		return imageSwt;

@@ -80,7 +80,8 @@ public class GUI {
 						return;
 					}
 					org.eclipse.swt.graphics.Rectangle boundsSwt = activeMonitor.getBounds();
-					bounds = new java.awt.Rectangle(boundsSwt.width, boundsSwt.height);
+					/* With the location of the monitor (e.g., a secondary monitor)! */
+					bounds = new java.awt.Rectangle(boundsSwt.x, boundsSwt.y, boundsSwt.width, boundsSwt.height);
 				}
 			});
 		}
@@ -121,7 +122,8 @@ public class GUI {
 						}
 					}
 					org.eclipse.swt.graphics.Rectangle boundsSwt = activeMonitor.getBounds();
-					bounds = new java.awt.Rectangle(boundsSwt.width, boundsSwt.height);
+					/* With the location of the monitor (e.g., a secondary monitor)! */
+					bounds = new java.awt.Rectangle(boundsSwt.x, boundsSwt.y, boundsSwt.width, boundsSwt.height);
 				}
 			});
 		}
