@@ -450,7 +450,7 @@ public class ImageWindow implements MouseWheelListener {
 				if(ic.isDisposed() == false) {
 					ic.setLayoutData(gd_composite);
 					if(this.getCanvas().isFitToParent() == false) {
-						ic.fitToWindow();
+						ic.fitToWindowOnOpen();
 						ic.parent.layout();
 					}
 				}
@@ -470,7 +470,7 @@ public class ImageWindow implements MouseWheelListener {
 			if(embeddedParent != null && !embeddedParent.isDisposed() && !(this instanceof StackWindow || this instanceof PlotWindow) && !ic.isDisposed()) {
 				embeddedParent.layout(true, true);
 				if(!ic.isFitToParent())
-					ic.fitToWindow();
+					ic.fitToWindowOnOpen();
 				parentComposite.layout(true, true);
 			}
 			imp.changes = changes;
@@ -514,7 +514,7 @@ public class ImageWindow implements MouseWheelListener {
 						ic.setLayoutData(gd_composite);
 						/* Stretch to parent composite? */
 						if(this.getCanvas().isFitToParent() == false) {
-							ic.fitToWindow();
+							ic.fitToWindowOnOpen();
 						}
 						shell.layout();
 					}
@@ -524,7 +524,7 @@ public class ImageWindow implements MouseWheelListener {
 						embeddedParent.layout();
 						/* Stretch to parent composite? */
 						if(this.getCanvas().isFitToParent() == false) {
-							ic.fitToWindow();
+							ic.fitToWindowOnOpen();
 						}
 					}
 				}

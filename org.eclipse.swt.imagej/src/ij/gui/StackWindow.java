@@ -109,7 +109,7 @@ public class StackWindow extends ImageWindow
 			shell.setSize(600, 600);
 			shell.open();
 			if (ic.isDisposed() == false) {
-				ic.fitToWindow();
+				ic.fitToWindowOnOpen();
 				shell.layout();
 			}
 		}

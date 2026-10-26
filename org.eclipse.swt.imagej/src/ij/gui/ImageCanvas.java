@@ -142,6 +142,8 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	private boolean scaleToFit;
 	/* The image could not be fitted because the parent had no size yet (e.g., a hidden view)! */
 	private boolean fitPending;
+	/* The image is shown at 100% (Prefs.open100Percent) when the parent has a size */
+	private boolean openPending;
 	private boolean painted;
 	private boolean hideZoomIndicator;
 	private boolean flattening;
@@ -1519,6 +1521,10 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			// from being larger than maximized size
 			resetMaxBoundsCount++;
 		}
+		if(openPending) {
+			fitToWindowOnOpen();
+			return;
+		}
 		if(scaleToFit || fitPending || IJ.altKeyDown()) {
 			fitToWindow();
 			return;
@@ -1572,6 +1578,45 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 			repaint();
 			return;
 		}
+		setSize(width, height);
+		window.scResizeEvent(width, height);
+		Display.getDefault().syncExec(() -> {
+			if(!isDisposed())
+				layout();
+		});
+		repaint();
+	}
+
+	/**
+	 * Shows a new image: at 100% (the upper left part if the image is larger than
+	 * the window) if "Open images at 100%" is selected in Edit>Options>Appearance
+	 * (Prefs.open100Percent), else fitted to the window (see fitToWindow).
+	 */
+	public void fitToWindowOnOpen() {
+
+		if(!Prefs.open100Percent) {
+			openPending = false;
+			fitToWindow();
+			return;
+		}
+		ImageWindow window = imp.getWindow();
+		if(window == null || window.parentComposite == null)
+			return;
+		AtomicReference<Rectangle> clientArea = new AtomicReference<Rectangle>();
+		Display.getDefault().syncExec(() -> {
+			if(!window.parentComposite.isDisposed())
+				clientArea.set(window.parentComposite.getClientArea());
+		});
+		if(clientArea.get() == null || clientArea.get().width <= 0 || clientArea.get().height <= 0) {
+			openPending = true;
+			return;
+		}
+		openPending = false;
+		fitPending = false;
+		setMagnification(1.0);
+		int width = Math.min(imageWidth, clientArea.get().width);
+		int height = Math.min(imageHeight, clientArea.get().height);
+		srcRect = new Rectangle(0, 0, width, height);
 		setSize(width, height);
 		window.scResizeEvent(width, height);
 		Display.getDefault().syncExec(() -> {
