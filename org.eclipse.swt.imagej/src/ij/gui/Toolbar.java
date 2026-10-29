@@ -1077,9 +1077,13 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 			darker = new Color(Math.min(255, b.red + 30), Math.min(255, b.green + 30), Math.min(255, b.blue + 30));
 			evenDarker = new Color(Math.max(0, b.red - 25), Math.max(0, b.green - 25), Math.max(0, b.blue - 25));
 		} else {
-			brighter = gray.brighter();
-			darker = Display.isSystemDarkTheme() ? new Color(110, 110, 110) : new Color(180, 180, 180);
-			evenDarker = new Color(110, 110, 110);
+			/*
+			 * Relative to the background (the hue of a theme, also with a dark system theme):
+			 * the pressed button a little darker, the shadow darker, the highlight lighter!
+			 */
+			brighter = new Color(b.red + (255 - b.red) * 6 / 10, b.green + (255 - b.green) * 6 / 10, b.blue + (255 - b.blue) * 6 / 10);
+			darker = new Color(b.red * 82 / 100, b.green * 82 / 100, b.blue * 82 / 100);
+			evenDarker = new Color(b.red * 55 / 100, b.green * 55 / 100, b.blue * 55 / 100);
 		}
 	}
 
