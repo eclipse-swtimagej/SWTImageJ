@@ -27,6 +27,8 @@ class JavaLineStyler implements LineStyleListener {
 	JavaScanner scanner = new JavaScanner();
 	int[] tokenColors;
 	Color[] colors;
+	Color[] darkColors;
+	Color[] lightColors;
 	Vector<int[]> blockComments = new Vector<int[]>();
 	public static final int EOF = -1;
 	public static final int EOL = 10;
@@ -70,21 +72,23 @@ class JavaLineStyler implements LineStyleListener {
 	}
 
 	void initializeColors() {
+		/*
+		 * Both palettes: the colors follow the background of the text (see selectColors),
+		 * not the system theme (e.g., a dark theme of the embedding application with a
+		 * light system theme)!
+		 */
+		darkColors = new Color[] { new Color(209,227,188), // black
+				new Color(236,169,169), // red
+				new Color(104, 151, 187), // green
+				new Color(211,153,231) // blue
+		};
+		lightColors = new Color[] { new Color(0, 0, 0), // black
+				new Color(63, 127, 95), // red
+				new Color(42, 0, 255), // green
+				new Color(127, 0, 85) // blue
+		};
+		colors = Display.isSystemDarkTheme() ? darkColors.clone() : lightColors.clone();
 
-		if (Display.isSystemDarkTheme()) {
-			colors = new Color[] { new Color(209,227,188), // black
-					new Color(236,169,169), // red
-					new Color(104, 151, 187), // green
-					new Color(211,153,231) // blue
-			};
-
-		} else {
-			colors = new Color[] { new Color(0, 0, 0), // black
-					new Color(63, 127, 95), // red
-					new Color(42, 0, 255), // green
-					new Color(127, 0, 85) // blue
-			};
-		}
 		tokenColors = new int[MAXIMUM_TOKEN];
 		tokenColors[WORD] = 0;
 		tokenColors[WHITE] = 0;
@@ -95,6 +99,26 @@ class JavaLineStyler implements LineStyleListener {
 		tokenColors[NUMBER] = 0;
 	}
 
+	/*
+	 * The palette of the background of the text (dark or light) and the plain words
+	 * with the text color of the widget (e.g., the editor text color of a theme)!
+	 */
+	void selectColors(Control control) {
+
+		Color background = control.getBackground();
+		Color foreground = control.getForeground();
+		if (background == null || foreground == null) {
+			return;
+		}
+		boolean dark = (background.getRed() * 299 + background.getGreen() * 587 + background.getBlue() * 114) / 1000 < 128;
+		Color[] palette = dark ? darkColors : lightColors;
+		if (colors == null || colors.length != palette.length) {
+			colors = new Color[palette.length];
+		}
+		System.arraycopy(palette, 0, colors, 0, palette.length);
+		colors[0] = foreground;
+	}
+
 	/**
 	 * Event.detail line start offset (input) Event.text line text (input)
 	 * LineStyleEvent.styles Enumeration of StyleRanges, need to be in order.
@@ -102,6 +126,7 @@ class JavaLineStyler implements LineStyleListener {
 	 */
 	public void lineGetStyle(LineStyleEvent event) {
 
+		selectColors((Control) event.widget);
 		Vector<StyleRange> styles = new Vector<StyleRange>();
 		int token;
 		StyleRange lastStyle;

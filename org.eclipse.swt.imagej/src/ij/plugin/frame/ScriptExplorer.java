@@ -297,8 +297,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 		bar.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		bar.setLayout(new GridLayout(6, false));
 		toggleButton = new Button(bar, SWT.PUSH);
-		sidebarIcon = createSidebarIcon(bar.getDisplay());
-		toggleButton.setImage(sidebarIcon);
+		glyphImage(toggleButton, rgb -> createSidebarIcon(bar.getDisplay(), rgb), image -> sidebarIcon = image);
 		toggleButton.setToolTipText("Collapse/expand the file explorer");
 		toggleButton.addSelectionListener(new SelectionAdapter() {
 
@@ -346,8 +345,7 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 			}
 		});
 		Button settingsButton = new Button(bar, SWT.PUSH);
-		gearIcon = createGearIcon(bar.getDisplay());
-		settingsButton.setImage(gearIcon);
+		glyphImage(settingsButton, rgb -> createGearIcon(bar.getDisplay(), rgb), image -> gearIcon = image);
 		settingsButton.setToolTipText("Explorer Settings");
 		Menu settingsMenu = new Menu(settingsButton);
 		MenuItem showAllItem = new MenuItem(settingsMenu, SWT.CHECK);
@@ -460,51 +458,55 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	 * convention used by most IDEs for this exact action) since no bundled icon resources
 	 * exist in SWTImageJ to reuse for generic toolbar actions like this one.
 	 */
-	private static Image createSidebarIcon(Display display) {
+	private static Image createSidebarIcon(Display display, org.eclipse.swt.graphics.RGB glyph) {
 
-		int size = 16;
-		Image image = new Image(display, size, size);
-		GC gc = new GC(image);
-		gc.setAntialias(SWT.ON);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-		gc.fillRectangle(0, 0, size, size);
-		gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-		gc.drawRectangle(1, 2, 13, 11);
-		gc.drawLine(6, 2, 6, 12);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-		gc.fillRectangle(2, 3, 4, 10);
-		gc.dispose();
-		return image;
+		/* Transparent (the background of the button, e.g., of a dark theme) in the text color of the button */
+		return new Image(display, new TransparentDrawer() {
+
+			@Override
+			public void drawOn(GC gc, int width, int height) {
+
+				gc.setAntialias(SWT.ON);
+				Color fg = new Color(display, glyph);
+				gc.setForeground(fg);
+				gc.drawRectangle(1, 2, 13, 11);
+				gc.drawLine(6, 2, 6, 12);
+				gc.setBackground(fg);
+				gc.fillRectangle(2, 3, 4, 10);
+				fg.dispose();
+			}
+		}, 16, 16);
 	}
 
 	/** Draws a simplified gear/"Zahnrad" glyph: a ring of small teeth around a hollow hub. */
-	private static Image createGearIcon(Display display) {
+	private static Image createGearIcon(Display display, org.eclipse.swt.graphics.RGB glyph) {
 
 		int size = 16;
-		Image image = new Image(display, size, size);
-		GC gc = new GC(image);
-		gc.setAntialias(SWT.ON);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-		gc.fillRectangle(0, 0, size, size);
-		Color fg = display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
-		gc.setForeground(fg);
-		gc.setBackground(fg);
-		int cx = size / 2;
-		int cy = size / 2;
-		int outerR = 5;
-		int toothD = 3;
-		for(int i = 0; i < 8; i++) {
-			double angle = Math.toRadians(i * 45);
-			int tx = (int)Math.round(cx + outerR * Math.cos(angle)) - toothD / 2;
-			int ty = (int)Math.round(cy + outerR * Math.sin(angle)) - toothD / 2;
-			gc.fillOval(tx, ty, toothD, toothD);
-		}
-		gc.drawOval(cx - outerR + 1, cy - outerR + 1, (outerR - 1) * 2, (outerR - 1) * 2);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-		int innerR = 2;
-		gc.fillOval(cx - innerR, cy - innerR, innerR * 2, innerR * 2);
-		gc.dispose();
-		return image;
+		return new Image(display, new TransparentDrawer() {
+
+			@Override
+			public void drawOn(GC gc, int width, int height) {
+
+				gc.setAntialias(SWT.ON);
+				Color fg = new Color(display, glyph);
+				gc.setForeground(fg);
+				gc.setBackground(fg);
+				int cx = size / 2;
+				int cy = size / 2;
+				int outerR = 5;
+				int toothD = 3;
+				for(int i = 0; i < 8; i++) {
+					double angle = Math.toRadians(i * 45);
+					int tx = (int)Math.round(cx + outerR * Math.cos(angle)) - toothD / 2;
+					int ty = (int)Math.round(cy + outerR * Math.sin(angle)) - toothD / 2;
+					gc.fillOval(tx, ty, toothD, toothD);
+				}
+				/* A thicker ring instead of the hub filled with the background (transparent) */
+				gc.setLineWidth(2);
+				gc.drawOval(cx - outerR + 2, cy - outerR + 2, (outerR - 2) * 2, (outerR - 2) * 2);
+				fg.dispose();
+			}
+		}, size, size);
 	}
 
 	/** Disposes and recreates folderIcon/fileIcon/extensionIcons at the current treeIconSize. */
@@ -637,34 +639,36 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private static Image createFolderIcon(Display display, int size) {
 
 		double scale = size / 32.0;
-		Image image = new Image(display, size, size);
-		GC gc = new GC(image);
-		gc.setAntialias(SWT.ON);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-		gc.fillRectangle(0, 0, size, size);
-		Color backColor = getPlatformFolderColor(display);
-		Color frontColor = lighten(display, backColor, 45);
-		Color highlightColor = lighten(display, frontColor, 40);
-		int tabX = scaled(3, scale), tabY = scaled(6, scale),
-				tabW = scaled(11, scale), tabH = scaled(7, scale),
-				tabArc = scaled(3, scale);
-		gc.setBackground(backColor);
-		gc.fillRoundRectangle(tabX, tabY, tabW, tabH, tabArc, tabArc);
-		int bodyX = scaled(2, scale), bodyY = scaled(9, scale),
-				bodyW = scaled(28, scale), bodyH = scaled(20, scale),
-				bodyArc = scaled(5, scale);
-		gc.fillRoundRectangle(bodyX, bodyY, bodyW, bodyH, bodyArc, bodyArc);
-		int frontX = bodyX, frontY = bodyY + scaled(4, scale), frontW = bodyW,
-				frontH = bodyH - scaled(4, scale);
-		gc.setBackground(frontColor);
-		gc.fillRoundRectangle(frontX, frontY, frontW, frontH, bodyArc, bodyArc);
-		gc.setForeground(highlightColor);
-		gc.drawLine(frontX + scaled(3, scale), frontY + scaled(2, scale), frontX + frontW - scaled(3, scale), frontY + scaled(2, scale));
-		gc.dispose();
-		backColor.dispose();
-		frontColor.dispose();
-		highlightColor.dispose();
-		return image;
+		/* Transparent: the background of the tree (e.g., of a dark theme), not the system list color */
+		return new Image(display, new TransparentDrawer() {
+
+			@Override
+			public void drawOn(GC gc, int width, int height) {
+
+				gc.setAntialias(SWT.ON);
+				Color backColor = getPlatformFolderColor(display);
+				Color frontColor = lighten(display, backColor, 45);
+				Color highlightColor = lighten(display, frontColor, 40);
+				int tabX = scaled(3, scale), tabY = scaled(6, scale),
+						tabW = scaled(11, scale), tabH = scaled(7, scale),
+						tabArc = scaled(3, scale);
+				gc.setBackground(backColor);
+				gc.fillRoundRectangle(tabX, tabY, tabW, tabH, tabArc, tabArc);
+				int bodyX = scaled(2, scale), bodyY = scaled(9, scale),
+						bodyW = scaled(28, scale), bodyH = scaled(20, scale),
+						bodyArc = scaled(5, scale);
+				gc.fillRoundRectangle(bodyX, bodyY, bodyW, bodyH, bodyArc, bodyArc);
+				int frontX = bodyX, frontY = bodyY + scaled(4, scale), frontW = bodyW,
+						frontH = bodyH - scaled(4, scale);
+				gc.setBackground(frontColor);
+				gc.fillRoundRectangle(frontX, frontY, frontW, frontH, bodyArc, bodyArc);
+				gc.setForeground(highlightColor);
+				gc.drawLine(frontX + scaled(3, scale), frontY + scaled(2, scale), frontX + frontW - scaled(3, scale), frontY + scaled(2, scale));
+				backColor.dispose();
+				frontColor.dispose();
+				highlightColor.dispose();
+			}
+		}, size, size);
 	}
 
 	/**
@@ -679,43 +683,97 @@ public class ScriptExplorer extends PlugInFrame implements WindowSwt {
 	private static Image createFileIcon(Display display, int size, String label, Color labelColor) {
 
 		double scale = size / 32.0;
-		Image image = new Image(display, size, size);
-		GC gc = new GC(image);
-		gc.setAntialias(SWT.ON);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-		gc.fillRectangle(0, 0, size, size);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-		gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
-		int left = scaled(6, scale), top = scaled(3, scale),
-				right = scaled(24, scale), bottom = scaled(29, scale),
-				fold = scaled(8, scale);
-		int[] outline = {left, top, right - fold, top, right, top + fold, right, bottom, left, bottom};
-		gc.fillPolygon(outline);
-		gc.drawPolygon(outline);
-		gc.drawLine(right - fold, top, right - fold, top + fold);
-		gc.drawLine(right - fold, top + fold, right, top + fold);
-		if(label != null && labelColor != null) {
-			int fontSize = Math.max(6, (int)Math.round(14 * scale));
-			Font labelFont = new Font(display, "Arial", fontSize, SWT.BOLD);
-			gc.setFont(labelFont);
-			gc.setForeground(labelColor);
-			org.eclipse.swt.graphics.Point extent = gc.textExtent(label);
-			int tx = left + ((right - left) - extent.x) / 2;
-			int ty = bottom - extent.y - 1;
-			gc.drawText(label, tx, ty, true);
-			labelFont.dispose();
+		/* The color is kept as RGB: the drawer is called again for another zoom (HiDPI) */
+		org.eclipse.swt.graphics.RGB labelRGB = labelColor != null ? labelColor.getRGB() : null;
+		if(labelColor != null) {
 			labelColor.dispose();
-		} else {
-			gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
-			int lineLeft = left + scaled(3, scale);
-			int lineRight = right - scaled(3, scale);
-			int lineRightShort = right - scaled(6, scale);
-			gc.drawLine(lineLeft, top + scaled(11, scale), lineRight, top + scaled(11, scale));
-			gc.drawLine(lineLeft, top + scaled(16, scale), lineRight, top + scaled(16, scale));
-			gc.drawLine(lineLeft, top + scaled(21, scale), lineRightShort, top + scaled(21, scale));
 		}
-		gc.dispose();
-		return image;
+		/* Transparent around the page: the background of the tree (e.g., of a dark theme) */
+		return new Image(display, new TransparentDrawer() {
+
+			@Override
+			public void drawOn(GC gc, int width, int height) {
+
+				gc.setAntialias(SWT.ON);
+				gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+				gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
+				int left = scaled(6, scale), top = scaled(3, scale),
+						right = scaled(24, scale), bottom = scaled(29, scale),
+						fold = scaled(8, scale);
+				int[] outline = {left, top, right - fold, top, right, top + fold, right, bottom, left, bottom};
+				gc.fillPolygon(outline);
+				gc.drawPolygon(outline);
+				gc.drawLine(right - fold, top, right - fold, top + fold);
+				gc.drawLine(right - fold, top + fold, right, top + fold);
+				if(label != null && labelRGB != null) {
+					int fontSize = Math.max(6, (int)Math.round(14 * scale));
+					Font labelFont = new Font(display, "Arial", fontSize, SWT.BOLD);
+					Color color = new Color(display, labelRGB);
+					gc.setFont(labelFont);
+					gc.setForeground(color);
+					org.eclipse.swt.graphics.Point extent = gc.textExtent(label);
+					int tx = left + ((right - left) - extent.x) / 2;
+					int ty = bottom - extent.y - 1;
+					gc.drawText(label, tx, ty, true);
+					labelFont.dispose();
+					color.dispose();
+				} else {
+					gc.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+					int lineLeft = left + scaled(3, scale);
+					int lineRight = right - scaled(3, scale);
+					int lineRightShort = right - scaled(6, scale);
+					gc.drawLine(lineLeft, top + scaled(11, scale), lineRight, top + scaled(11, scale));
+					gc.drawLine(lineLeft, top + scaled(16, scale), lineRight, top + scaled(16, scale));
+					gc.drawLine(lineLeft, top + scaled(21, scale), lineRightShort, top + scaled(21, scale));
+				}
+			}
+		}, size, size);
+	}
+
+	/** An image drawer with a transparent background (the icons show the background of the tree or the button). */
+	private abstract static class TransparentDrawer implements org.eclipse.swt.graphics.ImageGcDrawer {
+
+		@Override
+		public int getGcStyle() {
+
+			return SWT.TRANSPARENT;
+		}
+	}
+
+	/*
+	 * The image of a toolbar button drawn in the text color of the button (like the
+	 * text of the other buttons, e.g., light in a dark theme): drawn again when the
+	 * text color changes (e.g., a theme set later by CSS). The former image is disposed.
+	 */
+	private static void glyphImage(Button button, java.util.function.Function<org.eclipse.swt.graphics.RGB, Image> factory, java.util.function.Consumer<Image> store) {
+
+		org.eclipse.swt.graphics.RGB[] drawn = new org.eclipse.swt.graphics.RGB[1];
+		Runnable update = () -> {
+			if(button.isDisposed()) {
+				return;
+			}
+			org.eclipse.swt.graphics.RGB rgb = button.getForeground().getRGB();
+			if(rgb.equals(drawn[0])) {
+				return;
+			}
+			drawn[0] = rgb;
+			Image old = button.getImage();
+			Image image = factory.apply(rgb);
+			button.setImage(image);
+			store.accept(image);
+			if(old != null && !old.isDisposed()) {
+				old.dispose();
+			}
+		};
+		update.run();
+		/* Later (not in the paint): the new image paints the button again */
+		button.addListener(SWT.Paint, _ -> button.getDisplay().asyncExec(update));
+		button.addListener(SWT.Dispose, _ -> {
+			Image image = button.getImage();
+			if(image != null && !image.isDisposed()) {
+				image.dispose();
+			}
+		});
 	}
 
 	/** Scales one of the size=32-design coordinates above to the actual requested icon size, never below 1px. */
