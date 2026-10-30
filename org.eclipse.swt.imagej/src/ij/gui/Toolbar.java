@@ -1048,6 +1048,8 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 	public void paintControl(PaintEvent e) {
 
 		updateThemeColors();
+		/* Also after the icons were set again (e.g., by a toolset) */
+		icons[getNumTools() - 1] = (darkTheme ? "Cbbb" : "C900") + "T0d18>T6d18>"; // ">>"
 		GC gc = e.gc;
 		SWTGraphics2D g = new SWTGraphics2D(gc);
 		drawButtons(g);
@@ -1056,6 +1058,8 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 	}
 
 	private org.eclipse.swt.graphics.RGB themeBackground, themeForeground;
+	/* The background of the toolbar is dark (see updateThemeColors) */
+	private boolean darkTheme;
 
 	/*
 	 * Use the colors of this control (e.g., set by an embedding application with a
@@ -1072,6 +1076,12 @@ public class Toolbar extends org.eclipse.swt.widgets.Canvas implements PaintList
 		gray = new Color(b.red, b.green, b.blue);
 		toolColor = new Color(f.red, f.green, f.blue);
 		boolean dark = (0.299 * b.red + 0.587 * b.green + 0.114 * b.blue) < 128;
+		/*
+		 * The menu triangles and the ">>" of the "More Tools" menu: dark red in the light
+		 * mode, light grey in the dark mode (the red is hardly visible on a dark background)!
+		 */
+		triangleColor = dark ? new Color(176, 176, 176) : new Color(150, 0, 0);
+		darkTheme = dark;
 		if (dark) {
 			brighter = new Color(Math.min(255, b.red + 45), Math.min(255, b.green + 45), Math.min(255, b.blue + 45));
 			darker = new Color(Math.min(255, b.red + 30), Math.min(255, b.green + 30), Math.min(255, b.blue + 30));
