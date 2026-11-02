@@ -40,7 +40,8 @@ public class OverlayLabels implements PlugIn, DialogListener {
 		defaultOverlay.setLabelFont(new Font("SansSerif", savedBold ? Font.BOLD : Font.PLAIN, savedFontSize));
 		defaultOverlay.setLabelColor(Colors.getColor(Prefs.get(COLOR_KEY, "white"), Color.white));
 		defaultOverlay.drawNames(Prefs.get(SHOW_NAMES_KEY, false));
-		defaultOverlay.drawBackgrounds(Prefs.get(DRAW_BACKGROUNDS_KEY, false));
+		/* Changed for Bio7: the labels with backgrounds by default (readable, e.g., the ROIs of the particle analysis) */
+		defaultOverlay.drawBackgrounds(Prefs.get(DRAW_BACKGROUNDS_KEY, true));
 	}
 	private ImagePlus imp;
 	private Overlay overlay;
