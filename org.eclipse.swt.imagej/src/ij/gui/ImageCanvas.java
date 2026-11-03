@@ -1247,13 +1247,26 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		int sx = (int)(screenX(x) * aspectRatioX);
 		int sy = (int)(screenY(y) * aspectRatioY);
 		org.eclipse.swt.graphics.Point extent = gc.textExtent(text);
+		int boxWidth = extent.x + 6;
+		int boxHeight = extent.y + 4;
 		int boxX = sx + 10;
 		int boxY = sy + 10;
+		/*
+		 * Keep the tooltip inside the visible canvas: if it would be cut off at the right or
+		 * bottom edge (e.g., near the x-axis), it is drawn left of or above the cursor instead!
+		 */
+		org.eclipse.swt.graphics.Point canvasSize = getSize();
+		if(boxX + boxWidth >= canvasSize.x)
+			boxX = sx - 10 - boxWidth;
+		if(boxY + boxHeight >= canvasSize.y)
+			boxY = sy - 10 - boxHeight;
+		boxX = Math.max(0, Math.min(boxX, canvasSize.x - boxWidth - 1));
+		boxY = Math.max(0, Math.min(boxY, canvasSize.y - boxHeight - 1));
 		Display display = getDisplay();
 		gc.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 		gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-		gc.fillRectangle(boxX, boxY, extent.x + 6, extent.y + 4);
-		gc.drawRectangle(boxX, boxY, extent.x + 6, extent.y + 4);
+		gc.fillRectangle(boxX, boxY, boxWidth, boxHeight);
+		gc.drawRectangle(boxX, boxY, boxWidth, boxHeight);
 		gc.drawText(text, boxX + 3, boxY + 2, true);
 	}
 
@@ -1883,8 +1896,9 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 	 */
 	public void zoomOut(int sx, int sy) {
 
-		/* If we have an anisotropic view we don't allow zooming! */
+		/* Anisotropic view (plot view): enlarge the source rectangle only! */
 		if(fitToParent) {
+			zoomOutFitToParent(sx, sy);
 			return;
 		}
 		if(magnification <= zoomLevels[0])
@@ -1970,6 +1984,47 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		/* SWT redraw! */
 		repaint();
 		// redraw();
+	}
+
+	/**
+	 * Zooms out in the anisotropic view (plot view, see {@link #isFitToParent()}). The canvas
+	 * keeps the size of its parent and the source rectangle is stretched to it, so only the
+	 * source rectangle is enlarged (centered on the zoom target) until the whole image is
+	 * displayed. Note that sx and sy are screen coordinates.
+	 */
+	private void zoomOutFitToParent(int sx, int sy) {
+
+		if(srcRect.width >= imageWidth && srcRect.height >= imageHeight)
+			return;
+		boolean mouseMoved = sqr(sx - lastZoomSX) + sqr(sy - lastZoomSY) > MAX_MOUSEMOVE_ZOOM * MAX_MOUSEMOVE_ZOOM;
+		lastZoomSX = sx;
+		lastZoomSY = sy;
+		if(mouseMoved || zoomTargetOX < 0) {
+			boolean cursorInside = sx >= 0 && sy >= 0 && sx < dstWidth && sy < dstHeight;
+			zoomTargetOX = offScreenX(cursorInside ? sx : dstWidth / 2);
+			zoomTargetOY = offScreenY(cursorInside ? sy : dstHeight / 2);
+		}
+		double oldMag = magnification;
+		double newMag = getLowerZoomLevel(oldMag);
+		double scale = newMag < oldMag ? oldMag / newMag : 2.0;
+		int newSrcWidth = Math.min(imageWidth, (int)Math.round(srcRect.width * scale));
+		int newSrcHeight = Math.min(imageHeight, (int)Math.round(srcRect.height * scale));
+		int newSrcX = zoomTargetOX - newSrcWidth / 2;
+		int newSrcY = zoomTargetOY - newSrcHeight / 2;
+		if(newSrcX + newSrcWidth > imageWidth)
+			newSrcX = imageWidth - newSrcWidth;
+		if(newSrcY + newSrcHeight > imageHeight)
+			newSrcY = imageHeight - newSrcHeight;
+		if(newSrcX < 0)
+			newSrcX = 0;
+		if(newSrcY < 0)
+			newSrcY = 0;
+		srcRect = new Rectangle(newSrcX, newSrcY, newSrcWidth, newSrcHeight);
+		setMagnification(newMag);
+		/* The aspect ratio depends on the source rectangle and the magnification! */
+		calculateAspectRatio();
+		setMaxBounds();
+		repaint();
 	}
 
 	int sqr(int x) {
