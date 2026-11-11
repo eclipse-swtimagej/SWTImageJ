@@ -237,15 +237,46 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		Display.getDefault().syncExec(() -> {
 			showAllCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
 			showAllCheckbox.setText("Show All");
-			showAllCheckbox.setSelection(false);
+			setSelected(showAllCheckbox, false);
 			labelsCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
 			labelsCheckbox.setText("Labels");
-			labelsCheckbox.setSelection(false);
+			setSelected(labelsCheckbox, false);
 			list = new Table(composite, SWT.NONE);
 		});
 		// listModel = new DefaultListModel();
 		// list.setModel(listModel);
 		errorMessage = null;
+	}
+
+	/*
+	 * The checkboxes are SWT widgets: they may only be used in the UI thread, but
+	 * runCommand() and other methods are also called by macros and plugins in
+	 * their own threads (e.g., roiManager("Show All with labels")).
+	 */
+	private static boolean isSelected(Button b) {
+
+		if(b == null || b.isDisposed())
+			return false;
+		Display display = b.getDisplay();
+		if(display.getThread() == Thread.currentThread())
+			return b.getSelection();
+		boolean[] selected = new boolean[1];
+		display.syncExec(() -> selected[0] = !b.isDisposed() && b.getSelection());
+		return selected[0];
+	}
+
+	private static void setSelected(Button b, boolean selected) {
+
+		if(b == null || b.isDisposed())
+			return;
+		Display display = b.getDisplay();
+		if(display.getThread() == Thread.currentThread())
+			b.setSelection(selected);
+		else
+			display.syncExec(() -> {
+				if(!b.isDisposed())
+					b.setSelection(selected);
+			});
 	}
 
 	/** Returns the name of an installed monospaced font, so ROI names line up in columns. */
@@ -539,7 +570,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 				itemStateChanged("Show All");
 			}
 		});
-		showAllCheckbox.setSelection(false);
+		setSelected(showAllCheckbox, false);
 		labelsCheckbox = new Button(composite, SWT.CHECK | SWT.LEFT);
 		GridData gd_labelsCheckbox = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 4);
 		labelsCheckbox.setLayoutData(gd_labelsCheckbox);
@@ -552,7 +583,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 				itemStateChanged("Labels");
 			}
 		});
-		labelsCheckbox.setSelection(false);
+		setSelected(labelsCheckbox, false);
 		new Label(composite, SWT.NONE);
 		new Label(composite, SWT.NONE);
 		new Label(composite, SWT.NONE);
@@ -760,11 +791,11 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	public void itemStateChanged(String item) {
 
 		String source = item;
-		boolean showAllMode = showAllCheckbox.getSelection();
+		boolean showAllMode = isSelected(showAllCheckbox);
 		if(source.equals(showAllCheckbox.getText())) {
 			if(firstTime && okToSet())
-				labelsCheckbox.setSelection(true);
-			showAll(showAllCheckbox.getSelection() ? SHOW_ALL : SHOW_NONE);
+				setSelected(labelsCheckbox, true);
+			showAll(isSelected(showAllCheckbox) ? SHOW_ALL : SHOW_NONE);
 			if(IJ.recording() && recordShowAll) {
 				if(showAllMode)
 					Recorder.record("roiManager", "Show All");
@@ -777,9 +808,9 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		}
 		if(source.equals(labelsCheckbox.getText())) {
 			if(firstTime && okToSet())
-				showAllCheckbox.setSelection(true);
-			boolean editState = labelsCheckbox.getSelection();
-			boolean showAllState = showAllCheckbox.getSelection();
+				setSelected(showAllCheckbox, true);
+			boolean editState = isSelected(labelsCheckbox);
+			boolean showAllState = isSelected(showAllCheckbox);
 			if(!showAllState && !editState)
 				showAll(SHOW_NONE);
 			else {
@@ -791,7 +822,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 						Recorder.record("roiManager", "Show All without labels");
 				}
 				if(editState && !showAllState && okToSet()) {
-					showAllCheckbox.setSelection(true);
+					setSelected(showAllCheckbox, true);
 					recordShowAll = false;
 				}
 			}
@@ -1206,7 +1237,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			ImagePlus imp = WindowManager.getCurrentImage();
 			if(imp != null && imp.getRoi() != null)
 				imp.setRoi(roi);
-			if(Prefs.useNamesAsLabels && labelsCheckbox.getSelection())
+			if(Prefs.useNamesAsLabels && isSelected(labelsCheckbox))
 				if(imp != null)
 					imp.draw();
 			if(record())
@@ -1291,7 +1322,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 			public void run() {
 
-				selection.set(showAllCheckbox.getSelection());
+				selection.set(isSelected(showAllCheckbox));
 			}
 		});
 		if(selection.get() && !restoreCentered && !noUpdateMode) {
@@ -2190,7 +2221,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		}
 		if(record() && (mode == DRAW || mode == FILL))
 			Recorder.record("roiManager", mode == DRAW ? "Draw" : "Fill");
-		if(showAllCheckbox.getSelection())
+		if(isSelected(showAllCheckbox))
 			runCommand("show none");
 		imp.updateAndDraw();
 		imp.unlock();
@@ -2361,7 +2392,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	public boolean getDrawLabels() {
 
-		return labelsCheckbox.getSelection();
+		return isSelected(labelsCheckbox);
 	}
 
 	private void combine() {
@@ -2648,8 +2679,8 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 		ImagePlus imp = WindowManager.getCurrentImage();
 		if(imp != null) {
-			showAllCheckbox.setSelection(true);
-			labelsCheckbox.setSelection(true);
+			setSelected(showAllCheckbox, true);
+			setSelected(labelsCheckbox, true);
 			showAll(LABELS);
 		}
 		try {
@@ -2769,7 +2800,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			return;
 		boolean[] selection = new boolean[1];
 		Display.getDefault().syncExec(() -> {
-			selection[0] = showAllCheckbox.getSelection();
+			selection[0] = isSelected(showAllCheckbox);
 		});
 		if(selection[0]) {
 			if(getCount() > 0) {
@@ -3077,7 +3108,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 					public void run() {
 
-						showAllCheckbox.setSelection(true);
+						setSelected(showAllCheckbox, true);
 					}
 				});
 			}
@@ -3089,19 +3120,19 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 					public void run() {
 
-						showAllCheckbox.setSelection(false);
+						setSelected(showAllCheckbox, false);
 					}
 				});
 			}
 		} else if(cmd.equals("show all with labels")) {
-			labelsCheckbox.setSelection(true);
+			setSelected(labelsCheckbox, true);
 			showAll(LABELS);
 			Display dis = Display.getDefault();
 			dis.syncExec(new Runnable() {
 
 				public void run() {
 
-					showAllCheckbox.setSelection(true);
+					setSelected(showAllCheckbox, true);
 				}
 			});
 			if(Interpreter.isBatchMode())
@@ -3112,8 +3143,8 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 				public void run() {
 
-					showAllCheckbox.setSelection(true);
-					labelsCheckbox.setSelection(false);
+					setSelected(showAllCheckbox, true);
+					setSelected(labelsCheckbox, false);
 				}
 			});
 			showAll(NO_LABELS);
@@ -3217,7 +3248,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		} else if(cmd.equals("usenames")) {
 			Prefs.useNamesAsLabels = name.equals("true") ? true : false;
 			macro = false;
-			if(labelsCheckbox.getSelection()) {
+			if(isSelected(labelsCheckbox)) {
 				ImagePlus imp = WindowManager.getCurrentImage();
 				if(imp != null)
 					imp.draw();
@@ -3546,8 +3577,8 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	public void setEditMode(ImagePlus imp, boolean editMode) {
 
 		Display.getDefault().syncExec(() -> {
-			showAllCheckbox.setSelection(editMode);
-			labelsCheckbox.setSelection(editMode);
+			setSelected(showAllCheckbox, editMode);
+			setSelected(labelsCheckbox, editMode);
 			showAll(editMode ? LABELS : SHOW_NONE);
 		});
 	}
@@ -3582,7 +3613,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		}
 		resetMultiMeasureResults();
 		Prefs.saveLocation(LOC_KEY, new java.awt.Point(shell.getLocation().x, shell.getLocation().y));
-		if(!showAllCheckbox.getSelection() || IJ.macroRunning())
+		if(!isSelected(showAllCheckbox) || IJ.macroRunning())
 			return;
 		int n = getCount();
 		ImagePlus imp = WindowManager.getCurrentImage();
@@ -3743,7 +3774,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 			public void run() {
 
-				selection.set(labelsCheckbox.getSelection());
+				selection.set(isSelected(labelsCheckbox));
 			}
 		});
 		overlay.drawLabels(selection.get());
@@ -3868,7 +3899,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			if(imageID != 0 && imp.getID() != imageID) {
 				showAll(SHOW_NONE);
 				if(okToSet())
-					showAllCheckbox.setSelection(false);
+					setSelected(showAllCheckbox, false);
 				deselect();
 				imageID = 0;
 			}
