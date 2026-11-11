@@ -249,6 +249,60 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	}
 
 	/*
+	 * The table (list) is an SWT widget: it may only be used in the UI thread, but
+	 * runCommand() and the public methods are also called by macros and plugins in
+	 * their own threads (e.g., roiManager("save", path)). The helpers run the access
+	 * directly in the UI thread, else with syncExec.
+	 */
+	private static <T> T ui(java.util.function.Supplier<T> supplier) {
+
+		Display display = Display.getDefault();
+		if(display.getThread() == Thread.currentThread())
+			return supplier.get();
+		AtomicReference<T> result = new AtomicReference<T>();
+		display.syncExec(() -> result.set(supplier.get()));
+		return result.get();
+	}
+
+	private static void ui(Runnable runnable) {
+
+		Display display = Display.getDefault();
+		if(display.getThread() == Thread.currentThread())
+			runnable.run();
+		else
+			display.syncExec(runnable);
+	}
+
+	/* The number of items of the table (0 if it is disposed) */
+	private int itemCount() {
+
+		return ui(() -> list == null || list.isDisposed() ? 0 : list.getItemCount());
+	}
+
+	/* The text of an item of the table */
+	private String itemText(int index) {
+
+		return ui(() -> list.getItem(index).getText());
+	}
+
+	/* The texts of all items of the table */
+	private String[] itemTexts() {
+
+		return ui(() -> {
+			String[] texts = new String[list.getItemCount()];
+			for(int i = 0; i < texts.length; i++)
+				texts[i] = list.getItem(i).getText();
+			return texts;
+		});
+	}
+
+	/* The index of the selected item of the table (-1 if none is selected) */
+	private int selectionIndex() {
+
+		return ui(() -> list == null || list.isDisposed() ? -1 : list.getSelectionIndex());
+	}
+
+	/*
 	 * The checkboxes are SWT widgets: they may only be used in the UI thread, but
 	 * runCommand() and other methods are also called by macros and plugins in
 	 * their own threads (e.g., roiManager("Show All with labels")).
@@ -606,16 +660,18 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	public void show() {
 
-		shell.layout();
-		final org.eclipse.swt.graphics.Point newSize = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-		shell.setSize(newSize);
-		shell.open();
+		ui(() -> {
+			shell.layout();
+			final org.eclipse.swt.graphics.Point newSize = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+			shell.setSize(newSize);
+			shell.open();
+		});
 	}
 
 	/* Helper method for the shell! */
 	public void setVisible(boolean arg) {
 
-		shell.setVisible(arg);
+		ui(() -> shell.setVisible(arg));
 	}
 	/*
 	 * void addButton(String label) { Button b = new Button(label);
@@ -892,7 +948,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			// check for duplicate
 			Roi roi2 = (Roi)rois.get(n - 1);
 			if(roi2 != null) {
-				String label = list.getItem(n - 1).getText();
+				String label = itemText(n - 1);
 				int slice2 = getSliceNumber(roi2, label);
 				if(roi.equals(roi2) && (slice2 == -1 || slice2 == imp.getCurrentSlice()) && imp.getID() == prevID && !Interpreter.isBatchMode())
 					return false;
@@ -1109,8 +1165,11 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			index = getAllIndexes();
 		}
 		if(count == index.length && !replacing) {
-			rois.clear();
-			list.removeAll();
+			/* The table in the UI thread (roiManager("delete") runs in the thread of the macro) */
+			ui(() -> {
+				rois.clear();
+				list.removeAll();
+			});
 		} else {
 			for(int i = count - 1; i >= 0; i--) {
 				boolean delete = false;
@@ -1119,12 +1178,8 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 						delete = true;
 				}
 				if(delete) {
-					// if (EventQueue.isDispatchThread()) {
-					if(Display.getDefault().readAndDispatch()) {
-						rois.remove(i);
-						list.remove(i);
-					} else
-						deleteOnEDT(i);
+					/* In the UI thread (readAndDispatch() of the former code fails in the thread of a macro) */
+					deleteOnEDT(i);
 				}
 			}
 		}
@@ -1143,20 +1198,19 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		int count = getCount();
 		if(count == 0 || index >= count)
 			return;
-		if(EventQueue.isDispatchThread()) {
-			rois.remove(index);
-			list.remove(index);
-		} else
-			deleteOnEDT(index);
+		deleteOnEDT(index);
 		updateShowAll();
-		list.redraw();
+		ui(() -> {
+			if(!list.isDisposed())
+				list.redraw();
+		});
 	}
 
 	// Delete ROI on event dispatch thread
 	private void deleteOnEDT(final int i) {
 
 		try {
-			Display.getDefault().syncExec(() -> {
+			ui(() -> {
 				rois.remove(i);
 				list.remove(i);
 			});
@@ -1176,12 +1230,12 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			error("The active image does not have a selection.");
 			return false;
 		}
-		int index = list.getSelectionIndex();
+		int index = selectionIndex();
 		if(index < 0 && !showingAll)
 			return error("Exactly one item in the list must be selected.");
 		if(index >= 0) {
 			if(clone) {
-				String name = list.getItem(index).getText();
+				String name = itemText(index);
 				Roi roi2 = (Roi)roi.clone();
 				if(roi2.getPosition() != PointRoi.POINTWISE_POSITION)
 					roi2.setPosition(imp);
@@ -1216,7 +1270,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 				error("Exactly one item in the list must be selected.");
 				return;
 			}
-			String name = list.getItem(index).getText();
+			String name = itemText(index);
 			String newName = promptedName;
 			if(newName == null)
 				newName = promptForName(name);
@@ -1253,9 +1307,11 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			throw new IllegalArgumentException("Index out of range: " + index);
 		Roi roi = (Roi)rois.get(index);
 		roi.setName(newName);
-		/* Changed for SWT. We have to remove the item first! */
-		list.remove(index);
-		new TableItem(list, SWT.NONE, index).setText(newName);
+		/* Changed for SWT. We have to remove the item first (in the UI thread, also called by macros)! */
+		ui(() -> {
+			list.remove(index);
+			new TableItem(list, SWT.NONE, index).setText(newName);
+		});
 	}
 
 	String promptForName(String name) {
@@ -1298,7 +1354,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 					public void run() {
 
-						item.set(list.getItem(index).getText());
+						item.set(itemText(index));
 					}
 				});
 				String label = item.get();
@@ -1582,7 +1638,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		Roi roi = (Roi)rois.get(indexes[0]);
 		if(path == null) {
 			Macro.setOptions(null);
-			String name = list.getItem(indexes[0]).getText();
+			String name = itemText(indexes[0]);
 			SaveDialog sd = new SaveDialog("Save Selection...", name, ".roi");
 			String name2 = sd.getFileName();
 			if(name2 == null)
@@ -1629,9 +1685,8 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		DataOutputStream out = null;
 		IJ.showStatus("Saving " + indexes.length + " ROIs " + " to " + path);
 		long t0 = System.currentTimeMillis();
-		String[] names = new String[list.getItemCount()];
-		for(int i = 0; i < list.getItemCount(); i++)
-			names[i] = list.getItem(i).getText();
+		/* The names of the table (in the UI thread, see itemTexts) */
+		String[] names = itemTexts();
 		errorMessage = null;
 		try {
 			ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(path)));
@@ -1640,7 +1695,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			for(int i = 0; i < indexes.length; i++) {
 				IJ.showProgress(i, indexes.length);
 				Roi roi = (Roi)rois.get(indexes[i]);
-				String label = list.getItem(indexes[i]).getText();
+				String label = names[indexes[i]];
 				if(IJ.debugMode)
 					IJ.log("saveMultiple: " + i + "  " + label + "  " + roi);
 				if(roi == null)
@@ -1731,7 +1786,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		if(imp.getStackSize() > 1) // do we have to change the stack slice for one of the rois?
 			for(int i = 0; i < indexes.length; i++) {
 				Roi roi = (Roi)rois.get(indexes[i]);
-				String label = list.getItem(indexes[i]).getText();
+				String label = itemText(indexes[i]);
 				if(getSliceNumber(roi, label) > 1 || roi.hasHyperStackPosition()) {
 					allSliceOne = false;
 					break;
@@ -2197,7 +2252,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 				continue;
 			if(mode == FILL && (type == Roi.POLYLINE || type == Roi.FREELINE || type == Roi.ANGLE))
 				mode = DRAW;
-			String name = list.getItem(indexes[i]).getText();
+			String name = itemText(indexes[i]);
 			int slice2 = getSliceNumber(roi, name);
 			if(slice2 >= 1 && slice2 <= imp.getStackSize()) {
 				imp.setSlice(slice2);
@@ -2558,20 +2613,21 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 	void sort() {
 
-		int n = list.getItemCount();
+		String[] labels = itemTexts();
+		int n = labels.length;
 		if(n == 0)
 			return;
-		String[] labels = new String[n];
-		for(int i = 0; i < n; i++)
-			labels[i] = list.getItem(i).getText();
 		int[] indices = Tools.rank(labels);
 		Roi[] rois2 = getRoisAsArray();
-		list.removeAll();
-		rois.clear();
-		for(int i = 0; i < labels.length; i++) {
-			new TableItem(list, SWT.NONE).setText(labels[indices[i]]);
-			rois.add(rois2[indices[i]]);
-		}
+		/* The table in the UI thread (roiManager("sort") runs in the thread of the macro) */
+		ui(() -> {
+			list.removeAll();
+			rois.clear();
+			for(int i = 0; i < labels.length; i++) {
+				new TableItem(list, SWT.NONE).setText(labels[indices[i]]);
+				rois.add(rois2[indices[i]]);
+			}
+		});
 		if(record())
 			Recorder.record("roiManager", "Sort");
 	}
@@ -2635,7 +2691,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		for(int i = 0; i < indexes.length; i++) {
 			int index = indexes[i];
 			Roi roi = (Roi)rois.get(index);
-			String name = list.getItem(index).getText();
+			String name = itemText(index);
 			int n = getSliceNumber(name);
 			if(n > 0) {
 				String name2 = name.substring(5, name.length());
@@ -2909,7 +2965,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		Roi[] rois = getRoisAsArray();
 		Hashtable ht = new Hashtable();
 		for(int i = 0; i < rois.length; i++)
-			ht.put(list.getItem(i).getText(), rois[i]);
+			ht.put(itemText(i), rois[i]);
 		return ht;
 	}
 	/**
@@ -2957,7 +3013,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	/** Returns the index of the first selected ROI or -1 if no ROI is selected. */
 	public int getSelectedIndex() {
 
-		return list.getSelectionIndex();
+		return selectionIndex();
 	}
 
 	/** Returns a reference to the ROI at the specified index. */
@@ -2998,7 +3054,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	public String getName(int index) {
 
 		if(index >= 0 && index < getCount())
-			return list.getItem(index).getText();
+			return itemText(index);
 		else
 			return null;
 	}
@@ -3032,7 +3088,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 		int i = (int)Tools.parseDouble(index, -1);
 		RoiManager instance = getInstance2();
 		if(instance != null && i >= 0 && i < instance.getCount())
-			return instance.list.getItem(i).getText();
+			return instance.itemText(i);
 		else
 			return "null";
 	}
@@ -3057,7 +3113,10 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 			}
 			add(shift, alt);
 			if(IJ.isJava18() && IJ.isMacOSX())
-				shell.redraw();
+				ui(() -> {
+					if(!shell.isDisposed())
+						shell.redraw();
+				});
 		} else if(cmd.equals("add & draw"))
 			addAndDraw(false);
 		else if(cmd.equals("update"))
@@ -3564,7 +3623,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 
 				int[] indexes = getSelectedIndexes();
 				if(indexes.length == 1 && list.getItemCount() > 0) {
-					String label = list.getItem(indexes[0]).getText();
+					String label = itemText(indexes[0]);
 					if(label.equals(roi.getName())) {
 						deselect();
 						shell.redraw();
@@ -3762,7 +3821,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	/** Returns 'true' if the index is valid and the indexed ROI is selected. */
 	public boolean isSelected(int index) {
 
-		return index >= 0 && index < list.getItemCount() && list.isSelected(index);
+		return ui(() -> index >= 0 && index < list.getItemCount() && list.isSelected(index));
 	}
 
 	private Overlay newOverlay() {
@@ -3935,7 +3994,7 @@ public class RoiManager extends PlugInFrame implements MouseListener, MouseWheel
 	@Override
 	public String toString() {
 
-		return "RoiManager[size=" + getCount() + ", visible=" + shell.isVisible() + "]";
+		return "RoiManager[size=" + getCount() + ", visible=" + ui(() -> !shell.isDisposed() && shell.isVisible()) + "]";
 	}
 
 	@Override
