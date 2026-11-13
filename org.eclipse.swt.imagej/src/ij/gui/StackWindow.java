@@ -53,6 +53,8 @@ public class StackWindow extends ImageWindow
 	/* The button which starts and stops the animation (with a play or pause icon)! */
 	private Button animationButton;
 	private Image playImage, pauseImage;
+	/* The color of the icons (the text color of the button, e.g., set later by the CSS of a theme) */
+	private RGB iconColor;
 	/* The buttons of the sliders (c, z, t), all with the same size! */
 	private final java.util.List<Button> sliderButtons = new java.util.ArrayList<Button>();
 
@@ -625,6 +627,15 @@ public class StackWindow extends ImageWindow
 				pauseImage.dispose();
 			playImage = pauseImage = null;
 		});
+		/*
+		 * The icons have the text color of the button: a theme (CSS) sets the colors
+		 * after the creation of the button (e.g., a light text in a dark theme), then
+		 * the icons are created again
+		 */
+		b.addListener(SWT.Paint, _ -> {
+			if (!b.isDisposed() && iconColor != null && !iconColor.equals(b.getForeground().getRGB()))
+				b.getDisplay().asyncExec(this::updateAnimationButton);
+		});
 		updateAnimationButton();
 	}
 
@@ -632,10 +643,17 @@ public class StackWindow extends ImageWindow
 
 		if (animationButton == null || animationButton.isDisposed())
 			return;
-		if (playImage == null) {
-			RGB color = animationButton.getForeground().getRGB();
+		RGB color = animationButton.getForeground().getRGB();
+		if (playImage == null || !color.equals(iconColor)) {
+			Image oldPlay = playImage, oldPause = pauseImage;
+			iconColor = color;
 			playImage = new Image(animationButton.getDisplay(), animationIcon(false, color));
 			pauseImage = new Image(animationButton.getDisplay(), animationIcon(true, color));
+			animationButton.setImage(running2 ? pauseImage : playImage);
+			if (oldPlay != null)
+				oldPlay.dispose();
+			if (oldPause != null)
+				oldPause.dispose();
 		}
 		animationButton.setImage(running2 ? pauseImage : playImage);
 	}
