@@ -100,6 +100,12 @@ public class PluginInstaller implements PlugIn {
 			if (name2==null)
 				return false;
 			dir = sd.getDirectory();
+		} else if (isURL) {
+			// Tools and library jars skip the SaveDialog; never write downloaded
+			// code into the plugins folder without an explicit confirmation.
+			String msg = "Install \""+name+"\" downloaded from\n \n  "+path+"\n \ninto\n \n  "+dir+"\n \n?";
+			if (!IJ.showMessageWithCancel("Plugin Installer", msg))
+				return false;
 		}
 		//IJ.log(dir+"   "+Menus.getPlugInsPath());
 		if (!savePlugin(new File(dir,name), data))
@@ -107,7 +113,7 @@ public class PluginInstaller implements PlugIn {
 		if (name.endsWith(".java"))
 			IJ.runPlugIn("ij.plugin.Compiler", dir+name);
 		Menus.updateImageJMenus();
-		if (isTool) {
+		if (isTool && !isURL) { // do not auto-run a tool that arrived over the network
 			if (isMacro)
 				IJ.runPlugIn("ij.plugin.Macro_Runner", "Tools/"+name);
 			else if (name.endsWith(".class")) {
@@ -145,6 +151,7 @@ public class PluginInstaller implements PlugIn {
 			return null;
 		name = name.substring(0, index+4);
 		name = name.replaceAll(" ","_");
+		name = name.replaceAll("[^A-Za-z0-9_\\-]","_"); // plain file name, no path separators
 		name = name + ".ijm";
 		return name;
 	}

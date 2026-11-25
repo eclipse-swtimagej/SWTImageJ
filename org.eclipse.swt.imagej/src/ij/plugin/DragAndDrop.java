@@ -309,8 +309,23 @@ public class DragAndDrop
 	private void openURL(String url) {
 		if (IJ.debugMode)
 			IJ.log("DragAndDrop.openURL: " + url);
-		if (url != null)
-			IJ.open(url);
+		if (url == null)
+			return;
+		String lcUrl = url.toLowerCase();
+		if (lcUrl.endsWith(".jar") || lcUrl.endsWith(".class")) {
+			// Opener.open() hands .jar/.class URLs to the PluginInstaller, which
+			// saves the download into the plugins folder and runs *tool.class
+			// files without showing a dialog. A dropped link is authored by the
+			// page it was dragged from, so installing code from it has to be
+			// confirmed by the user first.
+			String msg = "The dropped link points to a plugin that will be downloaded,\n"
+				+ "installed in the plugins folder and may be run immediately:\n \n"
+				+ "    " + url + "\n \n"
+				+ "Only install plugins from sources you trust.";
+			if (!IJ.showMessageWithCancel("Install Plugin?", msg))
+				return;
+		}
+		IJ.open(url);
 	}
 
 	/**

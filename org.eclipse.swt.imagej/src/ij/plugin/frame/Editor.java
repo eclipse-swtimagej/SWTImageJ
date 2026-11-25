@@ -1094,6 +1094,8 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public void create(String name, String text) {
 
 		int cmdOrCtrl = IJ.isMacOSX() ? SWT.COMMAND : SWT.CTRL;
+		// Decide outside the UI runnable so the confirmation dialog below can block.
+		final boolean autoInstall = confirmAutoInstall(name, text);
 		Display.getDefault().syncExec(() -> {
 			ta.append(text);
 			if(IJ.isMacOSX())
@@ -1244,7 +1246,7 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 					}
 				}
 			}
-			if(text.startsWith("//@AutoInstall") && (name.endsWith(".ijm") || name.endsWith(".txt"))) {
+			if(autoInstall) {
 				boolean installInPluginsMenu = !name.contains("Tool.");
 				installMacros(text, installInPluginsMenu);
 				if(text.startsWith("//@AutoInstallAndHide"))
@@ -1285,6 +1287,49 @@ public class Editor extends PlugInFrame implements WindowSwt, SelectionListener,
 	public String getRejectMacrosMsg() {
 
 		return rejectMacrosMsg;
+	}
+
+	/**
+	 * Returns true if 'text' starts with "//@AutoInstall" and its macros should be
+	 * installed (and any "AutoRun" macro executed) right away. Files that live in
+	 * the ImageJ/macros directory (e.g. StartupMacros, the user's own tool sets)
+	 * are installed as before. Anything else (File>Open, drag and drop, the recent
+	 * files list, text URLs, the single-instance channel) is attacker-chosen data
+	 * as far as the Editor can tell, so the user must confirm first; on Cancel the
+	 * text is merely displayed.
+	 */
+	private boolean confirmAutoInstall(String name, String text) {
+
+		if(text == null || name == null)
+			return false;
+		if(!(text.startsWith("//@AutoInstall") && (name.endsWith(".ijm") || name.endsWith(".txt"))))
+			return false;
+		if(rejectMacrosMsg != null)
+			return true; // installMacros() shows the veto message itself
+		if(isInMacrosDirectory())
+			return true;
+		String msg = "\"" + name + "\" starts with \"//@AutoInstall\".\n \n"
+				+ "Opening it will install its macros and may immediately run an\n"
+				+ "\"AutoRun\" macro with your privileges (macros can execute\n"
+				+ "programs, read and write files, and download data).\n \n"
+				+ "Click OK to install the macros or Cancel to only display the text.";
+		return IJ.showMessageWithCancel("Install Macros?", msg);
+	}
+
+	/** Returns true if the file opened in this editor is located in the ImageJ/macros directory. */
+	private boolean isInMacrosDirectory() {
+
+		String macrosDir = Menus.getMacrosPath();
+		if(path == null || macrosDir == null)
+			return false;
+		try {
+			String dir = new File(macrosDir).getCanonicalPath();
+			if(!dir.endsWith(File.separator))
+				dir += File.separator;
+			return new File(path).getCanonicalPath().startsWith(dir);
+		} catch(IOException e) {
+			return false;
+		}
 	}
 
 	void installMacros(String text, boolean installInPluginsMenu) {
