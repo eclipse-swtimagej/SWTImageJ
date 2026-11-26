@@ -806,7 +806,30 @@ public class SWTGraphics2D extends Graphics2D {
 			polygons[i * 2] = xPoints[i];
 			polygons[(2 * i) + 1] = yPoints[i];
 		}
-		gc.drawPolygon(polygons);
+		if(useCosmeticPen(npoints)) {
+			int width = gc.getLineWidth();
+			gc.setLineWidth(0);
+			gc.drawPolygon(polygons);
+			gc.setLineWidth(width);
+		} else
+			gc.drawPolygon(polygons);
+	}
+
+	/*
+	 * Outlines with many vertices and a solid 1-pixel stroke are drawn with a
+	 * cosmetic pen (line width 0: always one pixel). A line width of 1 is a
+	 * geometric pen on Windows (GDI ExtCreatePen) which is widened with joins and
+	 * caps: the time grows quadratically with the number of vertices (measured: 2000
+	 * vertices 26 ms, 20000 vertices 4.9 s, cosmetic 1 ms). A particle analysis of a
+	 * noisy image (e.g., 21000 outlines, some with very many vertices, shown with
+	 * "Show All") painted for minutes and blocked the user interface. Small outlines
+	 * keep the geometric pen (the same look on HiDPI displays).
+	 */
+	private static final int COSMETIC_MIN_POINTS = 256;
+
+	private boolean useCosmeticPen(int npoints) {
+
+		return npoints >= COSMETIC_MIN_POINTS && gc.getLineWidth() <= 1 && gc.getLineStyle() == SWT.LINE_SOLID;
 	}
 
 	/**
@@ -831,7 +854,13 @@ public class SWTGraphics2D extends Graphics2D {
 				polylines[i * 2] = xPoints[i];
 				polylines[(2 * i) + 1] = yPoints[i];
 			}
-			gc.drawPolyline(polylines);
+			if(useCosmeticPen(npoints)) {
+				int width = gc.getLineWidth();
+				gc.setLineWidth(0);
+				gc.drawPolyline(polylines);
+				gc.setLineWidth(width);
+			} else
+				gc.drawPolyline(polylines);
 		}
 	}
 

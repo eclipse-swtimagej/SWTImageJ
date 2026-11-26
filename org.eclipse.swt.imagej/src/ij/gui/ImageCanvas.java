@@ -424,38 +424,60 @@ public class ImageCanvas extends Canvas implements MouseListener, MouseWheelList
 		return g;
 	}
 
-	/* For SWT compatibility! */
-	public void repaint() {
+	/*
+	 * At most one full redraw is queued (asyncExec) at a time. Without it every
+	 * repaint request queued its own redraw, and each one painted the whole canvas:
+	 * e.g., the particle analysis adds each particle to the ROI Manager with "Show
+	 * All" (updateShowAll > imp.draw > repaint), so n particles gave n paints of up
+	 * to n ROIs with labels (minutes for many particles). A syncExec of another
+	 * thread waited behind all of them. A request while a redraw is queued is
+	 * covered by it: the redraw paints the current state. The flag is cleared
+	 * before the redraw, so a later change gets a new one.
+	 */
+	private final AtomicBoolean fullRedrawQueued = new AtomicBoolean(false);
 
+	private void queueFullRedraw() {
+
+		if(!fullRedrawQueued.compareAndSet(false, true))
+			return;
 		Display.getDefault().asyncExec(() -> {
-			if(ImageCanvas.this.isDisposed() == false)
-				redraw();
-		});
-	}
-
-	/* For SWT compatibility! */
-	public void repaint(int x, int y, int width, int height) {
-
-		Display.getDefault().asyncExec(() -> {
-			if(ImageCanvas.this.isDisposed() == false)
-				redraw(x, y, width, height, false);
-		});
-	}
-
-	public void redraw() {
-
-		Display.getDefault().asyncExec(() -> {
+			fullRedrawQueued.set(false);
 			if(ImageCanvas.this.isDisposed() == false)
 				super.redraw();
 		});
 	}
 
-	public void redraw(int x, int y, int width, int height) {
+	/* A region: not needed if a full redraw is queued anyway */
+	private void queueRegionRedraw(int x, int y, int width, int height) {
 
+		if(fullRedrawQueued.get())
+			return;
 		Display.getDefault().asyncExec(() -> {
-			if(ImageCanvas.this.isDisposed() == false)
+			if(ImageCanvas.this.isDisposed() == false && !fullRedrawQueued.get())
 				super.redraw(x, y, width, height, false);
 		});
+	}
+
+	/* For SWT compatibility! */
+	public void repaint() {
+
+		queueFullRedraw();
+	}
+
+	/* For SWT compatibility! */
+	public void repaint(int x, int y, int width, int height) {
+
+		queueRegionRedraw(x, y, width, height);
+	}
+
+	public void redraw() {
+
+		queueFullRedraw();
+	}
+
+	public void redraw(int x, int y, int width, int height) {
+
+		queueRegionRedraw(x, y, width, height);
 	}
 
 	/* Changed for SWT! */
